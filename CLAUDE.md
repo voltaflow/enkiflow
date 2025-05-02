@@ -33,19 +33,92 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 - Extraer lógica reutilizable a hooks personalizados
 - Seguir diseños responsivos para móviles
 
+## Estructura de Multi-Tenancy Implementada
+
+### Modelos Principales
+
+- **Space (Tenant)**: Representa un espacio/organización.
+  - Implementa interfaces de Tenant requeridas por Stancl Tenancy
+  - Gestiona suscripciones a través de Stripe Cashier
+  - Relaciones con usuarios y dominios
+
+- **Project**: Modelo específico del tenant para proyectos.
+  - Incluye métodos para cambio de estado (active, completed)
+  - Relaciones con tareas y etiquetas (tags)
+  - Scopes para filtrar por estado
+
+- **Task**: Modelo específico del tenant para tareas.
+  - Estados: pending, in_progress, completed
+  - Jerarquía: pertenece a un Project
+  - Relaciones con comentarios y etiquetas
+  - Métodos para cambios de estado
+
+- **Comment**: Modelo para comentarios en tareas.
+  - Pertenece a una Task y a un User
+  - Incluye funcionalidad de edición
+
+- **Tag**: Modelo para etiquetado de recursos.
+  - Implementa relaciones polimórficas
+  - Puede aplicarse a Projects y Tasks
+
+### Patrón Repositorio/Servicio Implementado
+
+#### Repositorios
+- **ProjectRepositoryInterface** y **TaskRepositoryInterface**
+  - Definen operaciones CRUD y métodos de consulta específicos
+  - Abstraen detalles de la implementación de Eloquent
+
+- **ProjectRepository** y **TaskRepository**
+  - Implementaciones concretas usando Eloquent
+  - Ejecutan consultas optimizadas con eager loading
+  - Implementan métodos específicos para filtrado
+
+#### Servicios
+- **ProjectService** y **TaskService**
+  - Encapsulan lógica de negocio
+  - Usan repositorios para acceso a datos
+  - Proporcionan una API clara para los controladores
+  - Manejan operaciones como cambios de estado y relaciones
+
+### Form Requests para Validación
+
+- **StoreProjectRequest**, **UpdateProjectRequest**
+- **StoreTaskRequest**, **UpdateTaskRequest**
+  - Implementan reglas de validación
+  - Autorizan operaciones basadas en relaciones de usuario
+  - Preparan datos antes de la validación
+
+### Controladores
+
+- **ProjectController** y **TaskController**
+  - Controladores delgados que delegan a servicios
+  - Implementan respuestas de API consistentes
+  - Usan patrón de Resource Controller
+  - Integran con Inertia.js para respuestas
+
+### Tests
+
+- **Unitarios**: Para modelos, repositorios y servicios
+- **Feature**: Para controladores y endpoints
+- **TenancyTestCase**: Base personalizada para tests en entorno multi-tenant
+
 ## Buenas Prácticas Laravel
 
 ### Estructura de Aplicación
 
 - **Patrón Repositorio/Servicio**: Usar repositorios para abstraer el acceso a datos y servicios para encapsular la lógica de negocio.
   ```php
-  class ArticleService
+  class TaskService
   {
-      public function handleUploadedImage($image)
+      public function __construct(
+          protected TaskRepositoryInterface $taskRepository
+      ) {}
+      
+      public function markTaskAsCompleted(int $id): Task
       {
-          if (!is_null($image)) {
-              $image->move(public_path('images') . 'temp');
-          }
+          $task = $this->taskRepository->find($id);
+          $task->markAsCompleted();
+          return $task;
       }
   }
   ```
@@ -53,31 +126,45 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 - **Single Responsibility Principle**: Cada clase debe tener una única responsabilidad.
   ```php
   // Controlador ligero que delega a servicios
-  public function update(UpdateRequest $request)
+  public function update(UpdateTaskRequest $request, Task $task)
   {
-      $this->logService->logEvents($request->events);
-      $this->articleService->updateArticle($request->validated());
-      return back()->with('success', 'Actualizado correctamente');
+      $validated = $request->validated();
+      
+      $this->taskService->updateTask($task->id, $validated);
+      
+      if ($request->has('tags')) {
+          $this->taskService->syncTags($task->id, $request->tags);
+      }
+      
+      return redirect()->route('tasks.show', $task)
+          ->with('success', 'Task updated successfully.');
   }
   ```
 
 - **Modelos Eloquent robustos**: Aprovechar scopes locales y métodos de consulta.
   ```php
-  // En el modelo
-  public function scopeActive($query)
+  // En el modelo Task
+  public function scopePending($query)
   {
-      return $query->where('status', 'active');
+      return $query->where('status', 'pending');
   }
   
-  // En vez de repetir la condición en diferentes lugares
-  Project::active()->get();
+  public function scopeInProgress($query)
+  {
+      return $query->where('status', 'in_progress');
+  }
+  
+  // Uso en repositorio
+  public function pending(): Collection
+  {
+      return Task::pending()->get();
+  }
   ```
 
 - **Inyección de Dependencias**: Usar el contenedor IoC de Laravel para gestionar dependencias.
   ```php
   public function __construct(
-      protected ProjectRepository $projects,
-      protected TimeService $timeService
+      protected ProjectRepositoryInterface $projectRepository
   ) {}
   ```
 
@@ -85,14 +172,8 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 
 - **Eager Loading**: Siempre usar Eager Loading para evitar problemas N+1.
   ```php
-  // Malo - genera consultas N+1
-  $spaces = Space::all();
-  foreach ($spaces as $space) {
-      echo $space->owner->name; // Consulta adicional por cada iteración
-  }
-  
-  // Bueno - carga relaciones con antelación
-  $spaces = Space::with('owner')->get();
+  // En TaskController::show
+  $task->load(['project', 'user', 'comments.user', 'tags']);
   ```
 
 - **Chunking**: Procesar conjuntos grandes de datos en fragmentos.
@@ -116,20 +197,25 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 - **Mass Assignment**: Usar siempre `$fillable` o `$guarded` en los modelos.
   ```php
   protected $fillable = [
-      'name', 'description', 'user_id', 'status'
+      'title', 'description', 'project_id', 'user_id',
+      'status', 'priority', 'due_date', 'completed_at',
+      'settings',
   ];
   ```
 
 - **Validación**: Usar Form Requests para validación.
   ```php
-  class StoreProjectRequest extends FormRequest
+  class StoreTaskRequest extends FormRequest
   {
-      public function rules()
+      public function rules(): array
       {
           return [
-              'name' => 'required|max:255',
+              'title' => 'required|string|max:255',
               'description' => 'nullable|string',
-              'status' => 'required|in:active,pending,completed'
+              'project_id' => 'required|exists:projects,id',
+              'status' => 'required|in:pending,in_progress,completed',
+              'priority' => 'required|integer|min:0|max:5',
+              'due_date' => 'nullable|date',
           ];
       }
   }
@@ -148,19 +234,26 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 
 - **Middleware de Tenant**: Asegurar que las solicitudes tengan un tenant válido.
   ```php
-  // Middleware para asegurar tenant válido
-  if (!$tenant || !$tenant->isActive()) {
-      return response()->view('errors.invalid-tenant');
+  // En EnsureValidTenant middleware
+  public function handle(Request $request, Closure $next)
+  {
+      if (!tenant() || !tenant()->exists) {
+          return redirect()->route('spaces.index')
+              ->with('error', 'Espacio no válido o inactivo.');
+      }
+      
+      return $next($request);
   }
   ```
 
 - **Scope Global de Tenant**: Aplicar automáticamente el scope de tenant a consultas.
   ```php
-  // En el modelo tenant
+  // En el modelo tenant Project
   protected static function booted()
   {
       static::addGlobalScope('tenant', function (Builder $builder) {
-          $builder->where('tenant_id', tenant('id'));
+          // Stancl Tenancy maneja esto automáticamente 
+          // al usar la base de datos del tenant
       });
   }
   ```
@@ -169,15 +262,19 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 
 - **Prop Types**: Definir siempre tipos para las props de Inertia.
   ```typescript
-  interface Project {
+  interface Task {
     id: number;
-    name: string;
+    title: string;
     description: string | null;
-    status: 'active' | 'pending' | 'completed';
+    project_id: number;
+    status: 'pending' | 'in_progress' | 'completed';
+    priority: number;
+    due_date: string | null;
   }
   
   interface Props {
-    projects: Project[];
+    task: Task;
+    project: Project;
   }
   ```
 
@@ -193,10 +290,10 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
                   'name' => $request->user()->name,
               ] : null,
           ],
-          'flash' => [
-              'message' => session('message'),
-              'error' => session('error'),
-          ],
+          'tenant' => tenant() ? [
+              'id' => tenant()->id,
+              'name' => tenant()->name,
+          ] : null,
       ]);
   }
   ```
