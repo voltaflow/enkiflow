@@ -7,13 +7,11 @@ use App\Models\Tag;
 use App\Models\User;
 use App\Repositories\Interfaces\ProjectRepositoryInterface;
 use App\Services\ProjectService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use Tests\TestCase;
 
 class ProjectServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected ProjectRepositoryInterface $mockRepository;
     protected ProjectService $service;

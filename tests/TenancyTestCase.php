@@ -33,6 +33,27 @@ abstract class TenancyTestCase extends TestCase
         
         // Configure the application to use the test database for tenant connections
         config(['database.connections.tenant.database' => env('DB_DATABASE', 'testing')]);
+        
+        // Begin a transaction at the database level
+        $this->beginDatabaseTransaction();
+    }
+    
+    /**
+     * Begin a database transaction.
+     */
+    protected function beginDatabaseTransaction()
+    {
+        $database = $this->app->make('db');
+        
+        foreach (['sqlite', 'testing', 'tenant'] as $connection) {
+            $database->connection($connection)->beginTransaction();
+        }
+        
+        $this->beforeApplicationDestroyed(function () use ($database) {
+            foreach (['sqlite', 'testing', 'tenant'] as $connection) {
+                $database->connection($connection)->rollBack();
+            }
+        });
     }
 
     /**

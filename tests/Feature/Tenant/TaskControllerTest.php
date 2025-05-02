@@ -19,10 +19,13 @@ class TaskControllerTest extends TenancyTestCase
     {
         parent::setUp();
         
+        // Initialize a tenant for testing
+        $tenant = $this->initializeTenant();
+        
         // Create a user
         $this->user = User::factory()->create();
         
-        // Create a project
+        // Create a project within the tenant
         $this->project = Project::factory()->create([
             'user_id' => $this->user->id,
         ]);
