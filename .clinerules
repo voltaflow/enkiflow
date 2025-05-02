@@ -1,0 +1,76 @@
+No00_PROJECT_OVERVIEW
+- Laravel + React TypeScript SaaS application
+- Multi-tenancy architecture with spaces as tenants
+- Inertia.js for server-side rendering
+- Stripe integration for subscriptions
+
+10_ARCHITECTURE
+- Central app manages users, spaces, and subscriptions
+- Each space has isolated database and domains
+- Uses Stancl Tenancy package
+- Laravel backend with React TypeScript frontend
+- Shadcn/UI component library
+
+20_PHP_STANDARDS
+- Follow PSR-12 coding standards
+- Use strict typing with declare(strict_types=1)
+- Typehint methods and properties
+- Organize controllers in feature folders
+- Models use appropriate traits (HasFactory, SoftDeletes)
+- Leverage Laravel policies for authorization
+
+30_TYPESCRIPT_STANDARDS
+- Use TypeScript for all frontend code
+- React functional components with hooks
+- Explicit type definitions for props and state
+- Custom hooks for reusable logic
+- Component organization by feature or UI element
+- Follow ESLint configuration
+
+40_DATABASE_PRACTICES
+- Central database for authentication and spaces
+- Tenant databases for space-specific data
+- Migrations follow tenant/central separation
+- Models define relationships clearly
+- Use appropriate indexes for performance
+- Soft deletes for data preservation
+
+50_UI_COMPONENT_STANDARDS
+- PascalCase for component names
+- Consistent prop naming conventions
+- Reuse UI components from ui/ directory
+- Mobile-responsive design
+- Use appearance system for theming
+- Extract reusable components
+
+60_TESTING_STANDARDS
+- Unit tests for models and services
+- Feature tests for HTTP endpoints
+- Test tenant features separately
+- Mock external dependencies
+- Test React components appropriately
+- Verify authorization rules work correctly
+
+70_SECURITY_PRACTICES
+- Proper middleware for tenant validation
+- CSRF protection for forms
+- Input validation for all user data
+- Secure payment processing with Stripe
+- Use environment variables for secrets
+- Implement role-based access control
+
+80_DEVELOPMENT_WORKFLOW
+- Feature branches from main
+- Small, focused commits
+- Meaningful commit messages
+- Run tests before PR submission
+- Code review required for all changes
+- Document significant changes
+
+90_PERFORMANCE_OPTIMIZATION
+- Query optimization with eager loading
+- Proper database indexing
+- Tenant-aware caching
+- Frontend component memoization
+- Code splitting for JS bundles
+- Monitor performance metrics
