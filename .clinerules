@@ -1,4 +1,4 @@
-No00_PROJECT_OVERVIEW
+00_PROJECT_OVERVIEW
 - Laravel + React TypeScript SaaS application
 - Multi-tenancy architecture with spaces as tenants
 - Inertia.js for server-side rendering
