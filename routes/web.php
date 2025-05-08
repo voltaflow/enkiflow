@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\SpaceSetupController;
 use App\Http\Controllers\SpaceSubscriptionController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Foundation\Application;
@@ -19,8 +20,40 @@ use Inertia\Inertia;
 |
 */
 
+// Handle tenancy not being initialized
+if (!function_exists('tenant') || request()->getHost() === 'enkiflow.test') {
+    // Create a special case for enkiflow.test
+    if (request()->getHost() === 'enkiflow.test') {
+        \Log::info("Handling enkiflow.test as a special case in web.php");
+        
+        try {
+            // Try to manually initialize tenancy
+            $domain = \Stancl\Tenancy\Database\Models\Domain::where('domain', 'enkiflow.test')->first();
+            
+            if ($domain) {
+                $tenant = \App\Models\Space::find($domain->tenant_id);
+                
+                if ($tenant) {
+                    \Log::info("Manual tenant initialization for enkiflow.test to tenant {$tenant->id}");
+                    tenancy()->initialize($tenant);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error("Failed to manually initialize tenancy: " . $e->getMessage());
+        }
+    }
+}
+
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    if (auth()->check()) {
+        if (auth()->user()->spaces()->count() > 0) {
+            return redirect()->route('spaces.index');
+        }
+        
+        return redirect()->route('spaces.create');
+    }
+    
+    return Inertia::render('welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
@@ -29,7 +62,60 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    // Get task statistics
+    $pendingTasks = \App\Models\Task::where('status', 'pending')->count();
+    $inProgressTasks = \App\Models\Task::where('status', 'in_progress')->count();
+    $completedTasks = \App\Models\Task::where('status', 'completed')->count();
+    $totalTasks = $pendingTasks + $inProgressTasks + $completedTasks;
+    
+    // Get project statistics
+    $pendingProjects = \App\Models\Project::where('status', 'active')->count();
+    $completedProjects = \App\Models\Project::where('status', 'completed')->count();
+    $totalProjects = $pendingProjects + $completedProjects;
+    
+    // Get recent tasks
+    $recentTasks = \App\Models\Task::with(['project'])
+        ->orderBy('created_at', 'desc')
+        ->take(5)
+        ->get()
+        ->map(function ($task) {
+            return [
+                'id' => $task->id,
+                'title' => $task->title,
+                'status' => $task->status,
+                'due_date' => $task->due_date,
+                'priority' => $task->priority,
+            ];
+        });
+    
+    // Get overdue tasks
+    $overdueTasks = \App\Models\Task::with(['project'])
+        ->where('status', '!=', 'completed')
+        ->where('due_date', '<', now())
+        ->get()
+        ->map(function ($task) {
+            return [
+                'id' => $task->id,
+                'title' => $task->title,
+                'due_date' => $task->due_date,
+                'project_id' => $task->project_id,
+                'project_name' => $task->project->name,
+            ];
+        });
+    
+    return Inertia::render('dashboard', [
+        'stats' => [
+            'pending_tasks' => $pendingTasks,
+            'in_progress_tasks' => $inProgressTasks,
+            'completed_tasks' => $completedTasks,
+            'total_tasks' => $totalTasks,
+            'pending_projects' => $pendingProjects,
+            'completed_projects' => $completedProjects,
+            'total_projects' => $totalProjects,
+            'recent_tasks' => $recentTasks,
+            'overdue_tasks' => $overdueTasks,
+        ]
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Stripe Webhooks - exempt from CSRF protection
@@ -46,6 +132,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('spaces', SpaceController::class);
     Route::post('/spaces/{id}/invite', [SpaceController::class, 'invite'])->name('spaces.invite');
     Route::delete('/spaces/{spaceId}/users/{userId}', [SpaceController::class, 'removeUser'])->name('spaces.users.destroy');
+    
+    // Space Setup Wizard Routes
+    Route::prefix('spaces/setup')->name('spaces.setup.')->group(function () {
+        Route::get('/', [SpaceSetupController::class, 'index'])->name('index');
+        Route::get('/details', [SpaceSetupController::class, 'details'])->name('details');
+        Route::post('/invite-members', [SpaceSetupController::class, 'inviteMembers'])->name('invite-members');
+        Route::post('/confirm', [SpaceSetupController::class, 'confirm'])->name('confirm');
+        Route::post('/store', [SpaceSetupController::class, 'store'])->name('store');
+    });
 
     // Space Subscription Routes
     Route::get('/spaces/{spaceId}/subscriptions/create', [SpaceSubscriptionController::class, 'create'])->name('spaces.subscriptions.create');
@@ -60,3 +155,4 @@ Route::middleware('auth')->group(function () {
 
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
+require __DIR__.'/tenant.php';

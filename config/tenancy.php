@@ -6,7 +6,7 @@ use Stancl\Tenancy\Database\Models\Domain;
 use Stancl\Tenancy\Database\Models\Tenant;
 
 return [
-    'tenant_model' => Tenant::class,
+    'tenant_model' => \App\Models\Space::class,
     'id_generator' => Stancl\Tenancy\UUIDGenerator::class,
 
     'domain_model' => Domain::class,
@@ -34,6 +34,14 @@ return [
         Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
     ],
+    
+    /**
+     * Configuración de identificación de subdominio
+     * Si se establece, se utilizará este dominio para extraer el subdominio.
+     * Por ejemplo, si la ruta es tenant.subdomain.domain.com y domain_base = domain.com
+     * entonces tenancy identificará 'tenant' como el subdominio.
+     */
+    'domain_base' => null, // Por ejemplo: 'enkiflow.test'
 
     /**
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.

@@ -7,6 +7,7 @@ use App\Http\Requests\Tenant\StoreProjectRequest;
 use App\Http\Requests\Tenant\UpdateProjectRequest;
 use App\Models\Project;
 use App\Services\ProjectService;
+use App\Traits\HasSpacePermissions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,8 @@ use Inertia\Response;
 
 class ProjectController extends Controller
 {
+    use HasSpacePermissions;
+
     /**
      * The project service instance.
      *
@@ -30,7 +33,9 @@ class ProjectController extends Controller
     public function __construct(ProjectService $projectService)
     {
         $this->projectService = $projectService;
+        $this->authorizeResource(Project::class, 'project');
     }
+    
     /**
      * Display a listing of the resource.
      */
@@ -58,6 +63,11 @@ class ProjectController extends Controller
     {
         $validated = $request->validated();
         
+        // Add the current user as the project owner if not specified
+        if (!isset($validated['user_id'])) {
+            $validated['user_id'] = Auth::id();
+        }
+        
         $project = $this->projectService->createProject($validated);
         
         if ($request->has('tags')) {
@@ -65,7 +75,7 @@ class ProjectController extends Controller
         }
 
         return redirect()->route('tenant.projects.show', $project->id)
-            ->with('success', 'Project created successfully.');
+            ->with('success', 'Proyecto creado correctamente.');
     }
 
     /**
@@ -75,9 +85,14 @@ class ProjectController extends Controller
     {
         $project->load('user:id,name,email', 'tags', 'tasks');
 
+        $currentUser = Auth::user();
+        
         return Inertia::render('Tenant/Projects/Show', [
             'project' => $project,
-            'is_owner' => Auth::id() === $project->user_id,
+            'is_owner' => $currentUser->id === $project->user_id,
+            'can_edit' => $currentUser->can('update', $project),
+            'can_delete' => $currentUser->can('delete', $project),
+            'can_complete' => $currentUser->can('complete', $project),
         ]);
     }
 
@@ -86,11 +101,6 @@ class ProjectController extends Controller
      */
     public function edit(Project $project): Response
     {
-        // Only the project owner can edit it
-        if (Auth::id() !== $project->user_id) {
-            abort(403, 'You do not have permission to edit this project.');
-        }
-
         $project->load('tags');
 
         return Inertia::render('Tenant/Projects/Edit', [
@@ -112,7 +122,7 @@ class ProjectController extends Controller
         }
 
         return redirect()->route('tenant.projects.show', $project->id)
-            ->with('success', 'Project updated successfully.');
+            ->with('success', 'Proyecto actualizado correctamente.');
     }
 
     /**
@@ -120,15 +130,10 @@ class ProjectController extends Controller
      */
     public function destroy(Project $project): RedirectResponse
     {
-        // Only the project owner can delete it
-        if (Auth::id() !== $project->user_id) {
-            abort(403, 'You do not have permission to delete this project.');
-        }
-
         $this->projectService->deleteProject($project->id);
 
         return redirect()->route('tenant.projects.index')
-            ->with('success', 'Project deleted successfully.');
+            ->with('success', 'Proyecto eliminado correctamente.');
     }
 
     /**
@@ -136,14 +141,11 @@ class ProjectController extends Controller
      */
     public function complete(Project $project): RedirectResponse
     {
-        // Only the project owner can mark it as completed
-        if (Auth::id() !== $project->user_id) {
-            abort(403, 'You do not have permission to modify this project.');
-        }
+        $this->authorize('complete', $project);
 
         $this->projectService->markProjectAsCompleted($project->id);
 
-        return back()->with('success', 'Project marked as completed.');
+        return back()->with('success', 'Proyecto marcado como completado.');
     }
 
     /**
@@ -151,13 +153,10 @@ class ProjectController extends Controller
      */
     public function reactivate(Project $project): RedirectResponse
     {
-        // Only the project owner can mark it as active
-        if (Auth::id() !== $project->user_id) {
-            abort(403, 'You do not have permission to modify this project.');
-        }
+        $this->authorize('complete', $project);
 
         $this->projectService->markProjectAsActive($project->id);
 
-        return back()->with('success', 'Project reactivated.');
+        return back()->with('success', 'Proyecto reactivado correctamente.');
     }
 }

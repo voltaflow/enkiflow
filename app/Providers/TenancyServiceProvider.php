@@ -98,6 +98,10 @@ class TenancyServiceProvider extends ServiceProvider
     {
         // Register the Space model as the tenant model
         $this->app->bind(\Stancl\Tenancy\Contracts\Tenant::class, Space::class);
+        
+        // Configure the package tenant model to use our custom Space model
+        // This is important for working with domains() and other Stancl Tenancy features
+        config(['tenancy.tenant_model' => Space::class]);
     }
 
     public function boot()
@@ -109,6 +113,14 @@ class TenancyServiceProvider extends ServiceProvider
         
         // Register custom middleware to check tenant validity (subscription status, etc.)
         $this->app['router']->aliasMiddleware('valid-tenant', EnsureValidTenant::class);
+        $this->app['router']->aliasMiddleware('tenant.access', \App\Http\Middleware\EnsureUserHasTenantAccess::class);
+        
+        // Ensure our Space model works correctly with domains
+        \App\Models\Space::$domainModel = \Stancl\Tenancy\Database\Models\Domain::class;
+        
+        // El DomainTenantResolver requiere una instancia de Illuminate\Contracts\Cache\Factory como primer argumento,
+        // no un modelo de Space como intentamos hacer antes.
+        // Este resolver está correctamente configurado por el paquete Stancl Tenancy.
     }
 
     protected function bootEvents()
@@ -141,18 +153,22 @@ class TenancyServiceProvider extends ServiceProvider
             // Even higher priority than the initialization middleware
             Middleware\PreventAccessFromCentralDomains::class,
             
-            // Our custom middleware
-            EnsureValidTenant::class,
-
-            Middleware\InitializeTenancyByDomain::class,
+            // Tenancy initialization middleware - reordenados para dar prioridad a subdominios
+            Middleware\InitializeTenancyByDomainOrSubdomain::class, // Primero este para soportar ambos casos
             Middleware\InitializeTenancyBySubdomain::class,
-            Middleware\InitializeTenancyByDomainOrSubdomain::class,
+            Middleware\InitializeTenancyByDomain::class,
             Middleware\InitializeTenancyByPath::class,
             Middleware\InitializeTenancyByRequestData::class,
+            
+            // Our custom middleware (after tenancy is initialized)
+            EnsureValidTenant::class,
         ];
 
         foreach (array_reverse($tenancyMiddleware) as $middleware) {
-            $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
+            // Ensure the middleware exists in Laravel's container before trying to prepend it
+            if (class_exists($middleware)) {
+                $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
+            }
         }
     }
 }
