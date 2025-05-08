@@ -13,6 +13,49 @@ use Stancl\Tenancy\Database\Concerns\HasDomains;
 class Space extends BaseTenant implements TenantWithDatabase
 {
     use HasFactory, HasDatabase, HasDomains;
+    
+    // Set the domain model to use (needs to be public static)
+    public static $domainModel = \Stancl\Tenancy\Database\Models\Domain::class;
+    
+    /**
+     * The table associated with the model.
+     */
+    protected $table = 'tenants';
+    
+    /**
+     * Get a tenant by domain name, supporting subdomains.
+     *
+     * @param string $domain
+     * @return self|null
+     */
+    public static function whereHasDomain($domain)
+    {
+        $segments = explode('.', $domain);
+        $subdomain = $segments[0] ?? null;
+        
+        if ($subdomain) {
+            \Log::info("Buscando tenant para subdominio: {$subdomain}");
+            
+            // Buscar primero por dominio exacto
+            $tenant = static::whereHas('domains', function ($query) use ($domain) {
+                $query->where('domain', $domain);
+            })->first();
+            
+            if ($tenant) {
+                return $tenant;
+            }
+            
+            // Si no se encuentra, buscar por subdominio
+            return static::whereHas('domains', function ($query) use ($subdomain) {
+                $query->where('domain', $subdomain);
+            })->first();
+        }
+        
+        // Fallback a la búsqueda normal por dominio completo
+        return static::whereHas('domains', function ($query) use ($domain) {
+            $query->where('domain', $domain);
+        })->first();
+    }
 
     /**
      * The attributes that are mass assignable.
