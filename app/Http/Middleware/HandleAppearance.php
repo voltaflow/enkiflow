@@ -16,6 +16,7 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Simply share the appearance value using cookie or default to 'system'
         View::share('appearance', $request->cookie('appearance') ?? 'system');
 
         return $next($request);
