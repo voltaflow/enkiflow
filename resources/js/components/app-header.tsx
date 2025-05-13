@@ -129,6 +129,24 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             <Button variant="ghost" size="icon" className="group h-9 w-9 cursor-pointer">
                                 <Search className="!size-5 opacity-80 group-hover:opacity-100" />
                             </Button>
+                            
+                            {/* Language Selector */}
+                            <div className="mx-2 flex space-x-1">
+                                {page.props.locale && Object.entries(page.props.locale.available).map(([key, value]) => (
+                                    <a 
+                                        key={key}
+                                        href={`/set-locale/${key}`}
+                                        className={`px-2 py-1 text-xs rounded ${
+                                            page.props.locale.current === key 
+                                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                        }`}
+                                    >
+                                        {value as string}
+                                    </a>
+                                ))}
+                            </div>
+                            
                             <div className="hidden lg:flex">
                                 {rightNavItems.map((item) => (
                                     <TooltipProvider key={item.title} delayDuration={0}>
