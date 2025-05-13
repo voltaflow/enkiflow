@@ -20,21 +20,34 @@ use Inertia\Inertia;
 |
 */
 
-// Handle tenancy not being initialized
-if (!function_exists('tenant') || request()->getHost() === 'enkiflow.test') {
-    // Create a special case for enkiflow.test
-    if (request()->getHost() === 'enkiflow.test') {
-        \Log::info("Handling enkiflow.test as a special case in web.php");
-        
+// Special handling for main domains (enkiflow.test, enkiflow.com, www.enkiflow.com)
+$host = request()->getHost();
+$mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+
+// Cargar landing.php primero para dominios principales
+if (in_array($host, $mainDomains)) {
+    \Log::info("Loading landing page routes first for domain: {$host}");
+    require __DIR__.'/landing.php';
+}
+
+if (in_array($host, $mainDomains)) {
+    \Log::info("Detected main domain: {$host} - Bypassing tenancy initialization");
+    // For main domains, we don't need to initialize tenancy
+    // This allows us to show the landing page directly
+} else {
+    // Handle tenancy initialization for other domains
+    if (!function_exists('tenant')) {
+        \Log::info("Tenant function not available for host: {$host}");
+    } else {
         try {
             // Try to manually initialize tenancy
-            $domain = \Stancl\Tenancy\Database\Models\Domain::where('domain', 'enkiflow.test')->first();
-            
+            $domain = \Stancl\Tenancy\Database\Models\Domain::where('domain', $host)->first();
+
             if ($domain) {
                 $tenant = \App\Models\Space::find($domain->tenant_id);
-                
+
                 if ($tenant) {
-                    \Log::info("Manual tenant initialization for enkiflow.test to tenant {$tenant->id}");
+                    \Log::info("Manual tenant initialization for {$host} to tenant {$tenant->id}");
                     tenancy()->initialize($tenant);
                 }
             }
@@ -44,22 +57,28 @@ if (!function_exists('tenant') || request()->getHost() === 'enkiflow.test') {
     }
 }
 
+// Direct landing page route only for non-main domains (the main domains use landing.php routes)
 Route::get('/', function () {
+    $host = request()->getHost();
+    $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+
+    // For non-main domains, check authentication
     if (auth()->check()) {
         if (auth()->user()->spaces()->count() > 0) {
             return redirect()->route('spaces.index');
         }
-        
+
         return redirect()->route('spaces.create');
     }
-    
-    return Inertia::render('welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
+
+    // Default to showing the landing page for non-main domains
+    return view('landing.pages.home', [
+        'appearance' => session('appearance', 'system')
     ]);
-});
+})->name('home');
+
+// Locale switcher route from landing.php takes precedence for both main and subdomains
+Route::get('/set-locale/{locale}', [App\Http\Controllers\LandingController::class, 'setLocale'])->name('set-locale');
 
 Route::get('/dashboard', function () {
     // Get task statistics
@@ -156,3 +175,6 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/tenant.php';
+
+// Las rutas de landing ya se cargaron al inicio del archivo
+// para los dominios principales.

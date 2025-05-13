@@ -110,14 +110,24 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
 
         $this->makeTenancyMiddlewareHighestPriority();
-        
+
         // Register custom middleware to check tenant validity (subscription status, etc.)
         $this->app['router']->aliasMiddleware('valid-tenant', EnsureValidTenant::class);
         $this->app['router']->aliasMiddleware('tenant.access', \App\Http\Middleware\EnsureUserHasTenantAccess::class);
-        
+
         // Ensure our Space model works correctly with domains
         \App\Models\Space::$domainModel = \Stancl\Tenancy\Database\Models\Domain::class;
-        
+
+        // Personalizamos el comportamiento de PreventAccessFromCentralDomains
+        \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
+            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            if (in_array($request->getHost(), $mainDomains) && $request->getPathInfo() === '/') {
+                return $next($request); // Permitir acceso a la ruta raíz en dominios principales
+            }
+
+            return abort(404); // Comportamiento predeterminado para otras rutas
+        };
+
         // El DomainTenantResolver requiere una instancia de Illuminate\Contracts\Cache\Factory como primer argumento,
         // no un modelo de Space como intentamos hacer antes.
         // Este resolver está correctamente configurado por el paquete Stancl Tenancy.
@@ -152,14 +162,13 @@ class TenancyServiceProvider extends ServiceProvider
         $tenancyMiddleware = [
             // Even higher priority than the initialization middleware
             Middleware\PreventAccessFromCentralDomains::class,
-            
-            // Tenancy initialization middleware - reordenados para dar prioridad a subdominios
-            Middleware\InitializeTenancyByDomainOrSubdomain::class, // Primero este para soportar ambos casos
-            Middleware\InitializeTenancyBySubdomain::class,
+
+            // Tenancy initialization middleware - modificado para solo usar el middleware de dominio
+            // evitando los middleware de subdominio que pueden causar problemas
             Middleware\InitializeTenancyByDomain::class,
             Middleware\InitializeTenancyByPath::class,
             Middleware\InitializeTenancyByRequestData::class,
-            
+
             // Our custom middleware (after tenancy is initialized)
             EnsureValidTenant::class,
         ];

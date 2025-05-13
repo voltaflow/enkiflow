@@ -19,6 +19,9 @@ return [
     'central_domains' => [
         '127.0.0.1',
         'localhost',
+        'enkiflow.test',
+        'enkiflow.com',
+        'www.enkiflow.com',
     ],
 
     /**
@@ -41,7 +44,7 @@ return [
      * Por ejemplo, si la ruta es tenant.subdomain.domain.com y domain_base = domain.com
      * entonces tenancy identificará 'tenant' como el subdominio.
      */
-    'domain_base' => null, // Por ejemplo: 'enkiflow.test'
+    'domain_base' => 'enkiflow.test', // Configurado para el dominio principal
 
     /**
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
