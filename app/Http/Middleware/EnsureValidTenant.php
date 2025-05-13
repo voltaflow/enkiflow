@@ -23,8 +23,10 @@ class EnsureValidTenant
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip for central domains
-        if (in_array($request->getHost(), config('tenancy.central_domains'))) {
+        // Skip for central domains and main domains
+        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        if (in_array($request->getHost(), config('tenancy.central_domains')) ||
+            in_array($request->getHost(), $mainDomains)) {
             return $next($request);
         }
 
