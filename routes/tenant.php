@@ -23,7 +23,8 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
-    InitializeTenancyByDomainOrSubdomain::class, // Cambiado para soportar subdominios
+    'bypass-tenancy', // Apply our bypass check first
+    \App\Http\Middleware\CustomDomainTenancyInitializer::class, // Use our custom initializer
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     // Dashboard

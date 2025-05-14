@@ -17,10 +17,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <!-- Vite Assets (Styles and Scripts) -->
+    @vite(['resources/css/app.css'])
     
-    <!-- Scripts -->
+    <!-- Landing Page Scripts -->
     <script src="{{ asset('js/landing/enhanced-timer.js') }}" defer></script>
     
     <style>
@@ -45,17 +45,17 @@
     <header class="py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center">
-                <a href="{{ route('landing.home') }}" class="flex items-center space-x-2">
+                <a href="/{{ App::getLocale() }}" class="flex items-center space-x-2">
                     <img src="{{ asset('logo.svg') }}" alt="EnkiFlow Logo" class="h-8 w-auto">
                     <span class="font-bold text-xl">EnkiFlow</span>
                 </a>
                 
                 <nav class="hidden md:flex space-x-6">
-                    <a href="{{ route('landing.home') }}" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Home</a>
-                    <a href="{{ route('landing.features') }}" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Features</a>
-                    <a href="{{ route('landing.pricing') }}" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Pricing</a>
-                    <a href="{{ route('landing.about') }}" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">About</a>
-                    <a href="{{ route('landing.contact') }}" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Contact</a>
+                    <a href="/{{ App::getLocale() }}" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Home</a>
+                    <a href="/{{ App::getLocale() }}/features" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Features</a>
+                    <a href="/{{ App::getLocale() }}/pricing" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Pricing</a>
+                    <a href="/{{ App::getLocale() }}/about" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">About</a>
+                    <a href="/{{ App::getLocale() }}/contact" class="text-gray-800 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400">Contact</a>
                 </nav>
                 
                 <div class="flex items-center space-x-3">
@@ -85,8 +85,8 @@
                 <div>
                     <h3 class="font-semibold mb-4">Product</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Features</a></li>
-                        <li><a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Pricing</a></li>
+                        <li><a href="/{{ App::getLocale() }}/features" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Features</a></li>
+                        <li><a href="/{{ App::getLocale() }}/pricing" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Pricing</a></li>
                         <li><a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Integrations</a></li>
                     </ul>
                 </div>
@@ -103,9 +103,9 @@
                 <div>
                     <h3 class="font-semibold mb-4">Company</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">About</a></li>
+                        <li><a href="/{{ App::getLocale() }}/about" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">About</a></li>
                         <li><a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Careers</a></li>
-                        <li><a href="#" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Contact</a></li>
+                        <li><a href="/{{ App::getLocale() }}/contact" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">Contact</a></li>
                     </ul>
                 </div>
             </div>

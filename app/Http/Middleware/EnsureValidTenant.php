@@ -27,7 +27,14 @@ class EnsureValidTenant
         $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
         if (in_array($request->getHost(), config('tenancy.central_domains')) ||
             in_array($request->getHost(), $mainDomains)) {
+            \Log::info("EnsureValidTenant: Skipping tenant validation for main domain: " . $request->getHost());
             return $next($request);
+        }
+        
+        // Check if tenancy is initialized
+        if (!function_exists('tenant') || !tenant()) {
+            \Log::warning("EnsureValidTenant: Tenant not initialized for: " . $request->getHost());
+            // Continue anyway - tenancy should get initialized by our routing middleware
         }
 
         try {
