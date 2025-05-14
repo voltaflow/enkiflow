@@ -22,7 +22,7 @@
                         <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <div class="ml-4 text-sm text-gray-500 dark:text-gray-400 font-medium">EnkiFlow Timer</div>
+                        <div class="ml-4 text-sm text-gray-500 dark:text-gray-400 font-medium">{{ __('landing.enkiflow_timer') }}</div>
                     </div>
                     
                     <div class="p-8">
@@ -67,15 +67,15 @@
                         <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
                         <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
                         <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <div class="ml-4 text-sm text-gray-500 dark:text-gray-400 font-medium">App Activity</div>
+                        <div class="ml-4 text-sm text-gray-500 dark:text-gray-400 font-medium">{{ __('landing.app_activity') }}</div>
                     </div>
                     
                     <div class="p-4">
-                        <h3 class="font-medium text-gray-900 dark:text-white mb-3">Current Day Activity</h3>
+                        <h3 class="font-medium text-gray-900 dark:text-white mb-3">{{ __('landing.current_day_activity') }}</h3>
                         
                         <!-- Time Distribution Chart -->
                         <div class="mb-6">
-                            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">Time Usage by Category</div>
+                            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">{{ __('landing.time_usage_by_category') }}</div>
                             <div class="grid grid-cols-12 h-5 rounded-md overflow-hidden">
                                 <div class="bg-blue-500" style="grid-column: span 5;"></div>
                                 <div class="bg-green-500" style="grid-column: span 3;"></div>
@@ -86,30 +86,30 @@
                             <div class="flex flex-wrap mt-2 text-xs gap-x-3">
                                 <div class="flex items-center">
                                     <div class="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                                    <span class="text-gray-600 dark:text-gray-300">Development</span>
+                                    <span class="text-gray-600 dark:text-gray-300">{{ __('landing.development') }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                                    <span class="text-gray-600 dark:text-gray-300">Meetings</span>
+                                    <span class="text-gray-600 dark:text-gray-300">{{ __('landing.meetings') }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <div class="w-2 h-2 bg-purple-500 rounded-full mr-1"></div>
-                                    <span class="text-gray-600 dark:text-gray-300">Email</span>
+                                    <span class="text-gray-600 dark:text-gray-300">{{ __('landing.email') }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <div class="w-2 h-2 bg-yellow-500 rounded-full mr-1"></div>
-                                    <span class="text-gray-600 dark:text-gray-300">Research</span>
+                                    <span class="text-gray-600 dark:text-gray-300">{{ __('landing.research') }}</span>
                                 </div>
                                 <div class="flex items-center">
                                     <div class="w-2 h-2 bg-gray-400 rounded-full mr-1"></div>
-                                    <span class="text-gray-600 dark:text-gray-300">Other</span>
+                                    <span class="text-gray-600 dark:text-gray-300">{{ __('landing.other') }}</span>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Application Usage -->
                         <div>
-                            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">Most Used Applications</div>
+                            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">{{ __('landing.most_used_applications') }}</div>
                             <div class="space-y-3">
                                 <!-- VS Code -->
                                 <div class="flex items-center">
@@ -175,7 +175,7 @@
                         
                         <!-- Timeline Visualization -->
                         <div class="mt-6">
-                            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">Today's Timeline</div>
+                            <div class="mb-2 text-sm text-gray-500 dark:text-gray-400">{{ __('landing.todays_timeline') }}</div>
                             <div class="h-10 bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden flex">
                                 <div class="h-full bg-blue-500" style="width: 20%;"></div>
                                 <div class="h-full bg-green-500" style="width: 15%;"></div>

@@ -6,10 +6,10 @@
             <div class="max-w-4xl mx-auto">
                 <div class="text-center mb-16">
                     <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                        Contacta con nosotros
+                        {{ __('landing.contact_page_title') }}
                     </h1>
                     <p class="text-xl text-gray-600 dark:text-gray-300">
-                        Estamos aquí para ayudarte. Ponte en contacto con nuestro equipo.
+                        {{ __('landing.contact_page_description') }}
                     </p>
                 </div>
                 
@@ -19,62 +19,62 @@
                         <form>
                             <div class="mb-6">
                                 <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Nombre completo
+                                    {{ __('landing.full_name') }}
                                 </label>
                                 <input 
                                     type="text" 
                                     id="name" 
                                     name="name"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                    placeholder="Tu nombre"
+                                    placeholder="{{ __('landing.your_name') }}"
                                     required
                                 >
                             </div>
                             
                             <div class="mb-6">
                                 <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Email
+                                    {{ __('landing.email') }}
                                 </label>
                                 <input 
                                     type="email" 
                                     id="email" 
                                     name="email"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                    placeholder="tu@email.com"
+                                    placeholder="{{ __('landing.your_email') }}"
                                     required
                                 >
                             </div>
                             
                             <div class="mb-6">
                                 <label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Asunto
+                                    {{ __('landing.subject') }}
                                 </label>
                                 <input 
                                     type="text" 
                                     id="subject" 
                                     name="subject"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                    placeholder="¿En qué podemos ayudarte?"
+                                    placeholder="{{ __('landing.subject_placeholder') }}"
                                     required
                                 >
                             </div>
                             
                             <div class="mb-6">
                                 <label for="message" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Mensaje
+                                    {{ __('landing.message') }}
                                 </label>
                                 <textarea 
                                     id="message" 
                                     name="message"
                                     rows="5"
                                     class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                    placeholder="Escribe tu mensaje aquí..."
+                                    placeholder="{{ __('landing.message_placeholder') }}"
                                     required
                                 ></textarea>
                             </div>
                             
                             <button type="submit" class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                                Enviar mensaje
+                                {{ __('landing.send_message') }}
                             </button>
                         </form>
                     </div>
@@ -82,7 +82,7 @@
                     <!-- Contact Information -->
                     <div>
                         <div class="bg-gray-50 dark:bg-gray-800 p-8 rounded-xl">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Información de contacto</h2>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('landing.contact_information') }}</h2>
                             
                             <div class="space-y-6">
                                 <div class="flex items-start">
@@ -92,7 +92,7 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Email</h3>
+                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ __('landing.email') }}</h3>
                                         <p class="text-gray-600 dark:text-gray-300 mt-1">soporte@enkiflow.com</p>
                                     </div>
                                 </div>
@@ -104,7 +104,7 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Teléfono</h3>
+                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ __('landing.phone') }}</h3>
                                         <p class="text-gray-600 dark:text-gray-300 mt-1">+52 (55) 1234-5678</p>
                                     </div>
                                 </div>
@@ -117,7 +117,7 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Dirección</h3>
+                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ __('landing.address') }}</h3>
                                         <p class="text-gray-600 dark:text-gray-300 mt-1">
                                             Av. Reforma 123<br>
                                             Col. Juárez<br>
@@ -128,7 +128,7 @@
                             </div>
                             
                             <div class="mt-8">
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Síguenos</h3>
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ __('landing.follow_us') }}</h3>
                                 <div class="flex space-x-4">
                                     <a href="#" class="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-blue-500 hover:text-white transition-colors">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">

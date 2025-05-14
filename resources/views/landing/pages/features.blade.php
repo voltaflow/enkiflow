@@ -5,10 +5,10 @@
         <div class="container mx-auto px-4">
             <div class="max-w-4xl mx-auto text-center mb-16">
                 <h1 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                    Características de EnkiFlow
+                    {{ __('landing.features_page_title') }}
                 </h1>
                 <p class="text-xl text-gray-600 dark:text-gray-300">
-                    Descubre todas las herramientas que EnkiFlow ofrece para mejorar la productividad de tu equipo.
+                    {{ __('landing.features_page_description') }}
                 </p>
             </div>
             
@@ -21,9 +21,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Seguimiento de tiempo</h3>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">{{ __('landing.time_tracking_title') }}</h3>
                     <p class="text-gray-600 dark:text-gray-300">
-                        Registra el tiempo dedicado a cada tarea con un cronómetro integrado que facilita el seguimiento.
+                        {{ __('landing.time_tracking_description') }}
                     </p>
                 </div>
                 
@@ -34,9 +34,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Gestión de proyectos</h3>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">{{ __('landing.project_management_title') }}</h3>
                     <p class="text-gray-600 dark:text-gray-300">
-                        Organiza tu trabajo en proyectos, define tareas y asígnalas a miembros del equipo.
+                        {{ __('landing.project_management_description') }}
                     </p>
                 </div>
                 
@@ -47,9 +47,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                         </svg>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Informes detallados</h3>
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">{{ __('landing.detailed_reports_title') }}</h3>
                     <p class="text-gray-600 dark:text-gray-300">
-                        Genera informes personalizados para analizar el tiempo dedicado a proyectos y tareas.
+                        {{ __('landing.detailed_reports_description') }}
                     </p>
                 </div>
             </div>
