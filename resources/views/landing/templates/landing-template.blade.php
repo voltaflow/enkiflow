@@ -17,6 +17,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    
     <!-- Vite Assets (Styles and Scripts) -->
     @vite(['resources/css/app.css'])
     
@@ -39,7 +42,54 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        
+        /* Theme transition */
+        html.transition,
+        html.transition *,
+        html.transition *:before,
+        html.transition *:after {
+            transition: all 200ms ease-in-out !important;
+            transition-delay: 0 !important;
+        }
     </style>
+    
+    <!-- Initial theme detection script (preload) -->
+    <script>
+        // On page load, check for saved theme preference
+        function setupInitialTheme() {
+            // Get stored theme from localStorage or cookie or default to system
+            function getStoredTheme() {
+                const localTheme = localStorage.getItem('theme');
+                if (localTheme && ['light', 'dark', 'system'].includes(localTheme)) {
+                    return localTheme;
+                }
+                
+                // Check for cookie
+                const cookieValue = document.cookie.split('; ')
+                    .find(row => row.startsWith('appearance='))
+                    ?.split('=')[1];
+                    
+                if (cookieValue && ['light', 'dark', 'system'].includes(cookieValue)) {
+                    return cookieValue;
+                }
+                
+                return 'system';
+            }
+            
+            const theme = getStoredTheme();
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Apply theme without flash
+            if (theme === 'dark' || (theme === 'system' && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        
+        // Run immediately
+        setupInitialTheme();
+    </script>
 </head>
 <body class="antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <header class="py-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -59,17 +109,14 @@
                 </nav>
                 
                 <div class="flex items-center space-x-3">
-                    <!-- Language Selector -->
-                    <div class="relative mr-2">
-                        <select onchange="window.location.href=this.value" class="appearance-none bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-1 px-2 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="{{ route('set-locale', 'en') }}" {{ App::getLocale() == 'en' ? 'selected' : '' }}>EN</option>
-                            <option value="{{ route('set-locale', 'es') }}" {{ App::getLocale() == 'es' ? 'selected' : '' }}>ES</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-200">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                            </svg>
-                        </div>
+                    <!-- Language Selector Component -->
+                    <div class="mr-2">
+                        @include('components.language-switcher')
+                    </div>
+                    
+                    <!-- Theme Switcher Component -->
+                    <div class="mr-2">
+                        @include('components.theme-switcher')
                     </div>
                     
                     @auth
@@ -132,5 +179,10 @@
             </div>
         </div>
     </footer>
+    
+    @if(config('app.debug'))
+        @include('components.debug-language')
+        @include('components.appearance-debug')
+    @endif
 </body>
 </html>

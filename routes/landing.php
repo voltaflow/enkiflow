@@ -29,8 +29,8 @@ Route::middleware(['web', 'ensure-landing', 'bypass-tenancy'])->group(function (
     Route::get('/demos/time-tracking', [LandingController::class, 'timeTrackingDemo'])->name('landing.demos.time-tracking');
 });
 
-// Locale switcher route
-Route::middleware(['web', 'bypass-tenancy'])->get('/set-locale/{locale}', [LandingController::class, 'setLocale'])->name('set-locale');
+// Locale switcher route - updated to use the dedicated LocaleController
+Route::middleware(['web', 'bypass-tenancy'])->get('/set-locale/{locale}', [\App\Http\Controllers\LocaleController::class, 'setLocale'])->name('set-locale');
 
 // Localized routes (with locale prefix)
 // These routes mirror the main routes but with a locale prefix

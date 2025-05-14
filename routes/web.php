@@ -96,7 +96,10 @@ Route::middleware(['web', 'ensure-landing', 'bypass-tenancy'])->get('/', functio
 })->name('home');
 
 // Locale switcher route from landing.php takes precedence for both main and subdomains
-Route::get('/set-locale/{locale}', [App\Http\Controllers\LandingController::class, 'setLocale'])->name('set-locale');
+Route::get('/set-locale/{locale}', [App\Http\Controllers\LocaleController::class, 'setLocale'])->name('set-locale');
+
+// Appearance setter route
+Route::post('/appearance/{mode}', [App\Http\Controllers\AppearanceController::class, 'update'])->name('appearance.update');
 
 Route::get('/dashboard', function () {
     // Get task statistics
