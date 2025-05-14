@@ -15,13 +15,16 @@ class LandingController extends Controller
     public function index(): View
     {
         // Log the request information
-        \Log::info("LandingController@index called for domain: " . request()->getHost());
-        \Log::info("URL: " . request()->fullUrl());
-        \Log::info("Route name: " . request()->route()->getName());
-        
+        \Log::info('LandingController@index called for domain: '.request()->getHost());
+        \Log::info('URL: '.request()->fullUrl());
+
+        // Add null check before calling getName()
+        $route = request()->route();
+        \Log::info('Route: '.($route ? $route->getName() : 'null'));
+
         // Return the landing view - ensure this is being called
         return view('landing.pages.home', [
-            'appearance' => session('appearance', 'system')
+            'appearance' => session('appearance', 'system'),
         ]);
     }
 
@@ -31,7 +34,7 @@ class LandingController extends Controller
     public function features(): View
     {
         return view('landing.pages.features', [
-            'appearance' => session('appearance', 'system')
+            'appearance' => session('appearance', 'system'),
         ]);
     }
 
@@ -41,7 +44,7 @@ class LandingController extends Controller
     public function pricing(): View
     {
         return view('landing.pages.pricing', [
-            'appearance' => session('appearance', 'system')
+            'appearance' => session('appearance', 'system'),
         ]);
     }
 
@@ -51,7 +54,7 @@ class LandingController extends Controller
     public function about(): View
     {
         return view('landing.pages.about', [
-            'appearance' => session('appearance', 'system')
+            'appearance' => session('appearance', 'system'),
         ]);
     }
 
@@ -61,7 +64,7 @@ class LandingController extends Controller
     public function contact(): View
     {
         return view('landing.pages.contact', [
-            'appearance' => session('appearance', 'system')
+            'appearance' => session('appearance', 'system'),
         ]);
     }
 
@@ -71,26 +74,26 @@ class LandingController extends Controller
     public function timeTrackingDemo(): View
     {
         return view('landing.pages.demos.time-tracking', [
-            'appearance' => session('appearance', 'system')
+            'appearance' => session('appearance', 'system'),
         ]);
     }
-    
+
     /**
      * Set the application locale.
      */
     public function setLocale(Request $request, string $locale)
     {
         // Validate locale
-        if (!in_array($locale, ['en', 'es'])) {
+        if (! in_array($locale, ['en', 'es'])) {
             $locale = config('app.locale');
         }
-        
+
         // Set the app locale
         App::setLocale($locale);
-        
+
         // Store locale in session
         Session::put('locale', $locale);
-        
+
         // Redirect back or to home
         return redirect()->back()->withCookie(cookie()->forever('locale', $locale));
     }
