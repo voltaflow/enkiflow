@@ -69,6 +69,50 @@ return [
     // Features page
     'features_page_title' => 'EnkiFlow Features',
     'features_page_description' => 'Discover all the tools EnkiFlow offers to improve your team\'s productivity.',
+    
+    // Feature 1 - Plan & Organize
+    'feature1_title' => 'Plan & Organize Projects with Clarity',
+    'feature1_description' => 'Streamline your workflow with intuitive project and task management tools',
+    'feature1_bullet1' => 'Launch projects in minutes with customizable templates',
+    'feature1_bullet2' => 'Assign tasks to team members with clear deadlines',
+    'feature1_bullet3' => 'Visualize progress with multiple view options',
+    
+    // Feature 2 - Time Tracking
+    'feature2_title' => 'Smart Time Tracking for Everyone',
+    'feature2_description' => 'Track time effortlessly with multiple options designed for your workflow',
+    'feature2_bullet1' => 'Start timers with one click from any device',
+    'feature2_bullet2' => 'Record time using our lightning-fast Windsurf CLI',
+    'feature2_bullet3' => 'Boost productivity with built-in Pomodoro technique',
+    
+    // Feature 3 - Reports
+    'feature3_title' => 'Insightful Reports & Real-time Dashboards',
+    'feature3_description' => 'Transform time data into actionable insights for smarter decisions',
+    'feature3_bullet1' => 'Generate custom reports with drag-and-drop simplicity',
+    'feature3_bullet2' => 'Monitor team performance with real-time data visualizations',
+    'feature3_bullet3' => 'Export professional reports in multiple formats instantly',
+    
+    // Feature 4 - Invoicing
+    'feature4_title' => 'Invoicing & Payroll Ready',
+    'feature4_description' => 'Convert tracked time into accurate invoices without manual calculations',
+    'feature4_bullet1' => 'Generate invoices automatically from time entries',
+    'feature4_bullet2' => 'Calculate payroll based on tracked hours easily',
+    'feature4_bullet3' => 'Manage billing rates by client, project, or user',
+    
+    // Feature 5 - Integrations
+    'feature5_title' => 'Integrations & Powerful API',
+    'feature5_description' => 'Connect your favorite tools for a seamless workflow experience',
+    'feature5_bullet1' => 'Sync with GitHub, Slack, and QuickBooks automatically',
+    'feature5_bullet2' => 'Import and export data with just a few clicks',
+    'feature5_bullet3' => 'Build custom solutions with our comprehensive API',
+    
+    // Feature 6 - Security
+    'feature6_title' => 'Enterprise-grade Security & Multi-Tenant',
+    'feature6_description' => 'Keep your business data protected with advanced security features',
+    'feature6_bullet1' => 'Isolate client data with our robust multi-tenant architecture',
+    'feature6_bullet2' => 'Configure granular permissions for team access control',
+    'feature6_bullet3' => 'Benefit from automatic backups and encrypted data storage',
+    
+    // Legacy keys for backward compatibility
     'time_tracking_title' => 'Time tracking',
     'time_tracking_description' => 'Record time spent on each task with an integrated timer that makes tracking easy.',
     'project_management_title' => 'Project management',

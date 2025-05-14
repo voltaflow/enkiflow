@@ -69,6 +69,50 @@ return [
     // Features page
     'features_page_title' => 'Características de EnkiFlow',
     'features_page_description' => 'Descubre todas las herramientas que EnkiFlow ofrece para mejorar la productividad de tu equipo.',
+    
+    // Feature 1 - Plan & Organize
+    'feature1_title' => 'Planifica y organiza proyectos con claridad',
+    'feature1_description' => 'Optimiza tu flujo de trabajo con herramientas intuitivas de gestión de proyectos y tareas',
+    'feature1_bullet1' => 'Inicia proyectos en minutos con plantillas personalizables',
+    'feature1_bullet2' => 'Asigna tareas con plazos claros a tu equipo',
+    'feature1_bullet3' => 'Visualiza el progreso con múltiples opciones de vista',
+    
+    // Feature 2 - Time Tracking
+    'feature2_title' => 'Control de tiempo inteligente para todos',
+    'feature2_description' => 'Registra el tiempo sin esfuerzo con múltiples opciones diseñadas para tu flujo de trabajo',
+    'feature2_bullet1' => 'Inicia temporizadores con un clic desde cualquier dispositivo',
+    'feature2_bullet2' => 'Registra tiempo usando nuestro ultrarrápido CLI Windsurf',
+    'feature2_bullet3' => 'Mejora la productividad con la técnica Pomodoro integrada',
+    
+    // Feature 3 - Reports
+    'feature3_title' => 'Informes perspicaces y paneles en tiempo real',
+    'feature3_description' => 'Transforma los datos de tiempo en información procesable para decisiones más inteligentes',
+    'feature3_bullet1' => 'Genera informes personalizados con simplicidad drag-and-drop',
+    'feature3_bullet2' => 'Monitorea el rendimiento del equipo con visualizaciones en tiempo real',
+    'feature3_bullet3' => 'Exporta informes profesionales en múltiples formatos al instante',
+    
+    // Feature 4 - Invoicing
+    'feature4_title' => 'Listo para facturación y nómina',
+    'feature4_description' => 'Convierte el tiempo registrado en facturas precisas sin cálculos manuales',
+    'feature4_bullet1' => 'Genera facturas automáticamente a partir del tiempo registrado',
+    'feature4_bullet2' => 'Calcula nóminas fácilmente basadas en horas trabajadas',
+    'feature4_bullet3' => 'Gestiona tarifas por cliente, proyecto o usuario',
+    
+    // Feature 5 - Integrations
+    'feature5_title' => 'Integraciones y API potente',
+    'feature5_description' => 'Conecta tus herramientas favoritas para una experiencia de trabajo fluida',
+    'feature5_bullet1' => 'Sincroniza automáticamente con GitHub, Slack y QuickBooks',
+    'feature5_bullet2' => 'Importa y exporta datos con solo unos clics',
+    'feature5_bullet3' => 'Crea soluciones personalizadas con nuestra completa API',
+    
+    // Feature 6 - Security
+    'feature6_title' => 'Seguridad empresarial y multi-inquilino',
+    'feature6_description' => 'Mantén protegidos los datos de tu empresa con funciones de seguridad avanzadas',
+    'feature6_bullet1' => 'Aísla los datos de clientes con arquitectura multi-inquilino robusta',
+    'feature6_bullet2' => 'Configura permisos granulares para control de acceso del equipo',
+    'feature6_bullet3' => 'Benefíciate de copias de seguridad automáticas y almacenamiento encriptado',
+    
+    // Legacy keys for backward compatibility
     'time_tracking_title' => 'Seguimiento de tiempo',
     'time_tracking_description' => 'Registra el tiempo dedicado a cada tarea con un cronómetro integrado que facilita el seguimiento.',
     'project_management_title' => 'Gestión de proyectos',
