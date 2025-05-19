@@ -7,6 +7,15 @@
 
     <title>{{ config('app.name', 'EnkiFlow') }}</title>
     <meta name="description" content="EnkiFlow - Time tracking, project management, and productivity tools for teams of all sizes">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta property="og:title" content="{{ config('app.name', 'EnkiFlow') }}">
+    <meta property="og:description" content="EnkiFlow - Time tracking, project management, and productivity tools for teams of all sizes">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset('logo.svg') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ config('app.name', 'EnkiFlow') }}">
+    <meta name="twitter:description" content="EnkiFlow - Time tracking, project management, and productivity tools for teams of all sizes">
+    <meta name="twitter:image" content="{{ asset('logo.svg') }}">
     
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('favicon.ico') }}">
@@ -96,7 +105,7 @@
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center">
                 <a href="/{{ App::getLocale() }}" class="flex items-center space-x-2">
-                    <img src="{{ asset('logo.svg') }}" alt="EnkiFlow Logo" class="h-8 w-auto">
+                    <img src="{{ asset('logo.svg') }}" alt="{{ __('landing.logo_alt') }}" class="h-8 w-auto">
                     <span class="font-bold text-xl">EnkiFlow</span>
                 </a>
                 
@@ -138,7 +147,7 @@
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <img src="{{ asset('logo.svg') }}" alt="EnkiFlow Logo" class="h-8 w-auto mb-4">
+                    <img src="{{ asset('logo.svg') }}" alt="{{ __('landing.logo_alt') }}" class="h-8 w-auto mb-4">
                     <p class="text-gray-600 dark:text-gray-300">{{ __('landing.footer_description') }}</p>
                 </div>
                 

@@ -4,6 +4,14 @@ return [
     // Hero section
     'hero_title' => 'Simplify your time and project management',
     'hero_description' => 'EnkiFlow helps you manage projects, tasks, and time in one place, improving your team\'s productivity.',
+    'hero_badge' => 'NEW! Enhanced Time Tracking 2025',
+    'hero_title_highlight' => 'Revolutionize',
+    'hero_title_main' => 'Your Workflow',
+    'hero_title_sub' => 'With EnkiFlow',
+    'cta_trial' => 'Start Free Trial',
+    'trial_terms' => '14-day free trial · No credit card required · Cancel anytime',
+    'email_placeholder' => 'Enter your email',
+    'watch_demo' => 'Watch Demo',
     'get_started' => 'Get started for free',
     'see_features' => 'See features',
 
@@ -65,6 +73,9 @@ return [
     'research' => 'Research',
     'other' => 'Other',
     'todays_timeline' => 'Today\'s Timeline',
+    'tasks_tab' => 'Tasks',
+    'app_usage_tab' => 'App Usage',
+    'enter_task_description' => 'Please enter a task description',
 
     // Features page
     'features_page_title' => 'EnkiFlow Features',
@@ -184,4 +195,9 @@ return [
     'phone' => 'Phone',
     'address' => 'Address',
     'follow_us' => 'Follow us',
+    'logo_alt' => 'EnkiFlow logo',
+    'testimonial_1_alt' => 'Alex Roberts',
+    'testimonial_2_alt' => 'Maria Stevens',
+    'testimonial_3_alt' => 'Daniel Kim',
+    'client_logo_alt' => ':company logo',
 ];
