@@ -14,7 +14,7 @@
         <div class="grid md:grid-cols-3 gap-8">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 flex flex-col relative transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center mb-4">
-                    <img src="{{ asset('images/testimonials/user1.jpg') }}" alt="Alex Roberts" class="w-16 h-16 rounded-full border-2 border-blue-100 dark:border-blue-900 mr-4">
+                    <img src="{{ asset('images/testimonials/user1.jpg') }}" alt="{{ __('landing.testimonial_1_alt') }}" class="w-16 h-16 rounded-full border-2 border-blue-100 dark:border-blue-900 mr-4">
                     <div>
                         <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('landing.testimonial_1_name', 'Alex Roberts') }}</h4>
                         <p class="text-sm text-blue-600 dark:text-blue-400">{{ __('landing.testimonial_1_position', 'Product Manager at TechCorp') }}</p>
@@ -35,7 +35,7 @@
             
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 flex flex-col relative transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-gray-100 dark:border-gray-700 md:translate-y-6">
                 <div class="flex items-center mb-4">
-                    <img src="{{ asset('images/testimonials/user2.jpg') }}" alt="Maria Stevens" class="w-16 h-16 rounded-full border-2 border-blue-100 dark:border-blue-900 mr-4">
+                    <img src="{{ asset('images/testimonials/user2.jpg') }}" alt="{{ __('landing.testimonial_2_alt') }}" class="w-16 h-16 rounded-full border-2 border-blue-100 dark:border-blue-900 mr-4">
                     <div>
                         <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('landing.testimonial_2_name', 'Maria Stevens') }}</h4>
                         <p class="text-sm text-blue-600 dark:text-blue-400">{{ __('landing.testimonial_2_position', 'Team Lead at DesignHub') }}</p>
@@ -56,7 +56,7 @@
             
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 flex flex-col relative transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center mb-4">
-                    <img src="{{ asset('images/testimonials/user3.jpg') }}" alt="Daniel Kim" class="w-16 h-16 rounded-full border-2 border-blue-100 dark:border-blue-900 mr-4">
+                    <img src="{{ asset('images/testimonials/user3.jpg') }}" alt="{{ __('landing.testimonial_3_alt') }}" class="w-16 h-16 rounded-full border-2 border-blue-100 dark:border-blue-900 mr-4">
                     <div>
                         <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ __('landing.testimonial_3_name', 'Daniel Kim') }}</h4>
                         <p class="text-sm text-blue-600 dark:text-blue-400">{{ __('landing.testimonial_3_position', 'CTO at StartupX') }}</p>
@@ -81,7 +81,7 @@
             <p class="text-center text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">{{ __('landing.client_logos_title', 'Trusted by innovative companies') }}</p>
             <div class="flex flex-wrap justify-center items-center gap-x-12 gap-y-8">
                 @foreach(['ACME Inc', 'TechCorp', 'StartupX', 'DesignHub', 'InnovateCo'] as $index => $company)
-                    <img src="{{ asset('images/clients/logo' . ($index + 1) . '.png') }}" alt="{{ $company }} logo" class="h-7 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                    <img src="{{ asset('images/clients/logo' . ($index + 1) . '.png') }}" alt="{{ __('landing.client_logo_alt', ['company' => $company]) }}" class="h-7 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300">
                 @endforeach
             </div>
         </div>

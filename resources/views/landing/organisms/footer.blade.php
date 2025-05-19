@@ -4,8 +4,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
             <div class="lg:col-span-2">
                 <a href="{{ route('landing.home') }}" class="inline-block mb-6">
-                    <img src="{{ asset('images/logo-full.png') }}" alt="{{ config('app.name') }}" class="h-10 dark:hidden">
-                    <img src="{{ asset('images/logo-full-white.png') }}" alt="{{ config('app.name') }}" class="h-10 hidden dark:block">
+                    <img src="{{ asset('images/logo-full.png') }}" alt="{{ __('landing.logo_alt') }}" class="h-10 dark:hidden">
+                    <img src="{{ asset('images/logo-full-white.png') }}" alt="{{ __('landing.logo_alt') }}" class="h-10 hidden dark:block">
                 </a>
                 
                 <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md">

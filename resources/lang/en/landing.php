@@ -4,6 +4,14 @@ return [
     // Hero section
     'hero_title' => 'Simplify your time and project management',
     'hero_description' => 'EnkiFlow helps you manage projects, tasks, and time in one place, improving your team\'s productivity.',
+    'hero_badge' => 'NEW! Enhanced Time Tracking 2025',
+    'hero_title_highlight' => 'Revolutionize',
+    'hero_title_main' => 'Your Workflow',
+    'hero_title_sub' => 'With EnkiFlow',
+    'cta_trial' => 'Start Free Trial',
+    'trial_terms' => '14-day free trial · No credit card required · Cancel anytime',
+    'email_placeholder' => 'Enter your email',
+    'watch_demo' => 'Watch Demo',
     'get_started' => 'Get started for free',
     'see_features' => 'See features',
 
@@ -54,6 +62,12 @@ return [
     'demo_explanation' => 'This is a simplified demo of our time tracking feature. In the full version, you can categorize tasks, add projects, and generate detailed reports.',
     'recent_tasks' => 'Recent Tasks',
     'no_tasks_recorded' => 'No tasks recorded yet. Start the timer to begin tracking.',
+    'demo_tasks' => [
+        'Design mockups for the new landing page',
+        'Meeting with the marketing team',
+        'Develop the Pomodoro functionality',
+        'Bug review and fixing',
+    ],
     'enkiflow_timer' => 'EnkiFlow Timer',
     'app_activity' => 'App Activity',
     'current_day_activity' => 'Current Day Activity',
@@ -184,4 +198,9 @@ return [
     'phone' => 'Phone',
     'address' => 'Address',
     'follow_us' => 'Follow us',
+    'logo_alt' => 'EnkiFlow logo',
+    'testimonial_1_alt' => 'Alex Roberts',
+    'testimonial_2_alt' => 'Maria Stevens',
+    'testimonial_3_alt' => 'Daniel Kim',
+    'client_logo_alt' => ':company logo',
 ];

@@ -275,6 +275,13 @@
 
 <!-- Enhanced timer and UI scripts -->
 <script src="{{ asset('js/landing/enhanced-timer.js') }}"></script>
+<script>
+    window.demoTranslations = {
+        recent_tasks: "{{ __('landing.recent_tasks') }}",
+        no_tasks_recorded: "{{ __('landing.no_tasks_recorded') }}"
+    };
+    window.demoTasks = @json(__('landing.demo_tasks'));
+</script>
 
 <script>
     // Theme toggle functionality

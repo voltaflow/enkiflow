@@ -11,28 +11,28 @@
         <div class="flex flex-col md:flex-row items-center">
             <div class="md:w-1/2 mb-10 md:mb-0 md:pr-10">
                 <div class="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 rounded-full text-sm font-medium mb-4 animate-pulse">
-                    {{ __('landing.hero_badge', 'NEW! Enhanced Time Tracking 2025') }}
+                    {{ __('landing.hero_badge') }}
                 </div>
                 
                 <h1 class="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
-                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">{{ __('landing.hero_title_highlight', 'Revolutionize') }}</span> {{ __('landing.hero_title_main', 'Your Workflow') }}
-                    <span class="block mt-2 text-gray-900 dark:text-white">{{ __('landing.hero_title_sub', 'With EnkiFlow') }}</span>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-500 dark:from-blue-400 dark:to-indigo-300">{{ __('landing.hero_title_highlight') }}</span> {{ __('landing.hero_title_main') }}
+                    <span class="block mt-2 text-gray-900 dark:text-white">{{ __('landing.hero_title_sub') }}</span>
                 </h1>
                 
                 <p class="text-xl text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
-                    {{ __('landing.hero_description', 'Save 30% of your time daily. Intuitive project management, AI-powered time tracking, and actionable insights in one powerful platform.') }}
+                    {{ __('landing.hero_description') }}
                 </p>
                 
                 {{-- Email capture form --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg mb-8 border border-gray-100 dark:border-gray-700">
                     <form class="flex flex-col sm:flex-row gap-3" action="{{ route('landing.contact') }}" method="POST">
                         @csrf
-                        <input type="email" name="email" placeholder="{{ __('landing.email_placeholder', 'Enter your email') }}" class="flex-grow px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="email" name="email" placeholder="{{ __('landing.email_placeholder') }}" class="flex-grow px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-300 shadow-md hover:shadow-lg">
-                            {{ __('landing.cta_trial', 'Start Free Trial') }}
+                            {{ __('landing.cta_trial') }}
                         </button>
                     </form>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">✓ {{ __('landing.trial_terms', '14-day free trial · No credit card required · Cancel anytime') }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">✓ {{ __('landing.trial_terms') }}</p>
                 </div>
                 
                 <div class="flex flex-wrap gap-6 items-center">
@@ -40,7 +40,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
                         </svg>
-                        {{ __('landing.watch_demo', 'Watch Demo') }}
+                        {{ __('landing.watch_demo') }}
                     </a>
                 </div>
             </div>

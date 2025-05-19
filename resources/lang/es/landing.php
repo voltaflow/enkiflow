@@ -4,6 +4,14 @@ return [
     // Hero section
     'hero_title' => 'Simplifica tu gestión de tiempo y proyectos',
     'hero_description' => 'EnkiFlow te ayuda a gestionar proyectos, tareas y tiempo en un solo lugar, mejorando la productividad de tu equipo.',
+    'hero_badge' => '¡NUEVO! Seguimiento de tiempo mejorado 2025',
+    'hero_title_highlight' => 'Revoluciona',
+    'hero_title_main' => 'tu flujo de trabajo',
+    'hero_title_sub' => 'con EnkiFlow',
+    'cta_trial' => 'Comenzar prueba gratis',
+    'trial_terms' => 'Prueba gratis de 14 días · Sin tarjeta · Cancela cuando quieras',
+    'email_placeholder' => 'Ingresa tu correo',
+    'watch_demo' => 'Ver demo',
     'get_started' => 'Comenzar gratis',
     'see_features' => 'Ver características',
 
@@ -54,6 +62,12 @@ return [
     'demo_explanation' => 'Esta es una versión simplificada de nuestra función de seguimiento de tiempo. En la versión completa, puedes categorizar tareas, añadir proyectos y generar informes detallados.',
     'recent_tasks' => 'Tareas Recientes',
     'no_tasks_recorded' => 'Aún no hay tareas registradas. Inicia el temporizador para comenzar a hacer seguimiento.',
+    'demo_tasks' => [
+        'Diseño de mockups para la nueva landing page',
+        'Reunión con el equipo de marketing',
+        'Desarrollo de la funcionalidad de Pomodoro',
+        'Revisión y corrección de bugs',
+    ],
     'enkiflow_timer' => 'Temporizador EnkiFlow',
     'app_activity' => 'Actividad de la Aplicación',
     'current_day_activity' => 'Actividad del Día Actual',
@@ -184,4 +198,9 @@ return [
     'phone' => 'Teléfono',
     'address' => 'Dirección',
     'follow_us' => 'Síguenos',
+    'logo_alt' => 'Logo de EnkiFlow',
+    'testimonial_1_alt' => 'Alex Roberts',
+    'testimonial_2_alt' => 'Maria Stevens',
+    'testimonial_3_alt' => 'Daniel Kim',
+    'client_logo_alt' => 'Logo de :company',
 ];
