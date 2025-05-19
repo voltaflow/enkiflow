@@ -287,195 +287,664 @@ Este análisis de mercado nos permite priorizar las funcionalidades para el MVP 
 
 ---
 
-## Tareas Técnicas Detalladas para el Desarrollo MVP
+## Backlog Técnico Detallado para el Desarrollo MVP
 
-A continuación se detallan las tareas técnicas organizadas por componentes funcionales, con un enfoque en las mejores prácticas de Laravel 12 y desarrollo moderno.
+A continuación se presenta un backlog técnico detallado con tareas específicas desde una perspectiva de implementación Laravel 12, considerando todos los componentes del framework (migraciones, modelos, controladores, servicios, etc.).
 
 ### 1. Configuración de Infraestructura Base
 
 #### 1.1 Configuración del Proyecto Laravel 12
-- **Tarea**: Inicialización del proyecto con Laravel 12
-- **Detalles Técnicos**:
-  - Utilizar `composer create-project laravel/laravel`
-  - Configurar Docker para desarrollo local utilizando Laravel Sail
-  - Implementar scaffolding básico con Laravel Jetstream
-  - Configurar Inertia.js con Vue 3 para frontend SPA
+
+##### 1.1.1 Inicialización del Proyecto Base
+- **Duración estimada**: 1 día
+- **Componentes técnicos**:
+  - Crear proyecto base: `composer create-project laravel/laravel enkiflow "12.*"`
+  - Configurar .env con variables de entorno para desarrollo
+  - Implementar estructura de carpetas personalizada para modularización
+  - Configurar composer.json con dependencias iniciales y scripts de automatización
+
+##### 1.1.2 Configuración de Entorno de Desarrollo Containerizado
+- **Duración estimada**: 1 día
+- **Componentes técnicos**:
+  - Implementar Laravel Sail: `php artisan sail:install --with=mysql,redis,mailpit,selenium`
+  - Extender configuración de Docker con servicios adicionales en docker-compose.yml
+  - Crear Dockerfile personalizado para extensiones PHP requeridas
+  - Configurar volumen de datos persistentes y optimizaciones para desarrollo
+  - Implementar scripts de inicialización y carga de datos semilla
+
+##### 1.1.3 Implementación de Frontend SPA
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Instalar Inertia.js: `composer require inertiajs/inertia-laravel`
+  - Configurar Vue 3 con Composition API: `npm install @inertiajs/vue3`
+  - Implementar middleware HandleInertiaRequests y sus personalizaciones
+  - Configurar Vite con plugins para Vue, PostCSS y optimizaciones
+  - Crear estructura base de layouts, componentes compartidos y páginas
+  - Implementar sistema de gestión de estado con Pinia
 
 #### 1.2 Implementación de Multi-tenancy
-- **Tarea**: Configurar sistema multi-tenant
-- **Detalles Técnicos**:
-  - Integrar `stancl/tenancy` para separación de datos por tenant
-  - Configurar migraciones para tablas centrales y específicas de tenant
-  - Implementar middleware de identificación de tenant por dominio/subdominio
-  - Desarrollar sistema de invitación de usuarios a espacios
-  - Configurar el ciclo de vida de tenant (creación, eliminación, migración)
+
+##### 1.2.1 Configuración del Framework de Multi-tenancy
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Instalar paquete: `composer require stancl/tenancy:^3.7`
+  - Publicar y personalizar configuración: `php artisan vendor:publish --tag=tenancy-config`
+  - Configurar TenancyServiceProvider e implementar bootstrappers personalizados
+  - Implementar modelo Tenant extendiendo de BaseTenant con propiedades extra
+  - Configurar CacheManager personalizado para aislamiento de caché por tenant
+  - Desarrollar middleware universal para tenants: `app/Http/Middleware/InitializeTenancyByDomain.php`
+
+##### 1.2.2 Migraciones y Modelos en Sistema Multi-tenant
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear migraciones centrales para `users`, `tenants` y `domains`
+  - Implementar migraciones específicas de tenant con tag adecuado
+  - Configurar directorio de migraciones separado: `database/migrations/tenant`
+  - Implementar sistema de estados para migraciones de tenant: pendiente, migrado, fallido
+  - Desarrollar Job para migraciones asíncronas: `app/Jobs/TenantMigrationJob.php`
+  - Crear mecanismos de rollback de migraciones para tenants
+
+##### 1.2.3 Gestión del Ciclo de Vida de Tenants
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Implementar Listeners para eventos del ciclo de vida: TenantCreated, TenantDeleted, TenantUpdated
+  - Crear proceso de provisionamiento: `app/Services/TenantProvisioningService.php`
+  - Desarrollar mecanismo de inicialización con datos semilla personalizados por tenant
+  - Implementar sistema de respaldo de datos por tenant
+  - Crear tareas programadas para mantenimiento: `app/Console/Commands/TenantMaintenanceCommand.php`
+  - Configurar rotación de logs específicos por tenant con contexto
 
 #### 1.3 Sistema de Autenticación y Autorización
-- **Tarea**: Implementar autenticación y autorización robusta
-- **Detalles Técnicos**:
-  - Utilizar Laravel Breeze/Jetstream para autenticación base
-  - Integrar `spatie/laravel-permission` para gestión de roles y permisos
-  - Implementar autenticación social (Google, Microsoft) con Socialite
-  - Configurar Guards específicos para tenants
-  - Desarrollar Policies y Gates para control de acceso granular
-  - Implementar verificación por email y recuperación de contraseña
+
+##### 1.3.1 Implementación del Sistema Base de Autenticación
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Implementar Fortify: `composer require laravel/fortify`
+  - Personalizar FortifyServiceProvider con features específicas
+  - Crear ActionClass personalizada: `app/Actions/Fortify/CreateNewUser.php`
+  - Configurar autenticación por múltiples campos (email/username)
+  - Implementar Rate Limiting personalizado para intentos de login
+  - Configurar middleware de autenticación en 2 factores: `app/Http/Middleware/RequireTwoFactorAuth.php`
+
+##### 1.3.2 Sistema de Roles y Permisos
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar Spatie Permissions: `composer require spatie/laravel-permission`
+  - Crear migración personalizada para roles específicos del sistema
+  - Implementar seeder de roles y permisos: `database/seeders/RolesAndPermissionsSeeder.php`
+  - Desarrollar middleware para verificación de permisos: `app/Http/Middleware/CheckPermissions.php`
+  - Crear helpers para verificación rápida: `app/Helpers/PermissionHelpers.php`
+  - Implementar caché de permisos con Redis
+  - Desarrollar UI para asignación de permisos
+
+##### 1.3.3 Autenticación Social y SSO
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Instalar Socialite: `composer require laravel/socialite`
+  - Configurar proveedores OAuth en `config/services.php`
+  - Implementar controladores para callback: `app/Http/Controllers/Auth/SocialLoginController.php`
+  - Crear sistema de vinculación de cuentas sociales a cuentas existentes
+  - Desarrollar middleware para autenticación OAuth con tenant
+  - Implementar token storage seguro para proveedores
 
 ### 2. Desarrollo del Sistema de Gestión de Tareas
 
 #### 2.1 Modelos y Migraciones
-- **Tarea**: Implementar la estructura de datos para tareas y proyectos
-- **Detalles Técnicos**:
-  - Crear migraciones para `projects`, `tasks`, `task_states`
-  - Implementar relaciones polimórficas para `tags` y `comments`
-  - Configurar soft deletes para preservación de datos históricos
-  - Implementar indicadores para tareas recurrentes
-  - Establecer estruturas jerárquicas (máquina de estados)
 
-#### 2.2 API RESTful para Tareas
-- **Tarea**: Desarrollar endpoints completos para gestión de tareas
-- **Detalles Técnicos**:
-  - Implementar API Resource Controllers
-  - Utilizar API Resources para transformación de datos
-  - Implementar validación con Form Requests
-  - Configurar paginación y filtrado avanzado con `spatie/laravel-query-builder`
-  - Implementar versionado de API
-  - Documentar API con OpenAPI/Swagger
+##### 2.1.1 Diseño e Implementación de Esquema de Base de Datos
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear migraciones para tabla base: `database/migrations/tenant/create_task_states_table.php`
+  - Diseñar migración para proyectos: `database/migrations/tenant/create_projects_table.php`
+  - Implementar migración para tareas: `database/migrations/tenant/create_tasks_table.php`
+  - Desarrollo de migración para sistema de etiquetas: `database/migrations/tenant/create_tags_table.php`
+  - Implementar tabla polimorfica para taggables: `database/migrations/tenant/create_taggables_table.php`
+  - Diseño de tabla pivot para asignaciones: `database/migrations/tenant/create_task_assignees_table.php`
+  - Migración para comentarios: `database/migrations/tenant/create_comments_table.php`
+  - Crear índices optimizados para búsquedas frecuentes y relaciones
 
-#### 2.3 Interfaz de Usuario Kanban
-- **Tarea**: Desarrollar vista Kanban interactiva
-- **Detalles Técnicos**:
-  - Implementar componentes Vue 3 con Composition API
-  - Utilizar libreria de arrastrar y soltar (Vue.Draggable)
-  - Crear componentes para columnas, tarjetas de tareas y acciones
-  - Implementar actualización en tiempo real con Laravel Echo y WebSockets
-  - Desarrollar filtros y búsqueda contextual
-  - Optimizar renderizado para gran cantidad de tareas
+##### 2.1.2 Desarrollo de Modelos Eloquent y Relaciones
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Implementar modelo Project: `app/Models/Project.php`
+    - Traits: HasFactory, SoftDeletes, HasTags, Auditable
+    - Relaciones: belongsTo(Client), hasMany(Task), belongsTo(User), morphMany(Comments)
+    - Scopes: priority(), recent(), upcoming(), overdue()
+    - Mutators/Accessors para fechas y estados
+  - Crear modelo Task: `app/Models/Task.php`
+    - Traits: HasFactory, SoftDeletes, HasTags, Auditable
+    - Relaciones: belongsTo(Project), belongsTo(User), morphMany(Comments), belongsToMany(User, 'task_assignees')
+    - Sistema recurrente con definición de patrones en JSON
+    - Métodos para estimación vs. tiempo real
+  - Implementar modelo TaskState: `app/Models/TaskState.php`
+    - Configuración para máquina de estados
+    - Sistema de transiciones permitidas en JSON
+  - Modelo Tag: `app/Models/Tag.php` con relaciones polimórficas
+  - Crear clase base Observer: `app/Observers/BaseModelObserver.php`
+  - Implementar observers específicos: TaskObserver, ProjectObserver
+  - Registrar observers en EventServiceProvider
 
-#### 2.4 Máquina de Estados para Tareas
-- **Tarea**: Implementar sistema de estados configurable
-- **Detalles Técnicos**:
-  - Utilizar `spatie/laravel-model-states` para estados de tareas
-  - Implementar transiciones de estado con validaciones
-  - Crear webhook triggers para cambios de estado
-  - Configurar acciones automáticas por cambio de estado
-  - Desarrollar UI para configuración de flujos de trabajo
+##### 2.1.3 Implementación de Seeders y Factories
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Desarrollar factory para proyectos: `database/factories/ProjectFactory.php`
+  - Crear factory para tareas: `database/factories/TaskFactory.php`
+  - Crear factory para estados: `database/factories/TaskStateFactory.php`
+  - Desarrollar seeder para estados por defecto: `database/seeders/TaskStateSeeder.php`
+  - Crear seeder para proyectos demo: `database/seeders/DemoProjectSeeder.php`
+  - Implementar seeder maestro para tenants: `database/seeders/TenantSeeder.php`
+
+#### 2.2 API RESTful y Servicios
+
+##### 2.2.1 Desarrollo de Controllers y Resources
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Crear controlador base: `app/Http/Controllers/Api/ApiController.php`
+  - Implementar controlador de proyectos: `app/Http/Controllers/Api/ProjectController.php`
+  - Desarrollar controlador de tareas: `app/Http/Controllers/Api/TaskController.php`
+  - Crear controlador de estados: `app/Http/Controllers/Api/TaskStateController.php`
+  - Implementar API Resources:
+    - `app/Http/Resources/ProjectResource.php`
+    - `app/Http/Resources/ProjectCollection.php`
+    - `app/Http/Resources/TaskResource.php`
+    - `app/Http/Resources/TaskCollection.php`
+    - `app/Http/Resources/TaskStateResource.php`
+  - Desarrollar FormRequests para validación:
+    - `app/Http/Requests/StoreProjectRequest.php`
+    - `app/Http/Requests/UpdateProjectRequest.php`
+    - `app/Http/Requests/StoreTaskRequest.php`
+    - `app/Http/Requests/UpdateTaskRequest.php`
+    - `app/Http/Requests/ReorderTasksRequest.php`
+  
+##### 2.2.2 Implementación de Servicios para Lógica de Negocio
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear interfaz de servicio base: `app/Services/Contracts/CrudServiceInterface.php`
+  - Implementar servicio base abstracto: `app/Services/AbstractCrudService.php`
+  - Desarrollar servicios específicos:
+    - `app/Services/ProjectService.php`
+    - `app/Services/TaskService.php`
+    - `app/Services/TaskStateService.php`
+  - Implementar Events y Listeners para operaciones importantes:
+    - `app/Events/TaskCreated.php`
+    - `app/Events/TaskCompleted.php`
+    - `app/Events/TaskAssigned.php`
+    - `app/Listeners/SendTaskNotification.php`
+    - `app/Listeners/CreateTimeEntryForCompletedTask.php`
+  - Registrar servicios en ServiceProvider personalizado: `app/Providers/TaskServiceProvider.php`
+
+##### 2.2.3 Queries, Filtros y Paginación
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar paquete: `composer require spatie/laravel-query-builder`
+  - Crear clases de filtro personalizadas:
+    - `app/Filters/TaskFilter.php`
+    - `app/Filters/ProjectFilter.php`
+  - Implementar Builder personalizado: `app/QueryBuilder/EnkiQueryBuilder.php`
+  - Desarrollar sistema de ordenación personalizado: `app/QueryBuilder/Sorts`
+  - Implementar cache de consultas frecuentes con tags de Redis
+  - Configurar paginación con cursor para grandes conjuntos de datos
+  - Crear transformer para respuestas paginadas: `app/Transformers/PaginatedResourceTransformer.php`
+
+#### 2.3 Sistema Kanban y Frontend
+
+##### 2.3.1 Implementación de Componentes Vue para Kanban
+- **Duración estimada**: 5 días
+- **Componentes técnicos**:
+  - Instalar Vue Draggable: `npm install vuedraggable@next`
+  - Crear store Pinia para tareas: `resources/js/stores/taskStore.js`
+  - Desarrollar componente base Kanban: `resources/js/Components/Kanban/KanbanBoard.vue`
+  - Implementar componente de columna: `resources/js/Components/Kanban/KanbanColumn.vue`
+  - Crear componente de tarjeta: `resources/js/Components/Kanban/TaskCard.vue`
+  - Desarrollar modal de detalle: `resources/js/Components/Kanban/TaskDetailModal.vue`
+  - Implementar formulario de tarea: `resources/js/Components/Kanban/TaskForm.vue`
+  - Crear Composables reutilizables:
+    - `resources/js/Composables/useDragDrop.js`
+    - `resources/js/Composables/useTaskCRUD.js`
+    - `resources/js/Composables/useTaskFilters.js`
+
+##### 2.3.2 Sistema de Actualización en Tiempo Real
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar Echo y Socket.io: `npm install laravel-echo socket.io-client`
+  - Configurar broadcasting en Laravel: `config/broadcasting.php`
+  - Crear canales privados por tenant: `routes/channels.php`
+  - Implementar event broadcasts para cambios en tareas
+  - Desarrollar middleware WebSocket para autenticación con tenant
+  - Crear componente de notificación en tiempo real: `resources/js/Components/RealTimeNotifications.vue`
+  - Implementar servicio Ably o Pusher: `config/websockets.php`
+
+##### 2.3.3 Interfaz de Filtrado y Búsqueda
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear componente de filtro combinado: `resources/js/Components/TaskFilter.vue`
+  - Implementar búsqueda instantánea con debounce
+  - Desarrollar selector de filtro avanzado: `resources/js/Components/AdvancedFilterSelector.vue`
+  - Guardar preferencias de filtro en LocalStorage/Cookies
+  - Crear endpoints para búsqueda global: `app/Http/Controllers/Api/SearchController.php`
+  - Implementar servicio de indexación para búsqueda: `app/Services/SearchService.php`
+
+#### 2.4 Máquina de Estados y Automatización
+
+##### 2.4.1 Implementación de Máquina de Estados
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Instalar paquete de estados: `composer require spatie/laravel-model-states`
+  - Crear clase base de estado: `app/States/Task/TaskState.php`
+  - Implementar estados concretos:
+    - `app/States/Task/Backlog.php`
+    - `app/States/Task/InProgress.php`
+    - `app/States/Task/UnderReview.php`
+    - `app/States/Task/Completed.php`
+    - `app/States/Task/Cancelled.php`
+  - Definir transiciones permitidas: `app/States/Task/TaskStateTransition.php`
+  - Crear middleware de validación de transiciones
+  - Desarrollar observers para cambios de estado
+
+##### 2.4.2 Automatizaciones y Reglas de Negocio
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Crear sistema de reglas base: `app/Rules/BaseTaskRule.php`
+  - Implementar motor de reglas: `app/Services/RuleEngine.php`
+  - Desarrollar reglas específicas:
+    - `app/Rules/AutoAssignToCreator.php`
+    - `app/Rules/NotifyOnDueDateApproaching.php`
+    - `app/Rules/CreateDependentTasksOnCompletion.php`
+  - Crear interfaz de reglas en JSON: `app/Http/Controllers/Api/TaskRuleController.php`
+  - Implementar Jobs para verificación de reglas: `app/Jobs/ProcessTaskRulesJob.php`
+  - Crear comandos de mantenimiento: `app/Console/Commands/ProcessPendingTaskRulesCommand.php`
+
+##### 2.4.3 Sistema de Plantillas Reutilizables
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear migración para plantillas: `database/migrations/tenant/create_task_templates_table.php`
+  - Implementar modelo de plantilla: `app/Models/TaskTemplate.php`
+  - Desarrollar servicio de plantillas: `app/Services/TemplateService.php`
+  - Crear interfaz de generación desde plantilla: `resources/js/Pages/Templates/Index.vue`
+  - Implementar sistema de clone recursivo para proyectos y tareas
+  - Desarrollar API para operaciones de plantilla
 
 ### 3. Desarrollo del Sistema de Seguimiento de Tiempo
 
-#### 3.1 Modelos y Migraciones
-- **Tarea**: Implementar estructura de datos para tiempo
-- **Detalles Técnicos**:
-  - Crear migraciones para `time_entries`, `time_categories`
-  - Implementar campos para tiempo billable/no-billable
-  - Configurar relaciones con tareas y proyectos
-  - Implementar mecanismos de auditoría para entradas de tiempo
+#### 3.1 Modelos y Estructura de Datos
 
-#### 3.2 Temporizador en Tiempo Real
-- **Tarea**: Desarrollar sistema de temporizador interactivo
-- **Detalles Técnicos**:
-  - Implementar componente Vue 3 para temporizador
-  - Utilizar Local Storage para persistencia en caso de desconexiones
-  - Implementar sincronización periódica con backend
-  - Desarrollar detección de inactividad
-  - Implementar alertas y notificaciones para recordatorios
+##### 3.1.1 Diseño e Implementación de Esquema de Base de Datos
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear migración para entradas de tiempo: `database/migrations/tenant/create_time_entries_table.php`
+  - Implementar migración para categorías: `database/migrations/tenant/create_time_categories_table.php`
+  - Diseñar migración para registro de actividad: `database/migrations/tenant/create_activity_logs_table.php`
+  - Crear índices compuestos para consultas de reportes
+  - Implementar campos JSON para metadata extensible
+  - Diseñar sistema de particionamiento para datos históricos
 
-#### 3.3 Informes y Visualización
-- **Tarea**: Crear sistema de visualización de tiempo registrado
-- **Detalles Técnicos**:
-  - Desarrollar consultas optimizadas para agregación de datos
-  - Implementar cache estratégico con Redis
-  - Crear componentes de gráficos con Chart.js
-  - Implementar filtros dinámicos con Livewire
-  - Desarrollar sistema de exportación a CSV/Excel con Laravel Excel
+##### 3.1.2 Desarrollo de Modelos y Relaciones
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Implementar modelo TimeEntry: `app/Models/TimeEntry.php`
+    - Traits: HasFactory, SoftDeletes, Auditable
+    - Relaciones: belongsTo(User), belongsTo(Task), belongsTo(Project), belongsTo(TimeCategory)
+    - Scopes: billable(), nonBillable(), running(), completed(), dateRange()
+    - Mutators/Accessors para duración y estado
+  - Crear modelo TimeCategory: `app/Models/TimeCategory.php`
+  - Implementar modelo ActivityLog: `app/Models/ActivityLog.php`
+  - Desarrollar observers para modelos de tiempo
+  - Crear QueryScopes para reportes comunes
+
+##### 3.1.3 Validación y Reglas de Negocio
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Crear validadores personalizados: `app/Rules/NoOverlappingTimeEntries.php`
+  - Implementar validación para duración máxima: `app/Rules/MaxDuration.php`
+  - Desarrollar validación de entradas futuras: `app/Rules/NoFutureTimeEntries.php`
+  - Crear sistema de autorización para edición de tiempo: `app/Policies/TimeEntryPolicy.php`
+
+#### 3.2 Sistema de Temporizador
+
+##### 3.2.1 Desarrollo de Backend para Temporizador
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear controlador de tiempo: `app/Http/Controllers/Api/TimeEntryController.php`
+  - Implementar endpoint para iniciar temporizador: `POST /api/time-entries/start`
+  - Desarrollar endpoint para pausar: `PUT /api/time-entries/{id}/pause`
+  - Crear endpoint para reanudar: `PUT /api/time-entries/{id}/resume`
+  - Implementar endpoint para detener: `PUT /api/time-entries/{id}/stop`
+  - Desarrollar servicio de temporizador: `app/Services/TimeTrackerService.php`
+  - Implementar sistema de bloqueo con Redis para evitar conflictos
+
+##### 3.2.2 Componentes Frontend para Temporizador
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Crear store Pinia para tiempo: `resources/js/stores/timeEntryStore.js`
+  - Desarrollar componente de temporizador: `resources/js/Components/TimeTracker/Timer.vue`
+  - Implementar selector de tarea/proyecto: `resources/js/Components/TimeTracker/TaskSelector.vue`
+  - Crear componente de descripción continua: `resources/js/Components/TimeTracker/DescriptionInput.vue`
+  - Desarrollar indicador de estado: `resources/js/Components/TimeTracker/StatusIndicator.vue`
+  - Implementar componente de categoría: `resources/js/Components/TimeTracker/CategorySelector.vue`
+  - Crear composables para funcionalidad de temporizador:
+    - `resources/js/Composables/useTimer.js`
+    - `resources/js/Composables/useLocalStorageBackup.js`
+
+##### 3.2.3 Detección de Inactividad y Sincronización
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Desarrollar servicio de detección de inactividad: `resources/js/Services/InactivityDetector.js`
+  - Implementar sincronización periódica: `resources/js/Services/TimeEntrySyncService.js`
+  - Crear sistema de manejo de desconexiones
+  - Implementar caché offline con IndexedDB
+  - Desarrollar estrategia de resolución de conflictos
+
+#### 3.3 Reportes e Integración
+
+##### 3.3.1 Desarrollo de Sistema de Reportes
+- **Duración estimada**: 5 días
+- **Componentes técnicos**:
+  - Crear servicio de reportes: `app/Services/TimeReportService.php`
+  - Implementar caché de consultas frecuentes con Redis tags
+  - Desarrollar API para reportes: `app/Http/Controllers/Api/TimeReportController.php`
+  - Crear consultas optimizadas con sum(), groupBy() y having()
+  - Implementar Report DTO: `app/DataTransferObjects/TimeReportDTO.php`
+  - Desarrollar Jobs para generación de reportes pesados: `app/Jobs/GenerateTimeReportJob.php`
+  - Crear comandos de generación programada: `app/Console/Commands/GenerateWeeklyReportCommand.php`
+
+##### 3.3.2 Visualización y UI de Reportes
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Instalar Chart.js: `npm install chart.js vue-chartjs`
+  - Crear componentes de gráficos: 
+    - `resources/js/Components/Charts/TimeBarChart.vue`
+    - `resources/js/Components/Charts/ProjectDistributionChart.vue`
+    - `resources/js/Components/Charts/ProductivityTimelineChart.vue`
+  - Implementar filtros dinámicos: `resources/js/Components/TimeFilter.vue`
+  - Desarrollar vista de tabla: `resources/js/Components/TimeEntryTable.vue`
+  - Crear UI para comparativa: `resources/js/Pages/Reports/Compare.vue`
+  - Implementar exportación PDF/CSV
+
+##### 3.3.3 Integración con Facturación
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear migración para tasas horarias: `database/migrations/tenant/create_hourly_rates_table.php`
+  - Desarrollar modelo de tasa: `app/Models/HourlyRate.php`
+  - Implementar reglas para tiempo facturable/no facturable
+  - Crear servicio de facturación: `app/Services/InvoiceService.php`
+  - Desarrollar API para extracción de tiempo facturable: `app/Http/Controllers/Api/BillableTimeController.php`
+  - Implementar sistema de agrupación para facturas
 
 ### 4. Sistema de Colaboración y Equipos
 
-#### 4.1 Gestión de Equipos
-- **Tarea**: Implementar gestión completa de usuarios y equipos
-- **Detalles Técnicos**:
-  - Desarrollar sistema de invitación por email
-  - Implementar roles por espacio (`admin`, `member`, `guest`)
-  - Crear interfaz de gestión de permisos
-  - Configurar auditoría de cambios con Laravel Auditing
+#### 4.1 Gestión de Equipos y Espacios de Trabajo
 
-#### 4.2 Notificaciones en Tiempo Real
-- **Tarea**: Implementar sistema de notificaciones
-- **Detalles Técnicos**:
-  - Utilizar Laravel Notifications
-  - Configurar canales múltiples (database, email, push)
-  - Implementar WebSockets con Laravel Echo y Pusher/Ably
-  - Desarrollar preferencias de notificación por usuario
-  - Crear componente de notificaciones en tiempo real
+##### 4.1.1 Sistema de Invitaciones y Pertenencia a Equipos
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear migración para invitaciones: `database/migrations/central/create_invitations_table.php`
+  - Implementar modelo de invitación: `app/Models/Invitation.php`
+  - Desarrollar servicio de invitación: `app/Services/InvitationService.php`
+  - Crear controlador de invitaciones: `app/Http/Controllers/Api/InvitationController.php`
+  - Implementar sistema de tokens JWT para invitaciones
+  - Desarrollar eventos y listeners: 
+    - `app/Events/InvitationSent.php`
+    - `app/Events/InvitationAccepted.php`
+    - `app/Listeners/SendInvitationEmail.php`
+  - Crear vistas de email para invitaciones: `resources/views/emails/invitations`
+
+##### 4.1.2 Gestión de Roles y Permisos por Espacio
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Extender tabla space_users: `database/migrations/central/alter_space_users_add_permissions.php`
+  - Desarrollar middleware de roles por tenant: `app/Http/Middleware/EnsureTenantRole.php`
+  - Implementar UI de gestión de miembros: `resources/js/Pages/Teams/Members.vue`
+  - Crear controlador de miembros: `app/Http/Controllers/Api/TeamMemberController.php`
+  - Desarrollar sistema de cambio de roles con validación
+  - Implementar cache de roles por tenant en Redis
+
+##### 4.1.3 Auditoría y Registro de Actividad
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar Laravel Auditing: `composer require owen-it/laravel-auditing`
+  - Crear migración para logs de auditoría: `database/migrations/tenant/create_audit_logs_table.php`
+  - Configurar modelos auditables con traits específicos
+  - Implementar middleware para contexto de usuario en auditoría
+  - Desarrollar UI para visualización de historial de cambios: `resources/js/Pages/Logs/AuditTrail.vue`
+  - Crear filtros y búsqueda para logs de auditoría
+
+#### 4.2 Sistema de Notificaciones
+
+##### 4.2.1 Implementación de Canales de Notificación
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Diseñar migración para preferencias: `database/migrations/tenant/create_notification_preferences_table.php`
+  - Crear notificaciones base:
+    - `app/Notifications/TaskAssigned.php`
+    - `app/Notifications/TaskDueSoon.php`
+    - `app/Notifications/TimeEntryReminder.php`
+    - `app/Notifications/TeamInvitation.php`
+  - Configurar múltiples canales: DatabaseChannel, MailChannel, WebPushChannel
+  - Implementar serialización para notificaciones 
+  - Desarrollar sistema de traducciones para notificaciones
+
+##### 4.2.2 Notificaciones en Tiempo Real (WebSockets)
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Configurar Laravel Echo Server o Laravel Websockets
+  - Implementar evento BroadcastNotificationCreated
+  - Crear canal privado por usuario: `channels.php`
+  - Desarrollar middleware para autenticación de websockets
+  - Implementar componente de notificaciones en tiempo real: `resources/js/Components/RealTimeNotifications.vue`
+  - Crear servicio de conexión WebSocket: `resources/js/Services/WebSocketService.js`
+
+##### 4.2.3 Centro de Notificaciones y Preferencias
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Diseñar UI de centro de notificaciones: `resources/js/Pages/Notifications/Index.vue`
+  - Crear panel de preferencias por tipo y canal: `resources/js/Pages/Notifications/Preferences.vue`
+  - Implementar controladores para gestión de preferencias: `app/Http/Controllers/Api/NotificationPreferenceController.php`
+  - Desarrollar sistema de marcado como leído/no leído
+  - Implementar reglas de agrupación y priorización de notificaciones
 
 ### 5. Integraciones y API
 
-#### 5.1 Integración con Calendario
-- **Tarea**: Implementar sincronización bidireccional con calendarios
-- **Detalles Técnicos**:
-  - Integrar Google Calendar API
-  - Implementar Microsoft Outlook API
-  - Desarrollar sincronización de eventos y tareas
-  - Crear trabajos programados para actualización periódica
+#### 5.1 Integraciones con Servicios Externos
 
-#### 5.2 API Pública
-- **Tarea**: Desarrollar API pública documentada
-- **Detalles Técnicos**:
-  - Implementar autenticación OAuth 2.0 con Passport
-  - Crear sistema de tokens de API
-  - Implementar rate limiting y seguridad
-  - Documentar API con OpenAPI/Swagger UI
+##### 5.1.1 Integración con Google Calendar
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Instalar cliente de Google API: `composer require google/apiclient`
+  - Implementar servicio OAuth: `app/Services/Google/GoogleAuthService.php`
+  - Crear servicio de calendario: `app/Services/Google/GoogleCalendarService.php`
+  - Desarrollar endpoints de autorización: `app/Http/Controllers/Api/Integrations/GoogleController.php`
+  - Implementar sincronización bidireccional de eventos: `app/Jobs/SyncGoogleCalendarJob.php`
+  - Crear UI para configuración de sincronización: `resources/js/Pages/Integrations/Google.vue`
+
+##### 5.1.2 Integración con Microsoft/Outlook
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Instalar SDK de Microsoft Graph: `composer require microsoft/microsoft-graph`
+  - Crear servicio de autenticación: `app/Services/Microsoft/MicrosoftAuthService.php`
+  - Implementar servicio de calendario: `app/Services/Microsoft/OutlookCalendarService.php`
+  - Crear trabajo programado para sincronización: `app/Jobs/SyncOutlookCalendarJob.php`
+  - Desarrollar UI para autorizar y configurar: `resources/js/Pages/Integrations/Microsoft.vue`
+
+##### 5.1.3 Integración con Slack
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar cliente Slack: `composer require slack/slack`
+  - Crear servicio de Slack: `app/Services/Slack/SlackIntegrationService.php`
+  - Implementar Slash Commands para interactuar con tareas
+  - Desarrollar notificaciones via Slack: `app/Notifications/Channels/SlackChannel.php`
+  - Crear webhook para eventos de Slack: `app/Http/Controllers/Api/Webhooks/SlackController.php`
+
+#### 5.2 API Pública y Webhooks
+
+##### 5.2.1 Implementación de API RESTful
+- **Duración estimada**: 5 días
+- **Componentes técnicos**:
+  - Instalar Laravel Passport: `composer require laravel/passport`
+  - Configurar esquema OAuth: `app/Providers/AuthServiceProvider.php`
+  - Implementar controladores públicos:
+    - `app/Http/Controllers/Api/Public/TaskController.php`
+    - `app/Http/Controllers/Api/Public/TimeEntryController.php`
+    - `app/Http/Controllers/Api/Public/ProjectController.php`
+  - Crear middleware para manejo de scopes: `app/Http/Middleware/CheckApiScope.php`
+  - Implementar rate limiting con Redis: `app/Http/Middleware/ThrottlePublicApi.php`
+  - Desarrollar sistema de versionado de API
+
+##### 5.2.2 Documentación de API con OpenAPI/Swagger
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar L5-Swagger: `composer require darkaonline/l5-swagger`
+  - Crear anotaciones en controladores públicos
+  - Implementar generación automática de documentación: `php artisan l5-swagger:generate`
+  - Desarrollar SDK cliente en JavaScript
+  - Crear ejemplos y guías de uso
+
+##### 5.2.3 Sistema de Webhooks
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Crear migración para webhooks: `database/migrations/tenant/create_webhook_endpoints_table.php`
+  - Implementar modelo: `app/Models/WebhookEndpoint.php`
+  - Desarrollar servicio de envío de webhooks: `app/Services/WebhookService.php`
+  - Crear sistema de reintentos con exponential backoff
+  - Implementar firma digital de payloads para seguridad
+  - Crear UI para configuración de webhooks: `resources/js/Pages/Developers/Webhooks.vue`
 
 ### 6. Performance y Escalabilidad
 
-#### 6.1 Optimización de Consultas
-- **Tarea**: Optimizar consultas a base de datos
-- **Detalles Técnicos**:
-  - Implementar eager loading para relaciones frecuentes
-  - Utilizar indices eficientes en la base de datos
-  - Implementar DTOs (Data Transfer Objects) para transformaciones
-  - Configurar caché de consultas con Redis
+#### 6.1 Optimización de Base de Datos
 
-#### 6.2 Escalabilidad
-- **Tarea**: Preparar sistema para escalar
-- **Detalles Técnicos**:
-  - Configurar colas para procesos largos con Laravel Horizon
-  - Implementar jobs en segundo plano para operaciones costosas
-  - Utilizar caché distribuido con Redis
-  - Preparar configuración para horizontal scaling
+##### 6.1.1 Optimización de Consultas y Relaciones
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Implementar Global Scopes para tenant: `app/Models/Scopes/TenantScope.php`
+  - Configurar eager loading automático para relaciones frecuentes
+  - Crear índices compuestos para consultas comunes
+  - Implementar actualizaciones por lotes para operaciones masivas
+  - Desarrollar DTOs para transformación eficiente de datos: `app/DataTransferObjects`
 
-### 7. Pruebas y Calidad
+##### 6.1.2 Caché y Almacenamiento en Redis
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Configurar Redis con Tenancy: `config/tenancy-redis.php`
+  - Implementar sistema de tags por tenant en caché
+  - Desarrollar invalidación selectiva de caché
+  - Crear caché de consultas de reportes con TTL variable
+  - Implementar almacenamiento distribuido para sesiones y caché
+
+##### 6.1.3 Particionamiento y Escalamiento
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Diseñar estrategia de particionamiento para tablas grandes (`time_entries`, `activity_logs`)
+  - Implementar rotación y archivado de datos históricos
+  - Crear sistema de consulta cross-partition
+  - Desarrollar migraciones para soporte de sharding
+
+#### 6.2 Sistema de Colas y Trabajos en Segundo Plano
+
+##### 6.2.1 Implementación de Laravel Horizon
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Instalar Laravel Horizon: `composer require laravel/horizon`
+  - Configurar workers con balanceo automático
+  - Implementar colas diferenciadas por tipo de trabajo
+  - Crear dashboard de monitoreo para trabajos
+  - Implementar alertas para fallos de trabajos
+
+##### 6.2.2 Trabajos Programados y Mantenimiento
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear comandos para tareas programadas:
+    - `app/Console/Commands/ProcessTimeEntriesForInvoicesCommand.php`
+    - `app/Console/Commands/SendTaskRemindersCommand.php`
+    - `app/Console/Commands/SyncCalendarIntegrationsCommand.php`
+    - `app/Console/Commands/CleanupOldTimeEntriesCommand.php`
+  - Implementar scheduler con tenancy: `app/Console/Kernel.php`
+  - Desarrollar trabajos recurrentes con Horizon
+  - Crear sistema de bloqueos distribuidos para evitar ejecuciones simultáneas
+
+### 7. Pruebas y Aseguramiento de Calidad
 
 #### 7.1 Testing Automatizado
-- **Tarea**: Implementar test suite completo
-- **Detalles Técnicos**:
-  - Crear tests unitarios con PHPUnit
-  - Implementar tests de integración
-  - Desarrollar tests de UI con Laravel Dusk
-  - Configurar CI/CD con GitHub Actions
+
+##### 7.1.1 Tests Unitarios y de Integración
+- **Duración estimada**: 5 días
+- **Componentes técnicos**:
+  - Configurar PHPUnit para multi-tenancy: `phpunit.xml`
+  - Crear TestCase base con soporte para tenant: `tests/TestCase.php`
+  - Implementar factories para todos los modelos
+  - Desarrollar tests para servicios críticos:
+    - `tests/Unit/Services/TimeTrackerServiceTest.php`
+    - `tests/Unit/Services/TaskServiceTest.php`
+  - Crear tests de API: `tests/Feature/Api`
+  - Implementar tests de integración para flujos completos
+
+##### 7.1.2 Tests de UI y Experiencia de Usuario
+- **Duración estimada**: 4 días
+- **Componentes técnicos**:
+  - Instalar Laravel Dusk: `composer require --dev laravel/dusk`
+  - Configurar entorno para pruebas de browser
+  - Crear tests para flujos críticos: 
+    - `tests/Browser/TimeTracking/TimerTest.php`
+    - `tests/Browser/Tasks/KanbanBoardTest.php`
+  - Implementar capturas de pantalla automáticas para fallos
+  - Desarrollar helpers para interacciones comunes
+
+##### 7.1.3 CI/CD y Automatización de Pruebas
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Configurar GitHub Actions: `.github/workflows/test.yml`
+  - Implementar pipeline de CD con despliegue automático
+  - Crear matriz de pruebas para diferentes versiones de PHP/Node
+  - Implementar reporte de cobertura de código
+  - Configurar alertas para fallos de CI
 
 #### 7.2 Código de Calidad
-- **Tarea**: Garantizar código de calidad
-- **Detalles Técnicos**:
-  - Implementar PHP CS Fixer para formateo de código
-  - Utilizar PHPStan/Psalm para análisis estático
-  - Configurar Code Climate para métricas de calidad
-  - Implementar revisiones de código
 
-### 8. Monitoreo y Logs
+##### 7.2.1 Herramientas de Análisis Estático
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Instalar PHP CS Fixer: `composer require --dev friendsofphp/php-cs-fixer`
+  - Configurar PHPStan para análisis estático: `composer require --dev phpstan/phpstan`
+  - Implementar reglas personalizadas de estilo
+  - Crear scripts de pre-commit hooks
+  - Integrar Code Climate para métricas continuas
 
-#### 8.1 Sistema de Logs
-- **Tarea**: Implementar logging avanzado
-- **Detalles Técnicos**:
-  - Configurar Papertrail/ELK Stack para logs centralizados
+##### 7.2.2 Documentación y Guías de Desarrollo
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Crear documentación de API con PHPDoc
+  - Implementar sistema de documentación automática
+  - Desarrollar guías de contribución: `CONTRIBUTING.md`
+  - Crear manuales de desarrollo: `docs/`
+
+### 8. Monitoreo y Operaciones
+
+#### 8.1 Logging y Trazabilidad
+
+##### 8.1.1 Sistema de Logs Centralizados
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Configurar formato estructurado de logs: `config/logging.php`
   - Implementar contexto de tenant en logs
-  - Desarrollar dashboard para monitoreo de logs
+  - Desarrollar driver personalizado para logs: `app/Logging/TenantLogDriver.php`
+  - Configurar envío a servicio externo (Papertrail/ELK)
+  - Implementar niveles dinámicos de log
 
-#### 8.2 Monitoreo de Aplicación
-- **Tarea**: Configurar sistema de monitoreo
-- **Detalles Técnicos**:
-  - Implementar Laravel Telescope para desarrollo
-  - Configurar New Relic/Bugsnag para producción
-  - Desarrollar health checks para servicios críticos
+##### 8.1.2 Sistema de Monitoreo de Aplicación
+- **Duración estimada**: 3 días
+- **Componentes técnicos**:
+  - Instalar Laravel Telescope para desarrollo
+  - Configurar monitorización de producción con New Relic
+  - Implementar rastreo de excepciones con Bugsnag/Sentry
+  - Desarrollar health checks para todos los servicios: `app/Http/Controllers/HealthCheckController.php`
+  - Crear alertas para problemas críticos
+
+##### 8.1.3 Dashboards de Estado
+- **Duración estimada**: 2 días
+- **Componentes técnicos**:
+  - Crear dashboard de estado del sistema: `resources/js/Pages/Admin/SystemStatus.vue`
+  - Implementar métricas en tiempo real con WebSockets
+  - Desarrollar API para estadísticas de sistema
+  - Crear indicadores de salud por servicio y tenant
 
 ---
 

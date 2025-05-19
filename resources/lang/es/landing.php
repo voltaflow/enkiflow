@@ -79,6 +79,9 @@ return [
     'research' => 'Investigación',
     'other' => 'Otros',
     'todays_timeline' => 'Cronología de Hoy',
+    'tasks_tab' => 'Tareas',
+    'app_usage_tab' => 'Uso de Aplicaciones',
+    'enter_task_description' => 'Por favor ingresa una descripción de la tarea',
 
     // Features page
     'features_page_title' => 'Características de EnkiFlow',

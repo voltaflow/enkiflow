@@ -79,6 +79,9 @@ return [
     'research' => 'Research',
     'other' => 'Other',
     'todays_timeline' => 'Today\'s Timeline',
+    'tasks_tab' => 'Tasks',
+    'app_usage_tab' => 'App Usage',
+    'enter_task_description' => 'Please enter a task description',
 
     // Features page
     'features_page_title' => 'EnkiFlow Features',
