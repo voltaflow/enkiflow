@@ -34,7 +34,7 @@ interface TasksProps {
   };
 }
 
-export default function Index({ auth, tasks }: PageProps<TasksProps>) {
+export default function Index({ tasks }: PageProps<TasksProps>) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredTasks = tasks.data.filter(task => 

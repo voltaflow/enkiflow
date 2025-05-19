@@ -1,10 +1,9 @@
-import { useState, FormEvent } from 'react';
+import { FormEvent } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
@@ -52,7 +51,7 @@ interface ShowProps {
   task: Task;
 }
 
-export default function Show({ auth, task }: PageProps<ShowProps>) {
+export default function Show({ task }: PageProps<ShowProps>) {
   const { data, setData, post, processing, errors, reset } = useForm({
     content: '',
   });
