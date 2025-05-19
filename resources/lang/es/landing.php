@@ -4,6 +4,14 @@ return [
     // Hero section
     'hero_title' => 'Simplifica tu gestión de tiempo y proyectos',
     'hero_description' => 'EnkiFlow te ayuda a gestionar proyectos, tareas y tiempo en un solo lugar, mejorando la productividad de tu equipo.',
+    'hero_badge' => '¡NUEVO! Seguimiento de tiempo mejorado 2025',
+    'hero_title_highlight' => 'Revoluciona',
+    'hero_title_main' => 'tu flujo de trabajo',
+    'hero_title_sub' => 'con EnkiFlow',
+    'cta_trial' => 'Comenzar prueba gratis',
+    'trial_terms' => 'Prueba gratis de 14 días · Sin tarjeta · Cancela cuando quieras',
+    'email_placeholder' => 'Ingresa tu correo',
+    'watch_demo' => 'Ver demo',
     'get_started' => 'Comenzar gratis',
     'see_features' => 'Ver características',
 
@@ -65,6 +73,9 @@ return [
     'research' => 'Investigación',
     'other' => 'Otros',
     'todays_timeline' => 'Cronología de Hoy',
+    'tasks_tab' => 'Tareas',
+    'app_usage_tab' => 'Uso de Aplicaciones',
+    'enter_task_description' => 'Por favor ingresa una descripción de la tarea',
 
     // Features page
     'features_page_title' => 'Características de EnkiFlow',
@@ -184,4 +195,9 @@ return [
     'phone' => 'Teléfono',
     'address' => 'Dirección',
     'follow_us' => 'Síguenos',
+    'logo_alt' => 'Logo de EnkiFlow',
+    'testimonial_1_alt' => 'Alex Roberts',
+    'testimonial_2_alt' => 'Maria Stevens',
+    'testimonial_3_alt' => 'Daniel Kim',
+    'client_logo_alt' => 'Logo de :company',
 ];
