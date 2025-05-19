@@ -278,11 +278,9 @@
 <script>
     window.demoTranslations = {
         recent_tasks: "{{ __('landing.recent_tasks') }}",
-        no_tasks_recorded: "{{ __('landing.no_tasks_recorded') }}",
-        tasks_tab: "{{ __('landing.tasks_tab') }}",
-        app_usage_tab: "{{ __('landing.app_usage_tab') }}",
-        enter_task_description: "{{ __('landing.enter_task_description') }}"
+        no_tasks_recorded: "{{ __('landing.no_tasks_recorded') }}"
     };
+    window.demoTasks = @json(__('landing.demo_tasks'));
 </script>
 
 <script>

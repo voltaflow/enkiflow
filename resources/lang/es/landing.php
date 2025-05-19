@@ -62,6 +62,12 @@ return [
     'demo_explanation' => 'Esta es una versión simplificada de nuestra función de seguimiento de tiempo. En la versión completa, puedes categorizar tareas, añadir proyectos y generar informes detallados.',
     'recent_tasks' => 'Tareas Recientes',
     'no_tasks_recorded' => 'Aún no hay tareas registradas. Inicia el temporizador para comenzar a hacer seguimiento.',
+    'demo_tasks' => [
+        'Diseño de mockups para la nueva landing page',
+        'Reunión con el equipo de marketing',
+        'Desarrollo de la funcionalidad de Pomodoro',
+        'Revisión y corrección de bugs',
+    ],
     'enkiflow_timer' => 'Temporizador EnkiFlow',
     'app_activity' => 'Actividad de la Aplicación',
     'current_day_activity' => 'Actividad del Día Actual',

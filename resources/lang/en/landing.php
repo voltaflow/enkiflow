@@ -62,6 +62,12 @@ return [
     'demo_explanation' => 'This is a simplified demo of our time tracking feature. In the full version, you can categorize tasks, add projects, and generate detailed reports.',
     'recent_tasks' => 'Recent Tasks',
     'no_tasks_recorded' => 'No tasks recorded yet. Start the timer to begin tracking.',
+    'demo_tasks' => [
+        'Design mockups for the new landing page',
+        'Meeting with the marketing team',
+        'Develop the Pomodoro functionality',
+        'Bug review and fixing',
+    ],
     'enkiflow_timer' => 'EnkiFlow Timer',
     'app_activity' => 'App Activity',
     'current_day_activity' => 'Current Day Activity',
