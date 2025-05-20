@@ -29,7 +29,7 @@ export default function Details({ plan }: DetailsProps) {
     }
     
     // Simple validation first
-    if (!/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/.test(subdomain)) {
+    if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(subdomain)) {
       setSubdomainAvailable(false);
       return;
     }
