@@ -74,7 +74,7 @@ export default function TimeTrackingReports({
     value: periodValue
   });
   
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     setLoading(true);
     
     try {
@@ -91,11 +91,11 @@ export default function TimeTrackingReports({
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [period]);
+
   useEffect(() => {
     fetchReportData();
-  }, [period]);
+  }, [fetchReportData]);
   
   const handlePreviousPeriod = () => {
     if (period.type === 'month') {
