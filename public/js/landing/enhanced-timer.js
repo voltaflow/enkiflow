@@ -1,9 +1,9 @@
 // EnkiFlow Enhanced Timer with Pomodoro functionality
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Main elements
     const timerContainer = document.getElementById('solidJsCounter');
     if (!timerContainer) return;
-    
+
     const hoursElement = document.getElementById('hours');
     const minutesElement = document.getElementById('minutes');
     const secondsElement = document.getElementById('seconds');
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const startButton = document.getElementById('startButton');
     const resetButton = document.getElementById('resetButton');
     const recentTasksContainer = document.querySelector('#solidJsCounter .mt-8');
-    
+
     // Timer state
     let seconds = 0;
     let minutes = 0;
@@ -27,35 +27,45 @@ document.addEventListener('DOMContentLoaded', function() {
         cyclesBeforeLongBreak: 4,
         currentPomodoros: 0
     };
-    
-    // Task history (simulated with predefined tasks)
-    const recentTasks = [
-        {
-            description: "Diseño de mockups para la nueva landing page",
-            duration: "1h 45m 20s",
-            timestamp: new Date(Date.now() - 3600000), // 1 hour ago
-            totalSeconds: 6320
-        },
-        {
-            description: "Reunión con el equipo de marketing",
-            duration: "45m 12s",
-            timestamp: new Date(Date.now() - 7200000), // 2 hours ago
-            totalSeconds: 2712
-        },
-        {
-            description: "Desarrollo de la funcionalidad de Pomodoro",
-            duration: "2h 10m 5s",
-            timestamp: new Date(Date.now() - 28800000), // 8 hours ago
-            totalSeconds: 7805
-        },
-        {
-            description: "Revisión y corrección de bugs",
-            duration: "1h 20m 45s",
-            timestamp: new Date(Date.now() - 86400000), // 1 day ago
-            totalSeconds: 4845
+
+    const TASKS_KEY = 'enkiflow_demo_tasks';
+    let recentTasks = [];
+    try {
+        const stored = localStorage.getItem(TASKS_KEY);
+        if (stored) {
+            recentTasks = JSON.parse(stored);
+        } else {
+            recentTasks = [
+                {
+                    description: window.demoTasks?.[0] || "Design mockups for the new landing page",
+                    duration: "1h 45m 20s",
+                    timestamp: new Date(Date.now() - 3600000),
+                    totalSeconds: 6320
+                },
+                {
+                    description: window.demoTasks?.[1] || "Meeting with the marketing team",
+                    duration: "45m 12s",
+                    timestamp: new Date(Date.now() - 7200000),
+                    totalSeconds: 2712
+                },
+                {
+                    description: window.demoTasks?.[2] || "Develop the Pomodoro functionality",
+                    duration: "2h 10m 5s",
+                    timestamp: new Date(Date.now() - 28800000),
+                    totalSeconds: 7805
+                },
+                {
+                    description: window.demoTasks?.[3] || "Bug review and fixing",
+                    duration: "1h 20m 45s",
+                    timestamp: new Date(Date.now() - 86400000),
+                    totalSeconds: 4845
+                }
+            ];
         }
-    ];
-    
+    } catch (e) {
+        recentTasks = [];
+    }
+
     // Application usage history (simulated)
     const appUsageHistory = [
         { name: 'Visual Studio Code', duration: 145, category: 'Development', color: '#0078d7' },
@@ -64,14 +74,14 @@ document.addEventListener('DOMContentLoaded', function() {
         { name: 'Zoom', duration: 62, category: 'Meetings', color: '#0b5cff' },
         { name: 'Outlook', duration: 29, category: 'Email', color: '#0078d4' }
     ];
-    
+
     // Format time to display as 00:00:00
     function formatTimeDisplay() {
         hoursElement.textContent = hours.toString().padStart(2, '0');
         minutesElement.textContent = minutes.toString().padStart(2, '0');
         secondsElement.textContent = seconds.toString().padStart(2, '0');
     }
-    
+
     // Update timer
     function updateTimer() {
         seconds++;
@@ -83,20 +93,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 hours++;
             }
         }
-        
+
         formatTimeDisplay();
-        
+
         // Check if pomodoro cycle is complete
         if (pomodoroMode) {
             const totalSeconds = hours * 3600 + minutes * 60 + seconds;
             const workDuration = pomodoroConfig.workDuration;
             const shortBreak = pomodoroConfig.shortBreakDuration;
             const longBreak = pomodoroConfig.longBreakDuration;
-            
+
             if (currentCycle === 'work' && totalSeconds >= workDuration) {
                 pomodoroConfig.currentPomodoros++;
                 pauseTimer();
-                
+
                 if (pomodoroConfig.currentPomodoros % pomodoroConfig.cyclesBeforeLongBreak === 0) {
                     // Time for a long break
                     showNotification('Time for a long break!', 'Take 15 minutes to relax completely.');
@@ -123,71 +133,73 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     // Start timer
     function startTimer() {
         if (timerRunning) return;
-        
+
         // Get task description
         const taskDescription = taskInput.value.trim();
         if (!taskDescription && !pomodoroMode) {
             // Only require description if not in the middle of a Pomodoro cycle
-            alert('Please enter a task description');
+            alert(window.demoTranslations?.enter_task_description || 'Please enter a task description');
             return;
         }
-        
+
         // Update UI
         timerRunning = true;
         startButton.textContent = 'Pause';
         startButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
         startButton.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
-        
+
         // Start counting
         timerInterval = setInterval(updateTimer, 1000);
     }
-    
+
     // Pause timer
     function pauseTimer() {
         if (!timerRunning) return;
-        
+
         // Clear interval
         clearInterval(timerInterval);
-        
+
         // Update UI
         timerRunning = false;
         startButton.textContent = 'Resume';
         startButton.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
         startButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
     }
-    
+
     // Reset timer
     function resetTimer() {
         // Clear interval and reset values
         pauseTimer();
         resetTimerValues();
-        
+
         // Update UI
         startButton.textContent = 'Start';
-        
+
         // If not continuing a Pomodoro cycle, add the task to history
         if (!pomodoroMode || currentCycle === 'work') {
             const taskDescription = taskInput.value.trim();
             if (taskDescription && (hours > 0 || minutes > 0 || seconds > 0)) {
                 addTaskToHistory(taskDescription);
             }
-            
+
             // Clear input
             taskInput.value = '';
         }
-        
+
         // Reset Pomodoro cycle if requested
         if (pomodoroMode && confirm('Do you want to reset the Pomodoro cycle?')) {
             pomodoroMode = false;
             currentCycle = 'work';
             pomodoroConfig.currentPomodoros = 0;
         }
+        saveTasks();
+        saveTasks();
     }
-    
+
     // Reset timer values without affecting other states
     function resetTimerValues() {
         seconds = 0;
@@ -195,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
         hours = 0;
         formatTimeDisplay();
     }
-    
+
     // Add a completed task to history
     function addTaskToHistory(description) {
         // Create a new task entry
@@ -206,25 +218,27 @@ document.addEventListener('DOMContentLoaded', function() {
             timestamp: new Date(),
             totalSeconds: totalSeconds
         };
-        
+
         // Add to the list
         recentTasks.unshift(task);
-        
+
         // Limit to 5 most recent tasks
         if (recentTasks.length > 5) {
             recentTasks.pop();
         }
-        
+
         // Update UI
         updateTaskHistory();
+        saveTasks();
+        saveTasks();
     }
-    
+
     // Format duration from seconds to readable format
     function formatDuration(totalSeconds) {
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
-        
+
         let result = '';
         if (hours > 0) {
             result += `${hours}h `;
@@ -233,222 +247,232 @@ document.addEventListener('DOMContentLoaded', function() {
             result += `${minutes}m `;
         }
         result += `${seconds}s`;
-        
+
         return result;
     }
-    
+
     // Update the task history display
     function updateTaskHistory() {
         // Clear current content
         recentTasksContainer.innerHTML = '';
-        
+
         // Add heading
         const heading = document.createElement('h3');
         heading.className = 'font-medium text-gray-900 dark:text-white mb-2';
-        heading.textContent = 'Recent Tasks';
+        heading.textContent = window.demoTranslations?.recent_tasks || 'Recent Tasks';
+        heading.textContent = window.demoTranslations?.recent_tasks || 'Recent Tasks';
         recentTasksContainer.appendChild(heading);
-        
+
         // If no tasks, show placeholder
         if (recentTasks.length === 0) {
             const noTasks = document.createElement('p');
             noTasks.className = 'text-gray-500 dark:text-gray-400 text-sm italic';
-            noTasks.textContent = 'No tasks recorded yet. Start the timer to track your first task!';
+            noTasks.textContent = window.demoTranslations?.no_tasks_recorded || 'No tasks recorded yet. Start the timer to track your first task!';
+            noTasks.textContent = window.demoTranslations?.no_tasks_recorded || 'No tasks recorded yet. Start the timer to track your first task!';
             recentTasksContainer.appendChild(noTasks);
             return;
         }
-        
+
         // Create task list
         const taskList = document.createElement('div');
         taskList.className = 'space-y-2';
-        
+
         for (const task of recentTasks) {
             const taskItem = document.createElement('div');
             taskItem.className = 'flex justify-between items-start p-2 border-b border-gray-100 dark:border-gray-700 last:border-0';
-            
+
             // Task info
             const taskInfo = document.createElement('div');
-            
+
             const taskDescription = document.createElement('div');
             taskDescription.className = 'font-medium text-gray-900 dark:text-white';
             taskDescription.textContent = task.description;
-            
+
             const taskTimestamp = document.createElement('div');
             taskTimestamp.className = 'text-sm text-gray-500 dark:text-gray-400';
             taskTimestamp.textContent = formatTimestamp(task.timestamp);
-            
+
             taskInfo.appendChild(taskDescription);
             taskInfo.appendChild(taskTimestamp);
-            
+
             // Task duration
             const taskDuration = document.createElement('div');
             taskDuration.className = 'font-mono text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300';
             taskDuration.textContent = task.duration;
-            
+
             // Add to item
             taskItem.appendChild(taskInfo);
             taskItem.appendChild(taskDuration);
-            
+
             // Add to list
             taskList.appendChild(taskItem);
         }
-        
+
         recentTasksContainer.appendChild(taskList);
-        
+
         // Add app usage tab
         addAppUsageTab();
     }
-    
+
+    function saveTasks() {
+        try {
+            localStorage.setItem(TASKS_KEY, JSON.stringify(recentTasks));
+        } catch (e) {
+            // ignore write errors
+        }
+    }
+
     // Add app usage tab to the task history
     function addAppUsageTab() {
         // Create tabs container
         const tabsContainer = document.createElement('div');
         tabsContainer.className = 'mt-4 border-t border-gray-100 dark:border-gray-700 pt-4';
-        
+
         // Create tabs header
         const tabsHeader = document.createElement('div');
         tabsHeader.className = 'flex border-b border-gray-200 dark:border-gray-700';
-        
+
         // Tasks tab
         const tasksTab = document.createElement('button');
         tasksTab.className = 'px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400';
-        tasksTab.textContent = 'Tasks';
+        tasksTab.textContent = window.demoTranslations?.tasks_tab || 'Tasks';
         tasksTab.dataset.tab = 'tasks';
-        
+
         // App Usage tab
         const appUsageTab = document.createElement('button');
         appUsageTab.className = 'px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300';
-        appUsageTab.textContent = 'App Usage';
+        appUsageTab.textContent = window.demoTranslations?.app_usage_tab || 'App Usage';
         appUsageTab.dataset.tab = 'app-usage';
-        
+
         // Add tabs to header
         tabsHeader.appendChild(tasksTab);
         tabsHeader.appendChild(appUsageTab);
-        
+
         // Create app usage content (hidden by default)
         const appUsageContent = document.createElement('div');
         appUsageContent.className = 'mt-4 hidden';
         appUsageContent.id = 'app-usage-content';
-        
+
         // Add app usage chart placeholder
         const appUsageChart = document.createElement('div');
         appUsageChart.className = 'space-y-2';
-        
+
         // Add app usage data
         for (const app of appUsageHistory) {
             const appItem = document.createElement('div');
             appItem.className = 'flex items-center';
-            
+
             // App name and color indicator
             const appInfo = document.createElement('div');
             appInfo.className = 'flex-1 flex items-center';
-            
+
             const colorIndicator = document.createElement('div');
             colorIndicator.className = 'w-3 h-3 rounded-full mr-2';
             colorIndicator.style.backgroundColor = app.color;
-            
+
             const appName = document.createElement('div');
             appName.className = 'text-sm text-gray-900 dark:text-gray-100';
             appName.textContent = app.name;
-            
+
             const appCategory = document.createElement('div');
             appCategory.className = 'text-xs text-gray-500 dark:text-gray-400 ml-5';
             appCategory.textContent = app.category;
-            
+
             appInfo.appendChild(colorIndicator);
             appInfo.appendChild(appName);
-            
+
             // App duration bar
             const progressContainer = document.createElement('div');
             progressContainer.className = 'w-32 h-4 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden';
-            
+
             const progressBar = document.createElement('div');
             progressBar.className = 'h-full';
             progressBar.style.backgroundColor = app.color;
             progressBar.style.width = `${app.duration / 2}%`; // Scale for visual effect
-            
+
             progressContainer.appendChild(progressBar);
-            
+
             // App duration text
             const durationText = document.createElement('div');
             durationText.className = 'ml-2 text-xs text-gray-700 dark:text-gray-300 w-12 text-right';
             durationText.textContent = formatDuration(app.duration * 60); // Convert minutes to seconds
-            
+
             // Add to item
             appItem.appendChild(appInfo);
             appItem.appendChild(progressContainer);
             appItem.appendChild(durationText);
-            
+
             // Add to chart
             appUsageChart.appendChild(appItem);
         }
-        
+
         appUsageContent.appendChild(appUsageChart);
-        
+
         // Add tabs and content to container
         tabsContainer.appendChild(tabsHeader);
         tabsContainer.appendChild(appUsageContent);
-        
+
         // Add tabs to recent tasks container
         recentTasksContainer.appendChild(tabsContainer);
-        
+
         // Add tab switching functionality
-        tabsHeader.addEventListener('click', function(e) {
+        tabsHeader.addEventListener('click', function (e) {
             if (e.target.dataset.tab === 'app-usage') {
                 // Show app usage, hide tasks
                 tasksTab.classList.remove('text-blue-600', 'dark:text-blue-400', 'border-blue-600', 'dark:border-blue-400');
                 tasksTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                
+
                 appUsageTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
                 appUsageTab.classList.add('text-blue-600', 'dark:text-blue-400', 'border-b-2', 'border-blue-600', 'dark:border-blue-400');
-                
+
                 document.querySelector('#solidJsCounter .space-y-2').style.display = 'none';
                 appUsageContent.classList.remove('hidden');
             } else {
                 // Show tasks, hide app usage
                 appUsageTab.classList.remove('text-blue-600', 'dark:text-blue-400', 'border-blue-600', 'dark:border-blue-400');
                 appUsageTab.classList.add('text-gray-500', 'dark:text-gray-400', 'border-transparent');
-                
+
                 tasksTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'border-transparent');
                 tasksTab.classList.add('text-blue-600', 'dark:text-blue-400', 'border-b-2', 'border-blue-600', 'dark:border-blue-400');
-                
+
                 document.querySelector('#solidJsCounter .space-y-2').style.display = 'block';
                 appUsageContent.classList.add('hidden');
             }
         });
     }
-    
+
     // Format timestamp to readable format
     function formatTimestamp(date) {
         const now = new Date();
         const diff = now - date;
-        
+
         // Less than a minute
         if (diff < 60000) {
             return 'Just now';
         }
-        
+
         // Less than an hour
         if (diff < 3600000) {
             const minutes = Math.floor(diff / 60000);
             return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
         }
-        
+
         // Today
         if (date.toDateString() === now.toDateString()) {
             return `Today at ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
         }
-        
+
         // Yesterday
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
         if (date.toDateString() === yesterday.toDateString()) {
             return `Yesterday at ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
         }
-        
+
         // Other dates
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} at ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     }
-    
+
     // Show notification
     function showNotification(title, message) {
         // Create notification if it doesn't exist
@@ -459,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.className = 'fixed top-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-80 transform transition-transform duration-300 ease-in-out translate-x-full';
             document.body.appendChild(notification);
         }
-        
+
         // Update content
         notification.innerHTML = `
             <div class="flex items-center justify-between">
@@ -477,34 +501,34 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
             </div>
         `;
-        
+
         // Show notification
         setTimeout(() => {
             notification.classList.remove('translate-x-full');
         }, 100);
-        
+
         // Add event listeners
         document.getElementById('pomodoro-notification-close').addEventListener('click', () => {
             notification.classList.add('translate-x-full');
         });
-        
+
         document.getElementById('pomodoro-notification-action').addEventListener('click', () => {
             notification.classList.add('translate-x-full');
             startTimer();
         });
-        
+
         // Auto hide after 10 seconds
         setTimeout(() => {
             notification.classList.add('translate-x-full');
         }, 10000);
     }
-    
+
     // Add Pomodoro mode toggle and UI
     function addPomodoroToggle() {
         // Create toggle container
         const toggleContainer = document.createElement('div');
         toggleContainer.className = 'mt-4 flex flex-col items-center justify-center';
-        
+
         // Create toggle label
         const toggleLabel = document.createElement('label');
         toggleLabel.className = 'flex items-center cursor-pointer';
@@ -516,7 +540,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="dot absolute w-5 h-5 bg-white rounded-full shadow -left-1 -top-0 transition"></div>
             </div>
         `;
-        
+
         // Add styling for toggle
         const style = document.createElement('style');
         style.textContent = `
@@ -536,10 +560,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         `;
         document.head.appendChild(style);
-        
+
         // Add toggle to container
         toggleContainer.appendChild(toggleLabel);
-        
+
         // Create Pomodoro status indicator
         const pomodoroStatus = document.createElement('div');
         pomodoroStatus.className = 'mt-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg w-full max-w-xs hidden';
@@ -556,66 +580,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="pomodoro-indicator w-7 h-7 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs">4</div>
             </div>
         `;
-        
+
         // Add progress bar for current interval
         const progressBarContainer = document.createElement('div');
         progressBarContainer.className = 'mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 w-full overflow-hidden';
-        
+
         const progressBar = document.createElement('div');
         progressBar.id = 'pomodoro-progress';
         progressBar.className = 'bg-blue-600 h-1.5 w-0 transition-all duration-1000 ease-linear';
-        
+
         progressBarContainer.appendChild(progressBar);
         pomodoroStatus.appendChild(progressBarContainer);
-        
+
         // Add pomodoro status to container
         toggleContainer.appendChild(pomodoroStatus);
-        
+
         // Add toggle functionality
-        toggleContainer.querySelector('#pomodoro-toggle').addEventListener('change', function(e) {
+        toggleContainer.querySelector('#pomodoro-toggle').addEventListener('change', function (e) {
             pomodoroMode = e.target.checked;
-            
+
             // Show/hide pomodoro status
             const statusElement = document.getElementById('pomodoro-status');
             if (pomodoroMode) {
                 statusElement.classList.remove('hidden');
-                
+
                 // Reset timer for new Pomodoro cycle
                 resetTimerValues();
                 currentCycle = 'work';
                 pomodoroConfig.currentPomodoros = 0;
-                
+
                 // Update status text
                 updatePomodoroUI();
-                
+
                 // Start pomodoro progress tracking
                 trackPomodoroProgress();
-                
+
                 // Show initial instructions
                 showNotification('Pomodoro Mode Activated', 'Work for 25 minutes, then take a short break. Every 4 pomodoros, take a longer break.');
             } else {
                 statusElement.classList.add('hidden');
-                
+
                 // Clear any interval tracking progress
                 if (window.pomodoroProgressInterval) {
                     clearInterval(window.pomodoroProgressInterval);
                 }
             }
         });
-        
+
         // Add container after timer
         const timerDisplay = document.querySelector('#solidJsCounter .text-6xl');
         timerDisplay.after(toggleContainer);
     }
-    
+
     // Update Pomodoro UI based on current status
     function updatePomodoroUI() {
         if (!pomodoroMode) return;
-        
+
         const statusElement = document.getElementById('pomodoro-status-text');
         const timeLeftElement = document.getElementById('pomodoro-time-left');
         const indicators = document.querySelectorAll('.pomodoro-indicator');
-        
+
         // Update status text
         if (currentCycle === 'work') {
             statusElement.textContent = 'Working';
@@ -627,20 +651,20 @@ document.addEventListener('DOMContentLoaded', function() {
             statusElement.textContent = 'Long Break';
             statusElement.className = 'text-purple-600 dark:text-purple-400 font-medium';
         }
-        
+
         // Update cycle indicators
         indicators.forEach((indicator, index) => {
             indicator.classList.remove('active');
-            
+
             if (index < pomodoroConfig.currentPomodoros) {
                 indicator.classList.add('active');
             }
         });
-        
+
         // Calculate time left in current cycle
         const totalSeconds = hours * 3600 + minutes * 60 + seconds;
         let targetSeconds;
-        
+
         if (currentCycle === 'work') {
             targetSeconds = pomodoroConfig.workDuration;
         } else if (currentCycle === 'shortBreak') {
@@ -648,9 +672,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             targetSeconds = pomodoroConfig.longBreakDuration;
         }
-        
+
         const secondsLeft = targetSeconds - totalSeconds;
-        
+
         if (secondsLeft > 0) {
             const minutesLeft = Math.floor(secondsLeft / 60);
             const secs = secondsLeft % 60;
@@ -659,25 +683,25 @@ document.addEventListener('DOMContentLoaded', function() {
             timeLeftElement.textContent = '';
         }
     }
-    
+
     // Track and visualize Pomodoro progress
     function trackPomodoroProgress() {
         // Clear any existing interval
         if (window.pomodoroProgressInterval) {
             clearInterval(window.pomodoroProgressInterval);
         }
-        
+
         // Update progress every second
         window.pomodoroProgressInterval = setInterval(() => {
             if (!pomodoroMode) {
                 clearInterval(window.pomodoroProgressInterval);
                 return;
             }
-            
+
             // Calculate progress percentage
             const totalSeconds = hours * 3600 + minutes * 60 + seconds;
             let targetSeconds;
-            
+
             if (currentCycle === 'work') {
                 targetSeconds = pomodoroConfig.workDuration;
             } else if (currentCycle === 'shortBreak') {
@@ -685,43 +709,43 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 targetSeconds = pomodoroConfig.longBreakDuration;
             }
-            
+
             const progressPercent = Math.min((totalSeconds / targetSeconds) * 100, 100);
-            
+
             // Update progress bar
             const progressBar = document.getElementById('pomodoro-progress');
             if (progressBar) {
                 progressBar.style.width = `${progressPercent}%`;
             }
-            
+
             // Update status text and indicators
             updatePomodoroUI();
         }, 1000);
     }
-    
+
     // Event listeners for timer controls
-    startButton.addEventListener('click', function() {
+    startButton.addEventListener('click', function () {
         if (timerRunning) {
             pauseTimer();
         } else {
             startTimer();
         }
     });
-    
+
     resetButton.addEventListener('click', resetTimer);
-    
+
     // Add Pomodoro mode
     addPomodoroToggle();
-    
+
     // Initialize task history display with predefined tasks
     updateTaskHistory();
-    
+
     // For demo purposes, auto-toggle the Pomodoro button after 1.5 seconds
     setTimeout(() => {
         const pomodoroToggle = document.getElementById('pomodoro-toggle');
         if (pomodoroToggle) {
             pomodoroToggle.checked = true;
-            
+
             // Trigger the change event manually to activate Pomodoro mode
             const event = new Event('change');
             pomodoroToggle.dispatchEvent(event);

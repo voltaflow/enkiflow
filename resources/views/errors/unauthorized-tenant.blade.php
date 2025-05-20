@@ -89,7 +89,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="{{ asset('logo.svg') }}" alt="Logo" class="logo">
+        <img src="{{ asset('logo.svg') }}" alt="{{ __('landing.logo_alt') }}" class="logo">
         <h1>Acceso No Autorizado</h1>
         <p>No tienes permiso para acceder a este espacio de trabajo.</p>
         

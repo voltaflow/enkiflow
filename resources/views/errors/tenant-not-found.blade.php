@@ -89,7 +89,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="{{ asset('logo.svg') }}" alt="Logo" class="logo">
+        <img src="{{ asset('logo.svg') }}" alt="{{ __('landing.logo_alt') }}" class="logo">
         <h1>Espacio no encontrado</h1>
         <p>El espacio de trabajo que intentas acceder no existe o ha sido eliminado.</p>
         

@@ -108,7 +108,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="{{ asset('logo.svg') }}" alt="Logo" class="logo">
+        <img src="{{ asset('logo.svg') }}" alt="{{ __('landing.logo_alt') }}" class="logo">
         
         <div class="status-icon">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

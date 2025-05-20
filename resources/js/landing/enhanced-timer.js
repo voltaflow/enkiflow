@@ -28,8 +28,43 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPomodoros: 0
     };
     
-    // Task history (simulated)
-    const recentTasks = [];
+    const TASKS_KEY = 'enkiflow_demo_tasks';
+    let recentTasks = [];
+    try {
+        const stored = localStorage.getItem(TASKS_KEY);
+        if (stored) {
+            recentTasks = JSON.parse(stored);
+        } else {
+            recentTasks = [
+                {
+                    description: window.demoTasks?.[0] || 'Design mockups for the new landing page',
+                    duration: '1h 45m 20s',
+                    timestamp: new Date(Date.now() - 3600000),
+                    totalSeconds: 6320
+                },
+                {
+                    description: window.demoTasks?.[1] || 'Meeting with the marketing team',
+                    duration: '45m 12s',
+                    timestamp: new Date(Date.now() - 7200000),
+                    totalSeconds: 2712
+                },
+                {
+                    description: window.demoTasks?.[2] || 'Develop the Pomodoro functionality',
+                    duration: '2h 10m 5s',
+                    timestamp: new Date(Date.now() - 28800000),
+                    totalSeconds: 7805
+                },
+                {
+                    description: window.demoTasks?.[3] || 'Bug review and fixing',
+                    duration: '1h 20m 45s',
+                    timestamp: new Date(Date.now() - 86400000),
+                    totalSeconds: 4845
+                }
+            ];
+        }
+    } catch (e) {
+        recentTasks = [];
+    }
     
     // Application usage history (simulated)
     const appUsageHistory = [
@@ -161,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentCycle = 'work';
             pomodoroConfig.currentPomodoros = 0;
         }
+        saveTasks();
     }
     
     // Reset timer values without affecting other states
@@ -192,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update UI
         updateTaskHistory();
+        saveTasks();
     }
     
     // Format duration from seconds to readable format
@@ -220,14 +257,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add heading
         const heading = document.createElement('h3');
         heading.className = 'font-medium text-gray-900 dark:text-white mb-2';
-        heading.textContent = 'Recent Tasks';
+        heading.textContent = window.demoTranslations?.recent_tasks || 'Recent Tasks';
         recentTasksContainer.appendChild(heading);
         
         // If no tasks, show placeholder
         if (recentTasks.length === 0) {
             const noTasks = document.createElement('p');
             noTasks.className = 'text-gray-500 dark:text-gray-400 text-sm italic';
-            noTasks.textContent = 'No tasks recorded yet. Start the timer to track your first task!';
+            noTasks.textContent = window.demoTranslations?.no_tasks_recorded || 'No tasks recorded yet. Start the timer to track your first task!';
             recentTasksContainer.appendChild(noTasks);
             return;
         }
@@ -268,9 +305,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         recentTasksContainer.appendChild(taskList);
-        
+
         // Add app usage tab
         addAppUsageTab();
+    }
+
+    function saveTasks() {
+        try {
+            localStorage.setItem(TASKS_KEY, JSON.stringify(recentTasks));
+        } catch (e) {
+            // ignore write errors
+        }
     }
     
     // Add app usage tab to the task history

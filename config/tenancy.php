@@ -44,7 +44,7 @@ return [
      * Por ejemplo, si la ruta es tenant.subdomain.domain.com y domain_base = domain.com
      * entonces tenancy identificará 'tenant' como el subdominio.
      */
-    'domain_base' => 'enkiflow.test', // Configurado para el dominio principal
+    'domain_base' => env('TENANCY_DOMAIN_BASE', null), // Use env variable or null to avoid subdomain extraction for main domains
 
     /**
      * Database tenancy config. Used by DatabaseTenancyBootstrapper.
