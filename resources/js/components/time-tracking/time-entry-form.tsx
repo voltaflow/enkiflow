@@ -103,7 +103,7 @@ export function TimeEntryForm({
         setTaskId(null);
       }
     }
-  }, [projectId, tasks]);
+  }, [projectId, taskId, tasks]);
   
   // Set billable default based on category selection
   useEffect(() => {
