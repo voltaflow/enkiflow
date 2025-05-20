@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             ];
         }
-    } catch (e) {
+    } catch {
         recentTasks = [];
     }
     
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveTasks() {
         try {
             localStorage.setItem(TASKS_KEY, JSON.stringify(recentTasks));
-        } catch (e) {
+        } catch {
             // ignore write errors
         }
     }
