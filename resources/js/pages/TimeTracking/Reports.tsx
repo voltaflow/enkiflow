@@ -4,14 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Heading } from '@/components/heading';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Head, Link } from '@inertiajs/react';
-import { Calendar, ChevronLeft, Clock, BarChart, PieChart, Users, Layers } from 'lucide-react';
+import { ChevronLeft, Clock, BarChart, PieChart, Users, Layers } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format, parseISO, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 interface TimeReportData {

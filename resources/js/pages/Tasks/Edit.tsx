@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { FormEvent } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AppLayout from '@/layouts/app-layout';
@@ -44,7 +44,7 @@ interface EditProps {
   availableTags?: Tag[];
 }
 
-export default function Edit({ auth, task, projects, users, availableTags = [] }: PageProps<EditProps>) {
+export default function Edit({ task, projects, users, availableTags = [] }: PageProps<EditProps>) {
   const { data, setData, put, processing, errors } = useForm({
     title: task.title,
     description: task.description || '',
