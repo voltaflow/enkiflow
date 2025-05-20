@@ -4,13 +4,16 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Billable;
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +47,34 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get spaces owned by the user.
+     */
+    public function ownedSpaces(): HasMany
+    {
+        return $this->hasMany(Space::class, 'owner_id');
+    }
+
+    /**
+     * Get all spaces that the user belongs to.
+     */
+    public function spaces(): BelongsToMany
+    {
+        return $this->belongsToMany(Space::class, 'space_users', 'user_id', 'tenant_id')
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Check if the user owns the given space.
+     *
+     * @param Space $space
+     * @return bool
+     */
+    public function ownsSpace(Space $space): bool
+    {
+        return $this->id === $space->owner_id;
     }
 }

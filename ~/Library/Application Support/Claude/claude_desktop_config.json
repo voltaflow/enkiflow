@@ -1,0 +1,23 @@
+{
+"globalShortcut": "Alt+Ctrl+Space",
+  "mcpServers": {
+    "codemcp": {
+      "command": "/Users/c0305/.local/bin/uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/ezyang/codemcp@prod",
+        "codemcp"
+      ]
+    },
+    "github.com/upstash/context7-mcp": {
+      "autoApprove": [],
+      "disabled": false,
+      "timeout": 60,
+      "command": "node",
+      "args": [
+        "/Users/c0305/Documents/Cline/MCP/context7-mcp/node_modules/@upstash/context7-mcp/dist/index.js"
+      ],
+      "transportType": "stdio"
+    }
+  }
+}

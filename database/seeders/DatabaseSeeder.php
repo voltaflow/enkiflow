@@ -13,11 +13,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Create test user if not exists
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Usuario de Prueba',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        
+        // Create space and tenant data
+        $this->call([
+            SpaceSeeder::class,
         ]);
     }
 }

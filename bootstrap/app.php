@@ -1,7 +1,12 @@
 <?php
 
+use App\Http\Middleware\CheckMainDomains;
+use App\Http\Middleware\CustomAuthenticate;
+use App\Http\Middleware\EnsureUserHasTenantAccess;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PublicLandingPageAccess;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,12 +19,49 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Prioritize our public landing page access middleware above everything else
+        // This ensures main domains always show the landing page without auth redirects
+        $middleware->prepend(PublicLandingPageAccess::class);
+        
+        // Registra nuestro middleware de verificación de dominios principales
+        // como el segundo middleware de la aplicación
+        $middleware->prepend(CheckMainDomains::class);
+
+        // Disable automatic guest redirection to /login
+        // to allow public routes to be accessible
+        $middleware->redirectGuestsTo(function ($request) {
+            // Explicitly check if this is a main domain - using multiple checks for reliability
+            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            $isMainDomain = in_array($request->getHost(), $mainDomains) || 
+                          $request->attributes->get('is_main_domain', false) ||
+                          $request->attributes->get('bypass_tenancy', false) || 
+                          $request->attributes->get('skip_tenancy', false);
+            
+            \Log::info("Guest redirection check - Host: {$request->getHost()}, Is main: " . ($isMainDomain ? 'yes' : 'no') . ", Path: {$request->getPathInfo()}");
+            
+            // For main domains, NEVER redirect to login
+            if ($isMainDomain) {
+                // Do not redirect, allow access to the landing page
+                return null;
+            }
+            
+            // For all other domains, maintain default behavior
+            return route('login');
+        });
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
-            HandleAppearance::class,
+            \App\Http\Middleware\TenantDiagnostics::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            HandleAppearance::class,
+            SetLocale::class,
+        ]);
+        
+        $middleware->alias([
+            'tenant.access' => EnsureUserHasTenantAccess::class,
+            'auth' => CustomAuthenticate::class, // Reemplazar el middleware de autenticación por defecto
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
