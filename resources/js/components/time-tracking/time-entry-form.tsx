@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon, Clock } from 'lucide-react';
 
@@ -30,6 +30,17 @@ interface TimeCategory {
   billable_default: boolean;
 }
 
+interface TimeEntryFormData {
+  description: string;
+  project_id: number | null;
+  task_id: number | null;
+  category_id: number | null;
+  is_billable: boolean;
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+}
+
 interface TimeEntryFormProps {
   projects: Project[];
   tasks: Task[];
@@ -44,7 +55,7 @@ interface TimeEntryFormProps {
     start_time?: string;
     end_time?: string;
   };
-  onSubmit: (data: any) => void;
+  onSubmit: (data: TimeEntryFormData) => void;
   onCancel: () => void;
   mode?: 'create' | 'edit' | 'manual';
 }
@@ -106,8 +117,8 @@ export function TimeEntryForm({
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const formData: any = {
+
+    const formData: TimeEntryFormData = {
       description,
       project_id: projectId,
       task_id: taskId,
