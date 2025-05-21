@@ -1,0 +1,401 @@
+// EnkiFlow Database Schema
+// A comprehensive multi-tenant project management system
+
+// MULTI-TENANT SYSTEM
+
+// Stores basic user information
+Table users {
+  id int [pk, increment]
+  name varchar
+  email varchar [unique]
+  password varchar
+  remember_token varchar [null]
+  email_verified_at timestamp [null]
+  two_factor_secret text [null]
+  two_factor_recovery_codes text [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Extended user profile information
+Table user_profiles {
+  id int [pk, increment]
+  user_id int [ref: > users.id]
+  avatar varchar [null]
+  job_title varchar [null]
+  phone varchar [null]
+  timezone varchar [default: 'UTC']
+  locale varchar [default: 'en']
+  theme_preference varchar [default: 'light']
+  notification_preferences json
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Tenant (workspace) information
+Table tenants {
+  id varchar [pk] // Unique tenant ID
+  name varchar
+  plan varchar [default: 'free'] // Subscription plan
+  trial_ends_at timestamp [null]
+  data json [null] // Additional tenant data
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Domain names associated with tenants
+Table domains {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  domain varchar [unique]
+  is_primary boolean [default: false]
+  verified_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Junction table for users in tenants
+Table space_users {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  role varchar // User role in this space
+  permissions json [null] // Additional specific permissions
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (tenant_id, user_id) [unique]
+  }
+}
+
+// User invitations to tenants
+Table invitations {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  email varchar
+  role varchar
+  token varchar [unique]
+  expires_at timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// PROJECT MANAGEMENT
+
+// Client information
+Table clients {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  name varchar
+  email varchar [null]
+  phone varchar [null]
+  address text [null]
+  notes text [null]
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Project information
+Table projects {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  client_id int [ref: > clients.id, null]
+  name varchar
+  description text [null]
+  budget decimal [null]
+  budget_type varchar [null] // 'fixed', 'hourly', etc.
+  status varchar [default: 'active'] // 'active', 'completed', 'on_hold', etc.
+  start_date date [null]
+  due_date date [null]
+  completed_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Task status states
+Table task_states {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  name varchar
+  color varchar [default: '#3498db']
+  position int // For ordering states
+  is_default boolean [default: false]
+  is_completed boolean [default: false] // Indicates if tasks in this state are considered completed
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Task information
+Table tasks {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  project_id int [ref: > projects.id, null]
+  parent_id int [ref: > tasks.id, null] // For hierarchical tasks
+  task_state_id int [ref: > task_states.id]
+  name varchar
+  description text [null]
+  priority varchar [default: 'medium'] // 'low', 'medium', 'high', 'urgent'
+  estimated_time int [null] // In minutes
+  start_date date [null]
+  due_date date [null]
+  completed_at timestamp [null]
+  position int // For ordering tasks within a state
+  is_recurring boolean [default: false]
+  recurrence_pattern json [null] // Recurrence pattern if recurring task
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Task assignments to users
+Table task_assignees {
+  id int [pk, increment]
+  task_id int [ref: > tasks.id]
+  user_id int [ref: > users.id]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (task_id, user_id) [unique]
+  }
+}
+
+// TAGGING AND COMMENTING SYSTEM
+
+// Tags for categorization
+Table tags {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  name varchar
+  color varchar [default: '#3498db']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (tenant_id, name) [unique]
+  }
+}
+
+// Polymorphic taggable items
+Table taggables {
+  id int [pk, increment]
+  tag_id int [ref: > tags.id]
+  taggable_id int // ID of the tagged object
+  taggable_type varchar // Type of tagged model (polymorphic)
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (taggable_id, taggable_type)
+  }
+}
+
+// Comments on various entities
+Table comments {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  commentable_id int // ID of the commented object
+  commentable_type varchar // Type of commented model (polymorphic)
+  content text
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+
+  indexes {
+    (commentable_id, commentable_type)
+  }
+}
+
+// TIME TRACKING
+
+// Time entry categories
+Table time_categories {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  name varchar
+  color varchar [default: '#3498db']
+  is_billable boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Time entries for tracking work
+Table time_entries {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  project_id int [ref: > projects.id, null]
+  task_id int [ref: > tasks.id, null]
+  time_category_id int [ref: > time_categories.id, null]
+  description text [null]
+  start_time timestamp
+  end_time timestamp [null] // Null if in progress
+  duration int [null] // In seconds, calculated or manual
+  is_billable boolean [default: true]
+  is_running boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Activity logs for time entries
+Table activity_logs {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  time_entry_id int [ref: > time_entries.id]
+  activity_type varchar // Type of detected activity
+  metadata json [null] // Additional activity data
+  timestamp timestamp
+  created_at timestamp
+  updated_at timestamp
+}
+
+// REPORTS AND DASHBOARDS
+
+// User dashboards
+Table dashboards {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  name varchar
+  is_default boolean [default: false]
+  layout json [null] // Layout configuration
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Dashboard widgets
+Table dashboard_widgets {
+  id int [pk, increment]
+  dashboard_id int [ref: > dashboards.id]
+  widget_type varchar // Widget type
+  title varchar
+  position json // Position in dashboard (x, y, width, height)
+  settings json // Widget specific configuration
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Saved reports
+Table saved_reports {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  name varchar
+  report_type varchar // Report type
+  filters json // Applied filters
+  columns json // Selected columns
+  sort_by varchar [null]
+  sort_direction varchar [default: 'asc']
+  schedule json [null] // Automatic sending schedule
+  recipients json [null] // Recipients for automatic sending
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// BILLING
+
+// Invoice templates
+Table invoice_templates {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  name varchar
+  is_default boolean [default: false]
+  content text // HTML/CSS template
+  settings json // Additional configuration
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Invoices
+Table invoices {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  client_id int [ref: > clients.id]
+  invoice_template_id int [ref: > invoice_templates.id, null]
+  invoice_number varchar
+  status varchar [default: 'draft'] // 'draft', 'sent', 'paid', 'overdue', 'cancelled'
+  issue_date date
+  due_date date
+  subtotal decimal
+  tax_rate decimal [default: 0]
+  tax_amount decimal [default: 0]
+  discount_amount decimal [default: 0]
+  total decimal
+  notes text [null]
+  terms text [null]
+  sent_at timestamp [null]
+  paid_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+// Invoice line items
+Table invoice_items {
+  id int [pk, increment]
+  invoice_id int [ref: > invoices.id]
+  project_id int [ref: > projects.id, null]
+  description text
+  quantity decimal
+  unit_price decimal
+  amount decimal // quantity * unit_price
+  tax_rate decimal [default: 0]
+  tax_amount decimal [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// EXTENSIBILITY
+
+// Third-party integrations
+Table integrations {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id, null] // If user-level integration
+  provider varchar // 'google', 'slack', 'github', etc.
+  name varchar [null] // Custom name for integration
+  credentials json [note: 'encrypted'] // Encrypted tokens and credentials
+  settings json [null] // Integration specific configuration
+  status varchar [default: 'active'] // 'active', 'error', 'revoked'
+  last_used_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Webhook endpoints
+Table webhook_endpoints {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  url varchar
+  events json // Subscribed events
+  secret varchar [note: 'encrypted'] // Secret for verification
+  is_active boolean [default: true]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// RELATIONSHIPS
+
+// A task can belong to a parent task (hierarchical)
+// Ref: tasks.parent_id > tasks.id
+
+// Many-to-Many: User-Task assignments
+// Ref: task_assignees.task_id > tasks.id
+// Ref: task_assignees.user_id > users.id
+
+// Polymorphic relationships (not directly represented in DBML but documented)
+// - taggables connects tags to any taggable entity
+// - comments connects users' comments to any commentable entity
