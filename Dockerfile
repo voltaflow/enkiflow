@@ -74,7 +74,10 @@ RUN apk add --no-cache \
     libzip \
     icu-libs \
     libpq \
-    oniguruma
+    oniguruma \
+    freetype \
+    harfbuzz \
+    libjpeg
 
 # Install build dependencies
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
