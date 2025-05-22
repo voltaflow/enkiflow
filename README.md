@@ -137,6 +137,9 @@ herd restart php
 
 # Check available PHP versions in Herd
 herd php:list
+
+# Push the Docker image to Docker Hub
+./scripts/push-image.sh $(git rev-parse --short HEAD)
 ```
 
 ### Common macOS Issues

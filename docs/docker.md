@@ -1,8 +1,14 @@
 # Docker Guide
 
+The official image is published on **Docker Hub** and can be pulled with:
+
+```bash
+docker pull c0305/enkiflow:latest
+```
+
 ## Prerequisites
 - Docker 25 or newer
-- `GHCR_TOKEN` (or `GITHUB_TOKEN`) for pushing images to GHCR
+- `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` for pushing images to Docker Hub
 - PHP 8.3 CLI and Node LTS installed
 
 ## Local Development with Octane
@@ -21,7 +27,7 @@ dev-app:
 ```
 Using SQLite for quick tests:
 ```bash
-docker run -e DB_CONNECTION=sqlite -e APP_KEY=base64:YOURKEY -p 8000:8000 ghcr.io/your/image:latest
+docker run -e DB_CONNECTION=sqlite -e APP_KEY=base64:YOURKEY -p 8000:8000 c0305/enkiflow:latest
 ```
 
 ## Understanding Tenancy
@@ -32,7 +38,7 @@ docker run -e DB_CONNECTION=sqlite -e APP_KEY=base64:YOURKEY -p 8000:8000 ghcr.i
   (e.g. `tenant.localhost`).
 
 ## Deploying to Kubernetes
-Use the image from GHCR in a Deployment:
+Use the image from Docker Hub in a Deployment:
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -50,7 +56,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/your/image:latest
+          image: c0305/enkiflow:latest
           env:
             - name: APP_KEY
               value: your-key
@@ -62,13 +68,15 @@ spec:
 Configure `TENANCY_DOMAIN_BASE` to match the wildcard domain set in your Ingress.
 
 ## CI Flow
-GitHub Actions builds multi-arch images on every push.
+GitHub Actions builds multi-arch images on every push and publishes them to **Docker Hub**.
 `main` publishes the `latest` tag, while pull requests receive a
-`pr-<number>` tag for preview. Each release includes this document
+`pr-<number>` tag for preview. After pushing, the workflow runs
+`php artisan scout:index --pretend` inside the new container to ensure
+Laravel Scout initializes correctly. Each release includes this document
 as an asset for quick reference.
 
 ## Production Run
-Pull the image from GHCR and run behind Nginx or Traefik.
+Pull the image from Docker Hub and run behind Nginx or Traefik.
 Use Octane signals to reload without downtime.
 
 ## FAQ
