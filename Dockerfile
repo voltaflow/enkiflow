@@ -46,11 +46,11 @@ COPY artisan .
 COPY composer.json composer.lock ./
 
 # Optimize and set permissions
-RUN php artisan storage:link && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache && \
-    chown -R laravel:laravel storage bootstrap/cache
+RUN php artisan storage:link
+RUN php artisan config:cache
+RUN php artisan route:cache
+RUN php artisan view:cache
+RUN chown -R laravel:laravel storage bootstrap/cache
 
 USER laravel
 EXPOSE 8000
