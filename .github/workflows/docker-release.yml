@@ -36,6 +36,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Check Composer image tag exists
+        run: docker manifest inspect composer:2.8.9-alpine
+
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:

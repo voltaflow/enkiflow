@@ -8,7 +8,14 @@ COPY vite.config.ts tsconfig.json ./
 RUN npm run build
 
 # Stage 2: install PHP dependencies
-FROM composer:2-php8.3-alpine AS vendor
+# Use an official Composer image that supports multi-arch
+FROM composer:2.8.9-alpine AS vendor
+# Alternatively you can use Composer with PHP 8.3:
+#FROM ghcr.io/devgine/composer-php:v2-php8.3-alpine AS vendor
+# Or install Composer manually on top of PHP:
+#FROM php:8.3-cli-alpine AS vendor
+#COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader
