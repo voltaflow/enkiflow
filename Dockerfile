@@ -8,7 +8,7 @@ COPY vite.config.ts tsconfig.json ./
 RUN npm run build
 
 # Stage 2: install PHP dependencies
-FROM composer:2.9-php8.3-alpine AS vendor
+FROM composer:2-php8.3-alpine AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader
