@@ -14,7 +14,7 @@ jobs:
     # Use larger runner for faster builds
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     env:
       IMAGE_NAME: c0305/enkiflow
@@ -100,4 +100,7 @@ jobs:
           body: |
             Docker image tag: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           files: docs/docker.md
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
