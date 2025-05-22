@@ -1,0 +1,36 @@
+name: phpstan
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - 'feature/*'
+  pull_request:
+    branches:
+      - develop
+      - main
+      - 'feature/*'
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Install Dependencies
+        run: |
+          composer install --no-interaction --prefer-dist
+          npm ci
+
+      - name: Install PHPStan
+        run: composer require --dev phpstan/phpstan --no-interaction --prefer-dist
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
