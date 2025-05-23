@@ -27,7 +27,7 @@ Las migraciones de base de datos son fundamentales para el éxito de EnkiFlow, e
 
 - **Framework**: Laravel 12 con PHP 8.4
 - **Base de Datos**: PostgreSQL 16+
-- **Arquitectura**: Multi-tenant con stancl/tenancy v3.x
+- **Arquitectura**: Multi-tenant con stancl/tenancy v3.9
 - **Frontend**: Inertia.js con React 18 y TypeScript
 - **Autenticación**: Laravel Fortify con soporte OAuth
 - **Pagos**: Laravel Cashier (Stripe)
