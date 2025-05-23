@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Tenant\ProjectController;
 use App\Http\Controllers\Tenant\TaskController;
 use App\Http\Controllers\Tenant\TimeEntryController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomainOrSubdomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -27,10 +28,17 @@ Route::middleware([
     \App\Http\Middleware\CustomDomainTenancyInitializer::class, // Use our custom initializer
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    // Dashboard
+    // Public route - redirect to login if not authenticated
     Route::get('/', function () {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
         return redirect()->route('tenant.dashboard');
     });
+
+    // Public tenant routes (accessible without authentication)
+    // Example: Route::get('/about', [PublicController::class, 'about'])->name('tenant.about');
+    // Example: Route::get('/features', [PublicController::class, 'features'])->name('tenant.features');
 
     // Require authentication and tenant access for tenant routes
     Route::middleware(['auth', 'tenant.access'])->group(function () {
