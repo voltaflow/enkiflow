@@ -20,24 +20,32 @@ class CustomDomainTenancyInitializer extends InitializeTenancyByDomain
             return $next($request);
         }
 
+        Log::info('CustomDomainTenancyInitializer: Attempting to initialize tenancy for: ' . $request->getHost());
+
         try {
             // Standard tenancy initialization for non-main domains
-            return parent::handle($request, $next);
+            $result = parent::handle($request, $next);
+            Log::info('CustomDomainTenancyInitializer: Successfully initialized tenancy for: ' . $request->getHost());
+            return $result;
+        } catch (\Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedException $e) {
+            Log::error('CustomDomainTenancyInitializer: Tenant could not be identified for domain: ' . $request->getHost());
+            Log::error('Exception details: ' . $e->getMessage());
+            
+            return response()->view('errors.tenant-not-found', [
+                'domain' => $request->getHost(),
+                'error' => 'Tenant could not be identified'
+            ], 404);
         } catch (\Exception $e) {
-            // Log the error but allow the request to proceed
-            Log::error('Tenancy initialization error: ' . $e->getMessage());
+            // Log the error with more details
+            Log::error('CustomDomainTenancyInitializer: Unexpected error for domain: ' . $request->getHost());
+            Log::error('Exception: ' . get_class($e) . ' - ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
             
-            // For domains that should be handled as tenants but failed to initialize,
-            // we could redirect to a central domain or show an error page
-            if ($request->getHost() !== 'enkiflow.com' && 
-                $request->getHost() !== 'www.enkiflow.com' &&
-                $request->getHost() !== 'enkiflow.test') {
-                return response()->view('errors.tenant-not-found', [
-                    'domain' => $request->getHost()
-                ], 404);
-            }
-            
-            return $next($request);
+            // For critical errors, show error page
+            return response()->view('errors.tenant-not-found', [
+                'domain' => $request->getHost(),
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }
