@@ -1,0 +1,60 @@
+name: Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * 1' # Weekly on Monday at midnight
+
+jobs:
+  security-checker:
+    runs-on: ubuntu-latest
+    name: Security Checker
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Security check for PHP dependencies
+        uses: symfonycorp/security-checker-action@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --production
+        continue-on-error: true
+
+      - name: Run npm audit (JSON output)
+        id: npm-audit
+        run: |
+          npm audit --json > npm-audit.json || true
+          echo "audit_exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload npm audit results
+        if: steps.npm-audit.outputs.audit_exit_code != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-results
+          path: npm-audit.json
+          retention-days: 7

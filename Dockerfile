@@ -6,7 +6,7 @@
 ARG APP_ENV=production
 
 # Stage 1: Composer dependencies
-FROM php:8.3-cli-alpine AS composer
+FROM php:8.4-cli-alpine AS composer
 
 WORKDIR /app
 
@@ -36,7 +36,7 @@ COPY . .
 RUN composer dump-autoload
 
 # Stage 2: Node build (if you have frontend assets)
-FROM node:lts-alpine AS node-build
+FROM node:22-alpine AS node-build
 
 WORKDIR /app
 
@@ -55,7 +55,7 @@ COPY public/ ./public/
 RUN npm run build
 
 # Stage 3: Production image
-FROM php:8.3-cli-alpine AS runtime
+FROM php:8.4-cli-alpine AS runtime
 
 # Production environment variables
 ENV APP_ENV=production \
@@ -86,7 +86,9 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
-    postgresql-dev
+    postgresql-dev \
+    openssl-dev \
+    linux-headers
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
@@ -100,16 +102,29 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         pcntl
 
 # Install PECL extensions
-RUN pecl install redis \
-    && docker-php-ext-enable redis opcache
+RUN pecl install redis swoole \
+    && docker-php-ext-enable redis swoole opcache
 
-# Enable JIT compilation for PHP 8.3
-RUN echo "opcache.jit=1255" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
-    && echo "opcache.jit_buffer_size=128M" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
+# Enable JIT compilation for PHP 8.4 with Octane optimizations
+# ARM64 has a 128MB limit, AMD64 can use 256MB or more
+RUN if [ "$(uname -m)" = "aarch64" ]; then \
+        echo "opcache.jit_buffer_size=128M" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini; \
+    else \
+        echo "opcache.jit_buffer_size=256M" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini; \
+    fi \
+    && echo "opcache.jit=1255" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.enable_cli=1" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.validate_timestamps=0" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.max_accelerated_files=20000" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.memory_consumption=256" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini \
+    && echo "opcache.interned_strings_buffer=16" >> /usr/local/etc/php/conf.d/docker-php-ext-opcache.ini
 
-# Set production PHP settings
-RUN echo "memory_limit=256M" > /usr/local/etc/php/conf.d/memory-limit.ini \
-    && echo "max_execution_time=30" >> /usr/local/etc/php/conf.d/memory-limit.ini
+# Set production PHP settings optimized for Octane
+RUN echo "memory_limit=512M" > /usr/local/etc/php/conf.d/memory-limit.ini \
+    && echo "max_execution_time=0" >> /usr/local/etc/php/conf.d/memory-limit.ini \
+    && echo "post_max_size=100M" >> /usr/local/etc/php/conf.d/memory-limit.ini \
+    && echo "upload_max_filesize=100M" >> /usr/local/etc/php/conf.d/memory-limit.ini
 
 # Cleanup - more cautious approach
 RUN apk del .build-deps \
@@ -133,9 +148,19 @@ RUN mkdir -p /var/www/html/public/build /var/www/html/bootstrap/cache
 RUN mkdir -p /var/www/html/public/build
 COPY --from=node-build /app/public/build/ /var/www/html/public/build/
 
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Install Octane (already in composer.json, just need to configure it)
+RUN php artisan octane:install --server=swoole --no-interaction || true
+
+# Set proper permissions again after configuration
+RUN chown -R www-data:www-data /var/www/html
 
 # Use non-root user
 USER www-data
@@ -147,8 +172,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Use regular Laravel server instead of Octane
-# Also ensure we apply migrations before starting
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "public/"]
-# Alternative: use built-in artisan serve
-# CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Use entrypoint script to handle initialization and start Octane
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

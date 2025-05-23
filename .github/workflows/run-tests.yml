@@ -28,7 +28,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
+
       stripe-mock:
         image: stripemock/stripe-mock:latest
         ports:
@@ -37,29 +37,35 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-    
+      uses: actions/checkout@v4
+
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: mbstring, pgsql, pcov, zip, pdo, dom, curl, libxml, intl
         coverage: pcov
-        
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'npm'
+
     - name: Get composer cache directory
       id: composer-cache
       run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      
-    - name: Cache dependencies
-      uses: actions/cache@v3
+
+    - name: Cache composer dependencies
+      uses: actions/cache@v4
       with:
         path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: ${{ runner.os }}-composer-
-        
+
     - name: Copy .env
       run: cp .env.example .env.testing
-        
+
     - name: Configure environment for tests
       run: |
         echo "DB_CONNECTION=pgsql" >> .env.testing
@@ -73,21 +79,27 @@ jobs:
         echo "STRIPE_BASE=http://localhost:12111" >> .env.testing
         echo "TENANCY_DATABASE_AUTO_DELETE=true" >> .env.testing
         echo "TENANCY_DATABASE_AUTO_CREATE=true" >> .env.testing
-        
-    - name: Install dependencies
+
+    - name: Install PHP dependencies
       run: composer install --prefer-dist --no-interaction --no-progress
-        
+
+    - name: Install Node dependencies
+      run: npm ci
+
     - name: Generate key
       run: php artisan key:generate --env=testing
-        
+
     - name: Run migrations
       run: php artisan migrate --env=testing
-        
-    - name: Run tests
+
+    - name: Run PHP tests
       run: vendor/bin/phpunit --coverage-clover=coverage.xml
-      
+
+    - name: Run frontend build test
+      run: npm run build
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         fail_ci_if_error: false

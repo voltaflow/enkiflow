@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -11,17 +13,15 @@ on:
 
 jobs:
   build-publish:
-    # Use larger runner for faster builds
     runs-on: ubuntu-latest
     permissions:
       contents: write
       packages: write
     env:
       IMAGE_NAME: c0305/enkiflow
-      IMAGE_TAG: ${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
+      IMAGE_TAG: ${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || (startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest') }}
       COMPOSER_CACHE_DIR: ~/.composer/cache
       NODE_CACHE_DIR: ~/.npm
-      # Use Docker's build resource controls
       DOCKER_BUILD_ARGS: --memory=6g --cpu-quota=150000
     steps:
       - name: Checkout code
@@ -29,7 +29,7 @@ jobs:
 
       # Cache Composer dependencies
       - name: Cache Composer packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.COMPOSER_CACHE_DIR }}
           key: composer-${{ hashFiles('**/composer.lock') }}
@@ -37,7 +37,7 @@ jobs:
 
       # Cache NPM dependencies
       - name: Cache NPM packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.NODE_CACHE_DIR }}
           key: npm-${{ hashFiles('**/package-lock.json') }}
@@ -49,9 +49,7 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
         with:
-          # Use latest version for enhanced performance
           version: latest
-          # Increase the number of concurrent jobs
           driver-opts: |
             image=moby/buildkit:latest
             network=host
@@ -63,21 +61,18 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           
-      # Build for amd64 only to test - once confirmed working, add arm64 back
+      # Build for multiple platforms
       - name: Build and push image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          platforms: linux/amd64
-          # Add efficient BuildX caching
+          platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Optimize build arguments
           build-args: |
             BUILDKIT_INLINE_CACHE=1
-          # Set build metadata
           provenance: false
           labels: |
             org.opencontainers.image.source=${{ github.event.repository.html_url }}
@@ -91,16 +86,26 @@ jobs:
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
             php artisan --version
 
+      # Only create release on tags
       - name: Create GitHub Release
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: release-${{ github.sha }}
-          name: release-${{ github.sha }}
+          name: ${{ github.ref_name }}
           body: |
-            Docker image tag: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ## Docker Image
+            
+            ```bash
+            docker pull ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ```
+            
+            ### Supported Platforms
+            - linux/amd64
+            - linux/arm64
+            
+            ### What's Changed
+            See the full changelog below.
           files: docs/docker.md
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
