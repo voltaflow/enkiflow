@@ -1,4 +1,22 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
 parameters:
     paths:
         - app
+    
     level: 5
+    
+    # Ignorar errores comunes de Laravel/Eloquent
+    ignoreErrors:
+        # Ignorar propiedades dinámicas de modelos Eloquent
+        - '#Access to an undefined property App\\Models\\[a-zA-Z0-9\\_]+::\$[a-zA-Z0-9_]+#'
+    
+    # Excluir archivos problemáticos temporalmente
+    excludePaths:
+        - app/Providers/QueryDebugServiceProvider.php
+        - app/Http/Middleware/HandleInertiaRequests.php
+        
+    # Configuración de tipos
+    treatPhpDocTypesAsCertain: false

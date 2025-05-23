@@ -1,4 +1,4 @@
-name: phpstan
+name: PHPStan Analysis
 
 on:
   push:
@@ -15,22 +15,38 @@ on:
 jobs:
   phpstan:
     runs-on: ubuntu-latest
-
+    name: Static Analysis with PHPStan
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          coverage: none
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, dom
+          tools: composer:v2
 
-      - name: Install Dependencies
-        run: |
-          composer install --no-interaction --prefer-dist
-          npm ci
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
 
-      - name: Install PHPStan
-        run: composer require --dev phpstan/phpstan --no-interaction --prefer-dist
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist --optimize-autoloader
 
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse --no-progress
+        run: vendor/bin/phpstan analyse --memory-limit=512M --no-progress --no-interaction
+        
+      - name: Upload PHPStan results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpstan-results
+          path: phpstan-report.txt
+          retention-days: 5

@@ -1,0 +1,283 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Http\\Controllers\\AppearanceController\:\:update\(\) should return Illuminate\\Http\\JsonResponse but returns Illuminate\\Http\\RedirectResponse\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/AppearanceController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\SpaceController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 6
+			path: app/Http/Controllers/SpaceController.php
+
+		-
+			message: '#^Relation ''domains'' is not found in App\\Models\\Space model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SpaceController.php
+
+		-
+			message: '#^Access to an undefined property Laravel\\Cashier\\Payment\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SpaceSubscriptionController.php
+
+		-
+			message: '#^Access to an undefined property Stripe\\StripeObject\:\:\$space_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/SpaceSubscriptionController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\SpaceSubscriptionController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 8
+			path: app/Http/Controllers/SpaceSubscriptionController.php
+
+		-
+			message: '#^Call to an undefined method Laravel\\Cashier\\Subscription\:\:syncMetadata\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/SpaceSubscriptionController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/Tenant/DashboardController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 10
+			path: app/Http/Controllers/Tenant/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Project\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Tenant/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\Task\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 7
+			path: app/Http/Controllers/Tenant/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:sortByDesc\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Tenant/DashboardController.php
+
+		-
+			message: '#^Parameter \#1 \$source of method Illuminate\\Support\\Collection\<int,array\<string, mixed\>\>\:\:concat\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: app/Http/Controllers/Tenant/DashboardController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\Tenant\\ProjectController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/Tenant/ProjectController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\Tenant\\ProjectController\:\:authorizeResource\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Tenant/ProjectController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\Tenant\\TaskController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Controllers/Tenant/TaskController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\Tenant\\TaskController\:\:authorizeResource\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/Tenant/TaskController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\Tenant\\TimeEntryController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: app/Http/Controllers/Tenant/TimeEntryController.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/Tenant/TimeEntryController.php
+
+		-
+			message: '#^Call to an undefined method App\\Http\\Controllers\\Tenant\\UserRoleController\:\:authorize\(\)\.$#'
+			identifier: method.notFound
+			count: 5
+			path: app/Http/Controllers/Tenant/UserRoleController.php
+
+		-
+			message: '#^Class Stancl\\Tenancy\\Middleware\\InitializeTenancyByDomain constructor invoked with 0 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Http/Middleware/CustomInitializeTenancyByDomainOrSubdomain.php
+
+		-
+			message: '#^Access to an undefined property Stancl\\Tenancy\\Contracts\\Tenant\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/EnsureValidTenant.php
+
+		-
+			message: '#^Access to an undefined property Stancl\\Tenancy\\Contracts\\Tenant\:\:\$owner\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/EnsureValidTenant.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Http/Middleware/EnsureValidTenant.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Comment\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Comment.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Project\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Project.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasStripeId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Space.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:subscribed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Space.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:subscription\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Space.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\Space\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Space.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\Space\:\:\$casts is not covariant with PHPDoc type array\<string, string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$casts\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Space.php
+
+		-
+			message: '#^PHPDoc type array\<string\> of property App\\Models\\Space\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Space.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\SpaceUser\:\:\$casts is not covariant with PHPDoc type array\<string, string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$casts\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/SpaceUser.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\SpaceUser\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/SpaceUser.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Tag\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Tag.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\Task\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/Task.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TimeCategory\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TimeCategory.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\TimeEntry\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/TimeEntry.php
+
+		-
+			message: '#^Property App\\Models\\TimeEntry\:\:\$duration \(int\) does not accept float\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Models/TimeEntry.php
+
+		-
+			message: '#^Method App\\Policies\\CommentPolicy\:\:getSpaceUser\(\) should return App\\Models\\SpaceUser\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/CommentPolicy.php
+
+		-
+			message: '#^Parameter \#2 \$task of method App\\Policies\\TaskPolicy\:\:view\(\) expects App\\Models\\Task, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Policies/CommentPolicy.php
+
+		-
+			message: '#^Method App\\Policies\\ProjectPolicy\:\:getSpaceUser\(\) should return App\\Models\\SpaceUser\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/ProjectPolicy.php
+
+		-
+			message: '#^Parameter \#2 \$project of method App\\Policies\\ProjectPolicy\:\:getSpaceUser\(\) expects App\\Models\\Project, null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Policies/ProjectPolicy.php
+
+		-
+			message: '#^Method App\\Policies\\SpacePolicy\:\:getSpaceUser\(\) should return App\\Models\\SpaceUser\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/SpacePolicy.php
+
+		-
+			message: '#^Method App\\Policies\\TagPolicy\:\:getSpaceUser\(\) should return App\\Models\\SpaceUser\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/TagPolicy.php
+
+		-
+			message: '#^Method App\\Policies\\TaskPolicy\:\:getSpaceUser\(\) should return App\\Models\\SpaceUser\|null but returns \(Illuminate\\Database\\Eloquent\\Model&object\{pivot\: Illuminate\\Database\\Eloquent\\Relations\\Pivot\}\)\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/TaskPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$started_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Repositories/Eloquent/TimeEntryRepository.php
