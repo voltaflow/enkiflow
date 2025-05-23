@@ -14,6 +14,48 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 - Ejecutar prueba individual: `php artisan test --filter=TestClassName::testMethodName`
 - Ejecutar suite de pruebas: `php artisan test --testsuite=Unit`
 
+## Comandos de Verificación para CI/CD y Workflows
+
+**IMPORTANTE**: Antes de hacer commit o crear un PR, siempre ejecutar estos comandos de verificación:
+
+1. **Verificación de tipos TypeScript** (CRÍTICO):
+   ```bash
+   npm run types
+   ```
+   - Este comando DEBE pasar sin errores
+   - Verifica que todos los tipos estén correctamente definidos
+   - No debe haber errores tipo `TS2322`, `TS2339`, `TS2304`, etc.
+
+2. **Linting de código**:
+   ```bash
+   npm run lint
+   ```
+   - Verifica estilo de código y mejores prácticas
+   - Los warnings de ESLint son aceptables pero deben minimizarse
+   - Los errores de ESLint deben corregirse
+
+3. **Formateo de código**:
+   ```bash
+   npm run format
+   ./vendor/bin/pint
+   ```
+   - Asegura consistencia en el formato del código
+   - Ejecutar antes de cada commit
+
+4. **Pruebas**:
+   ```bash
+   composer test
+   ```
+   - Todas las pruebas deben pasar
+   - Agregar nuevas pruebas para nuevas funcionalidades
+
+5. **Build de producción**:
+   ```bash
+   npm run build
+   ```
+   - Verifica que el código compile correctamente para producción
+   - No debe haber errores de compilación
+
 ## Arquitectura y Estilo
 
 - Laravel 12 + React TypeScript SaaS con multi-tenancy (Stancl Tenancy)
@@ -305,6 +347,58 @@ Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con
 - **Cacheo**: Usar cache cuando sea apropiado para optimizar rendimiento
 - **Procesos Asíncronos**: Usar colas para operaciones costosas o no críticas en tiempo
 - **Pruebas**: Mantener cobertura de pruebas para funcionalidades críticas del sistema
+
+## Mejores Prácticas de TypeScript
+
+### Tipos y Interfaces
+
+1. **PageProps genérico**: Usar `PageProps<T>` para componentes de página:
+   ```typescript
+   interface MyPageProps {
+     users: User[];
+     canEdit: boolean;
+   }
+   
+   export default function MyPage({ users, canEdit }: PageProps<MyPageProps>) {
+     // ...
+   }
+   ```
+
+2. **Componentes con forwardRef**: Para componentes que usan `Slot` de Radix UI:
+   ```typescript
+   const MyComponent = React.forwardRef<HTMLDivElement, ComponentProps>(
+     ({ className, asChild, ...props }, ref) => {
+       const Comp = asChild ? Slot : "div";
+       return <Comp ref={ref as any} {...props} />;
+     }
+   );
+   MyComponent.displayName = "MyComponent";
+   ```
+
+3. **Formularios con Inertia**: Para formularios complejos, manejar el estado localmente:
+   ```typescript
+   const [items, setItems] = useState<Item[]>([]);
+   const { post } = useForm({});
+   
+   const submit = () => {
+     router.post(route('endpoint'), { items }, {
+       onSuccess: () => { /* ... */ }
+     });
+   };
+   ```
+
+4. **Importaciones necesarias**: Siempre importar hooks y tipos necesarios:
+   ```typescript
+   import { useState, useEffect, useCallback } from 'react';
+   import type { LucideIcon } from 'lucide-react';
+   ```
+
+### Errores Comunes a Evitar
+
+1. **No asumir propiedades opcionales**: Usar optional chaining (`?.`)
+2. **Tipar explícitamente parámetros de callbacks**: Evitar `any` implícito
+3. **Exportar interfaces necesarias**: Como `PageProps`, `Task`, `User`, etc.
+4. **Verificar imports**: Asegurar que todos los hooks y componentes estén importados
 
 ## Recursos para el Desarrollo
 
