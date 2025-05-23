@@ -4,8 +4,9 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users, Clock } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Users, Clock, type LucideIcon } from 'lucide-react';
 import AppLogo from './app-logo';
+import { forwardRef } from 'react';
 
 const mainNavItems: NavItem[] = [
     {
@@ -16,9 +17,10 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Espacios',
         href: route('spaces.index'),
-        icon: function SpaceIcon(props) {
+        icon: forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function SpaceIcon(props, ref) {
             return (
                 <svg
+                    ref={ref}
                     {...props}
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -35,14 +37,15 @@ const mainNavItems: NavItem[] = [
                     <path d="M9 14h6" />
                 </svg>
             );
-        },
+        }) as LucideIcon,
     },
     {
         title: 'Tareas',
         href: '/tasks',
-        icon: function TaskIcon(props) { 
+        icon: forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function TaskIcon(props, ref) { 
             return (
                 <svg
+                    ref={ref}
                     {...props}
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -59,14 +62,15 @@ const mainNavItems: NavItem[] = [
                     <path d="m9 14 2 2 4-4" />
                 </svg>
             );
-        },
+        }) as LucideIcon,
     },
     {
         title: 'Proyectos',
         href: '/projects',
-        icon: function ProjectIcon(props) {
+        icon: forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function ProjectIcon(props, ref) {
             return (
                 <svg
+                    ref={ref}
                     {...props}
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -83,7 +87,7 @@ const mainNavItems: NavItem[] = [
                     <line x1="10" x2="14" y1="12" y2="12" />
                 </svg>
             );
-        },
+        }) as LucideIcon,
     },
     {
         title: 'Registro de Tiempo',

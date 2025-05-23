@@ -21,11 +21,11 @@ interface User {
 }
 
 interface CreateProps {
-  projects?: Project[];
-  users?: User[];
+  projects: Project[];
+  users: User[];
 }
 
-export default function Create({ auth, projects = [], users = [] }: PageProps<CreateProps>) {
+export default function Create({ auth, projects, users }: PageProps<CreateProps>) {
   const { data, setData, post, processing, errors, reset } = useForm({
     title: '',
     description: '',

@@ -15,14 +15,14 @@ interface User {
   joined_at: string;
 }
 
-interface UsersIndexProps extends PageProps {
+interface UsersIndexProps {
   users: User[];
   canManageRoles: boolean;
   canInviteUsers: boolean;
   availableRoles: { value: string; label: string; description: string }[];
 }
 
-export default function Index({ users, canManageRoles, canInviteUsers, availableRoles }: UsersIndexProps) {
+export default function Index({ users, canManageRoles, canInviteUsers, availableRoles }: PageProps<UsersIndexProps>) {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'owner':

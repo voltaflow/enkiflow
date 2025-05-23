@@ -137,7 +137,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         key={key}
                                         href={`/set-locale/${key}`}
                                         className={`px-2 py-1 text-xs rounded ${
-                                            page.props.locale.current === key 
+                                            page.props.locale?.current === key 
                                                 ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                                                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                                         }`}

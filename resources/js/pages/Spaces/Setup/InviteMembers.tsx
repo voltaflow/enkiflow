@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,10 +23,11 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
   const [invites, setInvites] = useState<InviteItem[]>([
     { email: '', role: 'member' },
   ]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const { post, errors } = useForm({
-    invites: invites,
-  });
+  const getError = (field: string): string | undefined => {
+    return errors[field];
+  };
 
   const addInvite = () => {
     setInvites([...invites, { email: '', role: 'member' }]);
@@ -47,14 +48,15 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Filter out empty invites
-    const filteredInvites = invites.filter(invite => invite.email.trim() !== '');
+    // Filter out empty invites and convert to plain objects
+    const filteredInvites = invites
+      .filter(invite => invite.email.trim() !== '')
+      .map(invite => ({ email: invite.email, role: invite.role }));
     
     setLoading(true);
-    post(route('spaces.setup.confirm'), {
-      data: {
-        invites: filteredInvites,
-      },
+    router.post(route('spaces.setup.confirm'), {
+      invites: filteredInvites as any,
+    }, {
       onSuccess: () => {
         setLoading(false);
       },
@@ -117,8 +119,8 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                           onChange={(e) => updateInvite(index, 'email', e.target.value)}
                           placeholder="email@example.com"
                         />
-                        {errors[`invites.${index}.email`] && (
-                          <div className="text-red-500 text-sm">{errors[`invites.${index}.email`]}</div>
+                        {getError(`invites.${index}.email`) && (
+                          <div className="text-red-500 text-sm">{getError(`invites.${index}.email`)}</div>
                         )}
                       </div>
                       <div className="w-32">
@@ -136,8 +138,8 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                           <option value="member">Miembro</option>
                           <option value="guest">Invitado</option>
                         </select>
-                        {errors[`invites.${index}.role`] && (
-                          <div className="text-red-500 text-sm">{errors[`invites.${index}.role`]}</div>
+                        {getError(`invites.${index}.role`) && (
+                          <div className="text-red-500 text-sm">{getError(`invites.${index}.role`)}</div>
                         )}
                       </div>
                       <Button

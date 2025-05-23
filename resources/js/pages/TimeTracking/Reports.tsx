@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Head, Link } from '@inertiajs/react';
 import { ChevronLeft, Clock, BarChart, PieChart, Users, Layers } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';

@@ -45,3 +45,55 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Project {
+    id: number;
+    name: string;
+    description?: string;
+    status: string;
+    [key: string]: unknown;
+}
+
+export interface Task {
+    id: number;
+    title: string;
+    description?: string;
+    project_id: number;
+    user_id: number;
+    status: string;
+    priority: number;
+    due_date?: string;
+    completed_at?: string;
+    project?: Project;
+    user?: User;
+    tags?: Tag[];
+    comments?: Comment[];
+    [key: string]: unknown;
+}
+
+export interface Tag {
+    id: number;
+    name: string;
+    slug: string;
+    [key: string]: unknown;
+}
+
+export interface Comment {
+    id: number;
+    content: string;
+    user_id: number;
+    task_id: number;
+    user?: User;
+    created_at: string;
+    updated_at: string;
+    [key: string]: unknown;
+}
+
+export type PageProps<T = {}> = T & {
+    auth: Auth;
+    ziggy: Config & { location: string };
+    locale?: {
+        current: string;
+        available: Record<string, string>;
+    };
+}

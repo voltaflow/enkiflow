@@ -41,10 +41,10 @@ interface EditProps {
   task: Task;
   projects: Project[];
   users: User[];
-  availableTags?: Tag[];
+  availableTags: Tag[];
 }
 
-export default function Edit({ task, projects, users, availableTags = [] }: PageProps<EditProps>) {
+export default function Edit({ task, projects, users, availableTags }: PageProps<EditProps>) {
   const { data, setData, put, processing, errors } = useForm({
     title: task.title,
     description: task.description || '',
