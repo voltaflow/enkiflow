@@ -4,171 +4,140 @@ namespace Tests;
 
 use App\Models\Space;
 use App\Models\User;
-use Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper;
-use Stancl\Tenancy\Contracts\TenancyBootstrapper;
-use Stancl\Tenancy\Database\DatabaseManager;
-use Stancl\Tenancy\Events\TenancyInitialized;
-use Stancl\Tenancy\Tenancy;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 abstract class TenancyTestCase extends TestCase
 {
+    use RefreshDatabase;
+    
     /**
      * Current tenant for the test.
-     *
-     * @var \App\Models\Space
      */
-    protected $currentTenant;
+    protected ?Space $tenant = null;
+    
+    /**
+     * The user acting as the tenant owner.
+     */
+    protected ?User $owner = null;
 
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         parent::setUp();
-
-        // Disable automatic database creation
-        $this->skipTenantDatabaseCreation();
         
-        // Configure the application to use the test database for tenant connections
-        config(['database.connections.tenant.database' => env('DB_DATABASE', 'testing')]);
+        // Run central migrations first
+        $this->artisan('migrate', ['--force' => true])->assertSuccessful();
         
-        // Begin a transaction at the database level
-        $this->beginDatabaseTransaction();
+        // Create owner and tenant
+        $this->owner = User::factory()->create();
+        $this->tenant = $this->createTestTenant();
+        
+        // Configure tenant database connection to use the same database
+        config([
+            'database.connections.tenant' => config('database.connections.sqlite'),
+            'tenancy.tenant_database_prefix' => 'tenant_',
+            'tenancy.tenant_database_suffix' => '',
+        ]);
+        
+        // Create a domain for testing
+        $domain = $this->tenant->id . '.localhost';
+        $this->tenant->domains()->create(['domain' => $domain]);
+        
+        // Set the HTTP host for testing
+        $this->app['request']->headers->set('HOST', $domain);
+        config(['app.url' => 'http://' . $domain]);
+        
+        // Initialize tenancy
+        tenancy()->initialize($this->tenant);
+        
+        // Run tenant migrations
+        $this->runTenantMigrations();
     }
     
     /**
-     * Begin a database transaction.
+     * Create a test tenant.
      */
-    protected function beginDatabaseTransaction()
+    protected function createTestTenant(array $attributes = []): Space
     {
-        $database = $this->app->make('db');
-        
-        foreach (['sqlite', 'testing', 'tenant'] as $connection) {
-            $database->connection($connection)->beginTransaction();
-        }
-        
-        $this->beforeApplicationDestroyed(function () use ($database) {
-            foreach (['sqlite', 'testing', 'tenant'] as $connection) {
-                $database->connection($connection)->rollBack();
-            }
-        });
-    }
-
-    /**
-     * Configure tenancy to skip actual database creation.
-     *
-     * @return void
-     */
-    protected function skipTenantDatabaseCreation(): void
-    {
-        // Replace real DatabaseManager with a mock to skip actual tenant DB creation
-        $this->mock(DatabaseManager::class, function ($mock) {
-            $mock->shouldReceive('createDatabase')->andReturn(true);
-            $mock->shouldReceive('deleteDatabase')->andReturn(true);
-            $mock->shouldReceive('databaseExists')->andReturn(true);
-        });
-    }
-
-    /**
-     * Initialize a tenant for testing.
-     *
-     * @param \App\Models\Space|null $tenant
-     * @return \App\Models\Space
-     */
-    protected function initializeTenant(?Space $tenant = null): Space
-    {
-        // Create a tenant if not provided
-        $tenant = $tenant ?? Space::create([
-            'id' => 'test-tenant-' . md5(uniqid()),
+        $tenant = Space::create(array_merge([
+            'id' => 'test_' . str()->random(8),
             'name' => 'Test Tenant',
-            'owner_id' => User::factory()->create()->id,
+            'owner_id' => $this->owner->id,
             'data' => [],
-        ]);
-
-        // Initialize tenancy for this tenant
-        // This will also fire TenancyInitialized event
-        app(Tenancy::class)->initialize($tenant);
-        $this->currentTenant = $tenant;
-
-        // Mock the database bootstrapper to connect to the testing database instead of a tenant DB
-        app()->bind(DatabaseTenancyBootstrapper::class, function () {
-            $bootstrapper = $this->createMock(TenancyBootstrapper::class);
-            $bootstrapper->method('bootstrap')->willReturn(true);
-            $bootstrapper->method('revert')->willReturn(true);
-            return $bootstrapper;
-        });
+        ], $attributes));
         
-        // Run the tenant migrations
+        // Add owner as admin
+        DB::table('space_users')->insert([
+            'tenant_id' => $tenant->id,
+            'user_id' => $this->owner->id,
+            'role' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        return $tenant;
+    }
+    
+    /**
+     * Run tenant migrations.
+     */
+    protected function runTenantMigrations(): void
+    {
         $this->artisan('migrate', [
             '--path' => 'database/migrations/tenant',
             '--database' => 'tenant',
-        ]);
-
-        return $tenant;
+            '--force' => true,
+        ])->assertSuccessful();
     }
-
+    
     /**
-     * End tenancy for the current test.
-     *
-     * @return void
+     * Act as the tenant owner.
      */
-    protected function endTenancy(): void
+    protected function actingAsTenantUser(?User $user = null): self
     {
-        if ($this->currentTenant) {
-            app(Tenancy::class)->end();
-            $this->currentTenant = null;
-        }
+        return $this->actingAs($user ?? $this->owner);
     }
-
+    
+    /**
+     * Make a request to a tenant route.
+     */
+    protected function tenantRequest($method, $uri, array $data = [])
+    {
+        $domain = $this->tenant->domains()->first()->domain;
+        
+        return $this->withHeaders([
+            'Host' => $domain,
+        ])->$method($uri, $data);
+    }
+    
+    /**
+     * Create a new user for the tenant.
+     */
+    protected function createTenantUser(array $attributes = [], string $role = 'member'): User
+    {
+        $user = User::factory()->create($attributes);
+        
+        DB::table('space_users')->insert([
+            'tenant_id' => $this->tenant->id,
+            'user_id' => $user->id,
+            'role' => $role,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        return $user;
+    }
+    
     /**
      * Clean up after the test.
-     *
-     * @return void
      */
     protected function tearDown(): void
     {
-        $this->endTenancy();
+        tenancy()->end();
+        
         parent::tearDown();
-    }
-
-    /**
-     * Create a tenant owner with optional custom attributes.
-     *
-     * @param array $attributes
-     * @return \App\Models\User
-     */
-    protected function createTenantOwner(array $attributes = []): User
-    {
-        return User::factory()->create($attributes);
-    }
-
-    /**
-     * Create a tenant with domain and owner.
-     *
-     * @param array $attributes
-     * @param \App\Models\User|null $owner
-     * @return \App\Models\Space
-     */
-    protected function createTenant(array $attributes = [], ?User $owner = null): Space
-    {
-        $owner = $owner ?? $this->createTenantOwner();
-        
-        $tenant = Space::create(array_merge([
-            'id' => 'test-tenant-' . md5(uniqid()),
-            'name' => 'Test Tenant',
-            'owner_id' => $owner->id,
-            'data' => [],
-        ], $attributes));
-
-        // Create domain for the tenant
-        $domain = strtolower(str_replace(' ', '-', $tenant->id)) . '.localhost';
-        $tenant->domains()->create(['domain' => $domain]);
-
-        // Add owner as a member with admin role
-        $tenant->users()->attach($owner->id, ['role' => 'admin']);
-        
-        return $tenant;
     }
 }
