@@ -17,11 +17,11 @@ class CheckMainDomains
     {
         $host = $request->getHost();
         $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-        
+
         // Set attribute to identify main domains
         $isMainDomain = in_array($host, $mainDomains);
         $request->attributes->set('is_main_domain', $isMainDomain);
-        
+
         // For main domains, set a flag to skip tenancy initialization in middleware
         if ($isMainDomain) {
             \Log::info("Main domain detected: {$host} - Skipping tenancy initialization");
@@ -29,7 +29,7 @@ class CheckMainDomains
             $request->attributes->set('bypass_tenancy', true);
             $request->attributes->set('skip_tenancy', true);
         }
-        
+
         return $next($request);
     }
 }

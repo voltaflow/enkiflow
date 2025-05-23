@@ -5,52 +5,52 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
+use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Space extends BaseTenant implements TenantWithDatabase
 {
-    use HasFactory, HasDatabase, HasDomains;
-    
+    use HasDatabase, HasDomains, HasFactory;
+
     // Set the domain model to use (needs to be public static)
     public static $domainModel = \Stancl\Tenancy\Database\Models\Domain::class;
-    
+
     /**
      * The table associated with the model.
      */
     protected $table = 'tenants';
-    
+
     /**
      * Get a tenant by domain name, supporting subdomains.
      *
-     * @param string $domain
+     * @param  string  $domain
      * @return self|null
      */
     public static function whereHasDomain($domain)
     {
         $segments = explode('.', $domain);
         $subdomain = $segments[0] ?? null;
-        
+
         if ($subdomain) {
             \Log::info("Buscando tenant para subdominio: {$subdomain}");
-            
+
             // Buscar primero por dominio exacto
             $tenant = static::whereHas('domains', function ($query) use ($domain) {
                 $query->where('domain', $domain);
             })->first();
-            
+
             if ($tenant) {
                 return $tenant;
             }
-            
+
             // Si no se encuentra, buscar por subdominio
             return static::whereHas('domains', function ($query) use ($subdomain) {
                 $query->where('domain', $subdomain);
             })->first();
         }
-        
+
         // Fallback a la búsqueda normal por dominio completo
         return static::whereHas('domains', function ($query) use ($domain) {
             $query->where('domain', $domain);
@@ -103,8 +103,8 @@ class Space extends BaseTenant implements TenantWithDatabase
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'space_users', 'tenant_id', 'user_id')
-                    ->withPivot('role')
-                    ->withTimestamps();
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     /**
@@ -133,14 +133,14 @@ class Space extends BaseTenant implements TenantWithDatabase
     public function syncMemberCount()
     {
         $owner = $this->owner;
-        
+
         if ($owner && $owner->hasStripeId() && $owner->subscribed('default')) {
             $memberCount = $this->users()->count();
             $owner->subscription('default')->updateQuantity($memberCount);
-            
+
             return true;
         }
-        
+
         return false;
     }
 }

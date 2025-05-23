@@ -126,7 +126,7 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
-        
+
         'query_debug' => [
             'driver' => 'daily',
             'path' => storage_path('logs/query_debug.log'),

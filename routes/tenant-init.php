@@ -10,10 +10,8 @@
 |
 */
 
-use Illuminate\Support\Facades\Route;
-
 // Special logging to debug tenant initialization
-\Log::info("Initializing tenancy for host: " . request()->getHost());
+\Log::info('Initializing tenancy for host: '.request()->getHost());
 
 // No routes needed here - this file is just to initialize tenancy
 // The actual tenant routes are in tenant.php

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 abstract class TestCase extends BaseTestCase
 {
     use CreatesApplication, MocksVite;
-    
+
     /**
      * Indicates whether the default database setup should be run before each test.
      *
@@ -21,15 +21,15 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Disable Vite for tests to avoid manifest not found errors
         $this->setUpMocksVite();
-        
+
         // Avoid duplicate setUp calls
         if ($this->setUpHasRun) {
             return;
         }
-        
+
         $this->setUpHasRun = true;
     }
 }

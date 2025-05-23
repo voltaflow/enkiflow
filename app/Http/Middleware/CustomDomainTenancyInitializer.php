@@ -16,7 +16,8 @@ class CustomDomainTenancyInitializer extends InitializeTenancyByDomain
     {
         // If this is a main domain, bypass tenancy initialization
         if ($request->attributes->get('bypass_tenancy', false)) {
-            Log::info('Skipping tenancy initialization for main domain: ' . $request->getHost());
+            Log::info('Skipping tenancy initialization for main domain: '.$request->getHost());
+
             return $next($request);
         }
 
@@ -25,18 +26,18 @@ class CustomDomainTenancyInitializer extends InitializeTenancyByDomain
             return parent::handle($request, $next);
         } catch (\Exception $e) {
             // Log the error but allow the request to proceed
-            Log::error('Tenancy initialization error: ' . $e->getMessage());
-            
+            Log::error('Tenancy initialization error: '.$e->getMessage());
+
             // For domains that should be handled as tenants but failed to initialize,
             // we could redirect to a central domain or show an error page
-            if ($request->getHost() !== 'enkiflow.com' && 
+            if ($request->getHost() !== 'enkiflow.com' &&
                 $request->getHost() !== 'www.enkiflow.com' &&
                 $request->getHost() !== 'enkiflow.test') {
                 return response()->view('errors.tenant-not-found', [
-                    'domain' => $request->getHost()
+                    'domain' => $request->getHost(),
                 ], 404);
             }
-            
+
             return $next($request);
         }
     }

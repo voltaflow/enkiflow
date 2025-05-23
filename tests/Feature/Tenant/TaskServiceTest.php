@@ -12,14 +12,15 @@ use Tests\TenancyTestCase;
 class TaskServiceTest extends TenancyTestCase
 {
     protected TaskService $taskService;
+
     protected Project $project;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->taskService = app(TaskService::class);
-        
+
         // Create a project within the tenant
         $this->project = Project::factory()->create([
             'user_id' => $this->owner->id,
@@ -138,9 +139,9 @@ class TaskServiceTest extends TenancyTestCase
         $tag1 = Tag::create(['name' => 'urgent']);
         $tag2 = Tag::create(['name' => 'important']);
         $tag3 = Tag::create(['name' => 'backend']);
-        
+
         $tagIds = [$tag1->id, $tag2->id, $tag3->id];
-        
+
         $this->taskService->syncTags($task->id, $tagIds);
 
         $task->refresh();

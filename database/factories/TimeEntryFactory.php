@@ -31,11 +31,11 @@ class TimeEntryFactory extends Factory
     {
         $startedAt = $this->faker->dateTimeBetween('-30 days', 'now');
         $endedAt = clone $startedAt;
-        $endedAt->modify('+' . $this->faker->numberBetween(15, 180) . ' minutes');
+        $endedAt->modify('+'.$this->faker->numberBetween(15, 180).' minutes');
         $duration = Carbon::parse($endedAt)->diffInSeconds(Carbon::parse($startedAt));
-        
+
         $tags = $this->faker->randomElements(['research', 'development', 'design', 'meeting', 'bug fix', 'refactor', 'documentation', 'testing'], $this->faker->numberBetween(0, 3));
-        
+
         return [
             'user_id' => User::factory(),
             'task_id' => $this->faker->boolean(70) ? Task::factory() : null,
@@ -55,7 +55,7 @@ class TimeEntryFactory extends Factory
             ],
         ];
     }
-    
+
     /**
      * Indicate that the time entry is billable.
      */
@@ -67,7 +67,7 @@ class TimeEntryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Indicate that the time entry is not billable.
      */
@@ -79,7 +79,7 @@ class TimeEntryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Indicate that the time entry is running (not ended).
      */
@@ -92,7 +92,7 @@ class TimeEntryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Indicate that the time entry was manually entered.
      */
@@ -104,7 +104,7 @@ class TimeEntryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Create a time entry for a specific user.
      */
@@ -116,7 +116,7 @@ class TimeEntryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Create a time entry for a specific task.
      */
@@ -129,7 +129,7 @@ class TimeEntryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Create a time entry for a specific project.
      */

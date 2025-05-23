@@ -83,7 +83,7 @@ class TimeEntry extends Model
      */
     public function isRunning(): bool
     {
-        return $this->started_at && !$this->ended_at;
+        return $this->started_at && ! $this->ended_at;
     }
 
     /**
@@ -112,7 +112,7 @@ class TimeEntry extends Model
     public function scopeRunning($query)
     {
         return $query->whereNotNull('started_at')
-                    ->whereNull('ended_at');
+            ->whereNull('ended_at');
     }
 
     /**
@@ -138,7 +138,7 @@ class TimeEntry extends Model
     {
         $hours = floor($this->duration / 3600);
         $minutes = floor(($this->duration % 3600) / 60);
-        
-        return $hours . 'h ' . $minutes . 'm';
+
+        return $hours.'h '.$minutes.'m';
     }
 }

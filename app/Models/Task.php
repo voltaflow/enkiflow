@@ -122,7 +122,7 @@ class Task extends Model
             'completed_at' => null,
         ]);
     }
-    
+
     /**
      * Get the comments for this task.
      */
@@ -130,7 +130,7 @@ class Task extends Model
     {
         return $this->hasMany(Comment::class);
     }
-    
+
     /**
      * Get the tags for the task.
      */

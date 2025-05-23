@@ -8,7 +8,6 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Traits\HasSpacePermissions;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +17,7 @@ use Inertia\Response;
 class DashboardController extends Controller
 {
     use HasSpacePermissions;
-    
+
     /**
      * Display the dashboard.
      */
@@ -26,28 +25,28 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $spaceUser = $this->getSpaceUser($user);
-        
+
         // Basic statistics for all users
         $basicStats = $this->getBasicStats($user);
-        
+
         // Extended statistics for users with VIEW_STATISTICS permission
         $extendedStats = null;
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_STATISTICS)) {
             $extendedStats = $this->getExtendedStats();
         }
-        
+
         // Project statistics
         $projectStats = $this->getProjectStats();
-        
+
         // Task Statistics
         $taskStats = $this->getTaskStats($user);
-        
+
         // User activity for admins
         $userActivity = null;
         if ($spaceUser && ($spaceUser->isAdmin() || $spaceUser->isOwner())) {
             $userActivity = $this->getUserActivity();
         }
-        
+
         return Inertia::render('Tenant/Dashboard', [
             'basicStats' => $basicStats,
             'extendedStats' => $extendedStats,
@@ -57,7 +56,7 @@ class DashboardController extends Controller
             'canViewStats' => $spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_STATISTICS),
         ]);
     }
-    
+
     /**
      * Get basic statistics for the dashboard.
      */
@@ -72,12 +71,12 @@ class DashboardController extends Controller
             ->where('status', '!=', 'completed')
             ->where('due_date', '<', now())
             ->count();
-            
+
         // User's projects
         $userProjectsCount = Project::where('user_id', $user->id)->count();
         $userActiveProjectsCount = Project::where('user_id', $user->id)->where('status', 'active')->count();
         $userCompletedProjectsCount = Project::where('user_id', $user->id)->where('status', 'completed')->count();
-        
+
         // Recent tasks for user
         $recentTasks = Task::with(['project'])
             ->where('user_id', $user->id)
@@ -97,7 +96,7 @@ class DashboardController extends Controller
                     ],
                 ];
             });
-        
+
         return [
             'userTasksCount' => $userTasksCount,
             'userPendingTasksCount' => $userPendingTasksCount,
@@ -110,7 +109,7 @@ class DashboardController extends Controller
             'recentTasks' => $recentTasks,
         ];
     }
-    
+
     /**
      * Get extended statistics for the dashboard.
      */
@@ -121,12 +120,12 @@ class DashboardController extends Controller
         $allPendingTasksCount = Task::where('status', 'pending')->count();
         $allInProgressTasksCount = Task::where('status', 'in_progress')->count();
         $allCompletedTasksCount = Task::where('status', 'completed')->count();
-        
+
         // All projects in the tenant
         $allProjectsCount = Project::count();
         $allActiveProjectsCount = Project::where('status', 'active')->count();
         $allCompletedProjectsCount = Project::where('status', 'completed')->count();
-        
+
         // Task completion trend (last 30 days)
         $taskCompletionByDay = Task::where('completed_at', '>=', now()->subDays(30))
             ->select(DB::raw('DATE(completed_at) as date'), DB::raw('count(*) as count'))
@@ -137,16 +136,16 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return $item->count;
             });
-            
+
         // Fill in missing days
         $dateRange = collect(range(0, 29))->map(function ($day) {
             return now()->subDays($day)->format('Y-m-d');
         })->reverse();
-        
+
         $completionTrend = $dateRange->mapWithKeys(function ($date) use ($taskCompletionByDay) {
             return [$date => $taskCompletionByDay[$date] ?? 0];
         });
-        
+
         // Tasks created trend (last 30 days)
         $taskCreationByDay = Task::where('created_at', '>=', now()->subDays(30))
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
@@ -157,11 +156,11 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return $item->count;
             });
-            
+
         $creationTrend = $dateRange->mapWithKeys(function ($date) use ($taskCreationByDay) {
             return [$date => $taskCreationByDay[$date] ?? 0];
         });
-        
+
         // Top projects by tasks
         $topProjects = Project::withCount('tasks')
             ->orderBy('tasks_count', 'desc')
@@ -174,7 +173,7 @@ class DashboardController extends Controller
                     'tasks_count' => $project->tasks_count,
                 ];
             });
-        
+
         return [
             'allTasksCount' => $allTasksCount,
             'allPendingTasksCount' => $allPendingTasksCount,
@@ -188,7 +187,7 @@ class DashboardController extends Controller
             'topProjects' => $topProjects,
         ];
     }
-    
+
     /**
      * Get project statistics for the dashboard.
      */
@@ -200,7 +199,7 @@ class DashboardController extends Controller
             ->get()
             ->pluck('count', 'status')
             ->toArray();
-            
+
         // Projects by creation date (last 30 days)
         $projectsByDate = Project::where('created_at', '>=', now()->subDays(30))
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
@@ -211,22 +210,22 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return $item->count;
             });
-            
+
         // Fill in missing days
         $dateRange = collect(range(0, 29))->map(function ($day) {
             return now()->subDays($day)->format('Y-m-d');
         })->reverse();
-        
+
         $projectTrend = $dateRange->mapWithKeys(function ($date) use ($projectsByDate) {
             return [$date => $projectsByDate[$date] ?? 0];
         });
-        
+
         return [
             'statusDistribution' => $projectStatuses,
             'creationTrend' => $projectTrend,
         ];
     }
-    
+
     /**
      * Get task statistics for the dashboard.
      */
@@ -238,7 +237,7 @@ class DashboardController extends Controller
             ->get()
             ->pluck('count', 'priority')
             ->toArray();
-            
+
         // User's tasks by status
         $userTasksByStatus = Task::where('user_id', $user->id)
             ->select('status', DB::raw('count(*) as count'))
@@ -246,7 +245,7 @@ class DashboardController extends Controller
             ->get()
             ->pluck('count', 'status')
             ->toArray();
-            
+
         // Overdue tasks
         $overdueTasks = Task::with(['project', 'user'])
             ->where('status', '!=', 'completed')
@@ -269,7 +268,7 @@ class DashboardController extends Controller
                     ],
                 ];
             });
-            
+
         // Tasks due soon (next 7 days)
         $dueSoonTasks = Task::with(['project', 'user'])
             ->where('status', '!=', 'completed')
@@ -292,7 +291,7 @@ class DashboardController extends Controller
                     ],
                 ];
             });
-            
+
         return [
             'priorityDistribution' => $taskPriorities,
             'userTasksByStatus' => $userTasksByStatus,
@@ -300,7 +299,7 @@ class DashboardController extends Controller
             'dueSoonTasks' => $dueSoonTasks,
         ];
     }
-    
+
     /**
      * Get user activity for the dashboard.
      */
@@ -321,7 +320,7 @@ class DashboardController extends Controller
                     'count' => $task->count,
                 ];
             });
-            
+
         // Top users by open tasks
         $topUsersByOpenTasks = Task::whereIn('status', ['pending', 'in_progress'])
             ->select('user_id', DB::raw('count(*) as count'))
@@ -337,11 +336,11 @@ class DashboardController extends Controller
                     'count' => $task->count,
                 ];
             });
-            
+
         // Recent user activity (task/project created, task status changed)
         // This would typically come from an activity log table, but we'll simulate it
         $recentActivity = collect();
-        
+
         // Recently created tasks
         $recentTasks = Task::with(['user:id,name'])
             ->orderBy('created_at', 'desc')
@@ -357,7 +356,7 @@ class DashboardController extends Controller
                     'date' => $task->created_at->format('Y-m-d H:i:s'),
                 ];
             });
-            
+
         // Recently completed tasks
         $recentCompletedTasks = Task::with(['user:id,name'])
             ->where('status', 'completed')
@@ -375,7 +374,7 @@ class DashboardController extends Controller
                     'date' => $task->completed_at->format('Y-m-d H:i:s'),
                 ];
             });
-            
+
         // Recently created projects
         $recentProjects = Project::with(['user:id,name'])
             ->orderBy('created_at', 'desc')
@@ -391,14 +390,14 @@ class DashboardController extends Controller
                     'date' => $project->created_at->format('Y-m-d H:i:s'),
                 ];
             });
-            
+
         // Combine and sort by date
         $recentActivity = $recentTasks->concat($recentCompletedTasks)->concat($recentProjects)
             ->sortByDesc('date')
             ->take(10)
             ->values()
             ->all();
-            
+
         return [
             'topUsersByCompletedTasks' => $topUsersByCompletedTasks,
             'topUsersByOpenTasks' => $topUsersByOpenTasks,

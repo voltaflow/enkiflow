@@ -41,7 +41,7 @@ class SpaceSeeder extends Seeder
         ]);
 
         // Attach the user to the space as admin
-        if (!$space->users()->where('user_id', $user->id)->exists()) {
+        if (! $space->users()->where('user_id', $user->id)->exists()) {
             $space->users()->attach($user->id, ['role' => 'admin']);
         }
 

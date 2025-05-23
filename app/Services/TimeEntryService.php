@@ -53,7 +53,7 @@ class TimeEntryService
     public function createTimeEntry(array $data): TimeEntry
     {
         // If manually creating an entry with start and end times, calculate duration
-        if (!empty($data['started_at']) && !empty($data['ended_at'])) {
+        if (! empty($data['started_at']) && ! empty($data['ended_at'])) {
             $startTime = Carbon::parse($data['started_at']);
             $endTime = Carbon::parse($data['ended_at']);
             $data['duration'] = $endTime->diffInSeconds($startTime);
@@ -69,16 +69,16 @@ class TimeEntryService
     {
         // If updating start or end time, recalculate duration
         $timeEntry = $this->timeEntryRepository->find($id);
-        
+
         if ($timeEntry) {
             $startTime = isset($data['started_at']) ? Carbon::parse($data['started_at']) : $timeEntry->started_at;
             $endTime = isset($data['ended_at']) ? Carbon::parse($data['ended_at']) : $timeEntry->ended_at;
-            
+
             if ($startTime && $endTime) {
                 $data['duration'] = $endTime->diffInSeconds($startTime);
             }
         }
-        
+
         return $this->timeEntryRepository->update($id, $data);
     }
 
@@ -97,12 +97,12 @@ class TimeEntryService
     {
         // Check if there's already a running entry for this user
         $runningEntry = $this->timeEntryRepository->getRunningForUser($userId);
-        
+
         // If there's a running entry, stop it first
         if ($runningEntry) {
             $this->stopTimeEntry($runningEntry->id);
         }
-        
+
         // Create a new time entry
         $data = [
             'user_id' => $userId,
@@ -112,7 +112,7 @@ class TimeEntryService
             'started_at' => now(),
             'is_manual' => false,
         ];
-        
+
         return $this->timeEntryRepository->create($data);
     }
 
@@ -122,17 +122,17 @@ class TimeEntryService
     public function stopTimeEntry(int $id): ?TimeEntry
     {
         $timeEntry = $this->timeEntryRepository->find($id);
-        
+
         if ($timeEntry && $timeEntry->isRunning()) {
             $endTime = now();
             $duration = $endTime->diffInSeconds($timeEntry->started_at);
-            
+
             return $this->timeEntryRepository->update($id, [
                 'ended_at' => $endTime,
                 'duration' => $duration,
             ]);
         }
-        
+
         return $timeEntry;
     }
 
@@ -151,7 +151,7 @@ class TimeEntryService
     {
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
-        
+
         return $this->timeEntryRepository->getForUserInDateRange($userId, $start, $end);
     }
 
@@ -178,19 +178,19 @@ class TimeEntryService
     {
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
-        
+
         $timeEntries = $this->timeEntryRepository->getForUserInDateRange($userId, $start, $end);
-        
+
         $totalDuration = $this->timeEntryRepository->getTotalDuration($timeEntries);
         $billableDuration = $this->timeEntryRepository->getBillableDuration($timeEntries);
-        
+
         $entriesByDate = $this->timeEntryRepository->groupByDate($timeEntries);
         $entriesByProject = $this->timeEntryRepository->groupByProject($timeEntries);
         $entriesByCategory = $this->timeEntryRepository->groupByCategory($timeEntries);
-        
+
         // Calculate billable percentage
         $billablePercentage = $totalDuration > 0 ? ($billableDuration / $totalDuration) * 100 : 0;
-        
+
         return [
             'total_duration' => $totalDuration,
             'billable_duration' => $billableDuration,

@@ -12,8 +12,6 @@ abstract class StripeTestCase extends TestCase
 {
     /**
      * Set up the test environment.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
@@ -22,7 +20,7 @@ abstract class StripeTestCase extends TestCase
         // Configure Stripe to use mock server
         Config::set('cashier.secret', 'sk_test_12345');
         Config::set('cashier.key', 'pk_test_12345');
-        
+
         // If running in CI with stripe-mock, use the CI URL, otherwise use the default
         if (env('STRIPE_BASE')) {
             $baseUrl = env('STRIPE_BASE', 'http://localhost:12111');
@@ -34,14 +32,13 @@ abstract class StripeTestCase extends TestCase
     /**
      * Generate a webhook payload for testing.
      *
-     * @param string $type The event type
-     * @param array $data The object data
-     * @return array
+     * @param  string  $type  The event type
+     * @param  array  $data  The object data
      */
     protected function generateWebhookPayload(string $type, array $data): array
     {
         return [
-            'id' => 'evt_' . md5(uniqid()),
+            'id' => 'evt_'.md5(uniqid()),
             'object' => 'event',
             'api_version' => Cashier::STRIPE_VERSION,
             'created' => time(),
@@ -51,7 +48,7 @@ abstract class StripeTestCase extends TestCase
             'livemode' => false,
             'pending_webhooks' => 0,
             'request' => [
-                'id' => 'req_' . md5(uniqid()),
+                'id' => 'req_'.md5(uniqid()),
                 'idempotency_key' => md5(uniqid()),
             ],
             'type' => $type,
@@ -60,35 +57,28 @@ abstract class StripeTestCase extends TestCase
 
     /**
      * Create a user with Stripe customer ID.
-     *
-     * @param array $attributes
-     * @return \App\Models\User
      */
     protected function createUserWithStripeId(array $attributes = []): User
     {
         return User::factory()->create(array_merge([
-            'stripe_id' => 'cus_' . md5(uniqid()),
+            'stripe_id' => 'cus_'.md5(uniqid()),
         ], $attributes));
     }
 
     /**
      * Create a space with an owner and Stripe subscription data.
-     *
-     * @param array $attributes
-     * @param User|null $owner
-     * @return \App\Models\Space
      */
     protected function createSpaceWithSubscription(array $attributes = [], ?User $owner = null): Space
     {
         $owner = $owner ?? $this->createUserWithStripeId();
-        
+
         $space = Space::create(array_merge([
-            'id' => 'space-' . md5(uniqid()),
+            'id' => 'space-'.md5(uniqid()),
             'name' => 'Test Space',
             'owner_id' => $owner->id,
             'data' => [
                 'plan' => 'price_monthly',
-                'subscription_id' => 'sub_' . md5(uniqid()),
+                'subscription_id' => 'sub_'.md5(uniqid()),
                 'subscription_status' => 'active',
                 'current_period_end' => now()->addMonth()->toDateTimeString(),
             ],
@@ -96,7 +86,7 @@ abstract class StripeTestCase extends TestCase
 
         // Add owner as member
         $space->users()->attach($owner->id, ['role' => 'admin']);
-        
+
         return $space;
     }
 }

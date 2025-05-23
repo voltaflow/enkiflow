@@ -9,21 +9,16 @@ use App\Models\Task;
 use App\Services\TaskService;
 use App\Traits\HasSpacePermissions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TaskController extends Controller
 {
     use HasSpacePermissions;
-    /**
-     * @var TaskService
-     */
+
     protected TaskService $taskService;
 
     /**
      * TaskController constructor.
-     *
-     * @param TaskService $taskService
      */
     public function __construct(TaskService $taskService)
     {
@@ -50,10 +45,10 @@ class TaskController extends Controller
             ->orderBy($request->input('sort', 'created_at'), $request->input('direction', 'desc'))
             ->paginate(10)
             ->withQueryString();
-        
+
         // Get filters for dropdowns
         $projects = \App\Models\Project::select('id', 'name')->get();
-        
+
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
             'projects' => $projects,
@@ -68,10 +63,10 @@ class TaskController extends Controller
     {
         // Get projects for dropdown
         $projects = \App\Models\Project::select('id', 'name')->get();
-        
+
         // Get users for dropdown (members of the current space)
         $users = \App\Models\User::select('id', 'name')->get();
-        
+
         return Inertia::render('Tasks/Create', [
             'projects' => $projects,
             'users' => $users,
@@ -84,13 +79,13 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request)
     {
         $validated = $request->validated();
-        
+
         $task = $this->taskService->createTask($validated);
-        
+
         if ($request->has('tags')) {
             $this->taskService->syncTags($task->id, $request->tags);
         }
-        
+
         return redirect()->route('tasks.show', $task)
             ->with('success', 'Task created successfully.');
     }
@@ -101,7 +96,7 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         $task->load(['project', 'user', 'comments.user', 'tags']);
-        
+
         return Inertia::render('Tasks/Show', [
             'task' => $task,
         ]);
@@ -113,16 +108,16 @@ class TaskController extends Controller
     public function edit(Task $task)
     {
         $task->load(['tags', 'project', 'user']);
-        
+
         // Get projects for dropdown
         $projects = \App\Models\Project::select('id', 'name')->get();
-        
+
         // Get users for dropdown (members of the current space)
         $users = \App\Models\User::select('id', 'name')->get();
-        
+
         // Get available tags
         $availableTags = \App\Models\Tag::select('id', 'name')->get();
-        
+
         return Inertia::render('Tasks/Edit', [
             'task' => $task,
             'projects' => $projects,
@@ -137,13 +132,13 @@ class TaskController extends Controller
     public function update(UpdateTaskRequest $request, Task $task)
     {
         $validated = $request->validated();
-        
+
         $this->taskService->updateTask($task->id, $validated);
-        
+
         if ($request->has('tags')) {
             $this->taskService->syncTags($task->id, $request->tags);
         }
-        
+
         return redirect()->route('tasks.show', $task)
             ->with('success', 'Task updated successfully.');
     }
@@ -154,7 +149,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $this->taskService->deleteTask($task->id);
-        
+
         return redirect()->route('tasks.index')
             ->with('success', 'Task deleted successfully.');
     }
@@ -165,9 +160,9 @@ class TaskController extends Controller
     public function complete(Task $task)
     {
         $this->authorize('complete', $task);
-        
+
         $this->taskService->markTaskAsCompleted($task->id);
-        
+
         return redirect()->back()->with('success', 'Tarea marcada como completada.');
     }
 
@@ -177,9 +172,9 @@ class TaskController extends Controller
     public function inProgress(Task $task)
     {
         $this->authorize('markAsInProgress', $task);
-        
+
         $this->taskService->markTaskAsInProgress($task->id);
-        
+
         return redirect()->back()->with('success', 'Tarea marcada como en progreso.');
     }
 
@@ -189,17 +184,17 @@ class TaskController extends Controller
     public function addComment(Request $request, Task $task)
     {
         $this->authorize('addComment', $task);
-        
+
         $validated = $request->validate([
             'content' => 'required|string',
         ]);
-        
+
         $this->taskService->addComment(
             $task->id,
             $validated['content'],
             $request->user()->id
         );
-        
+
         return redirect()->back()->with('success', 'Comentario añadido correctamente.');
     }
 }

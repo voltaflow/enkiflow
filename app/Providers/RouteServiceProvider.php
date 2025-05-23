@@ -27,11 +27,11 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            // The routes are loaded directly from web.php which includes 
+            // The routes are loaded directly from web.php which includes
             // conditional loading based on domain type
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
-                
+
             // API routes are loaded separately
             Route::middleware('api')
                 ->prefix('api')

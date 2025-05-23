@@ -12,9 +12,9 @@ class BasicTaskTest extends TestCase
 
     public function test_task_has_valid_fillable_attributes()
     {
-        $task = new Task();
+        $task = new Task;
         $fillable = $task->getFillable();
-        
+
         $this->assertIsArray($fillable);
         $this->assertContains('title', $fillable);
         $this->assertContains('description', $fillable);

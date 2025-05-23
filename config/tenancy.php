@@ -37,7 +37,7 @@ return [
         Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
     ],
-    
+
     /**
      * Configuración de identificación de subdominio
      * Si se establece, se utilizará este dominio para extraer el subdominio.

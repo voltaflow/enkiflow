@@ -20,12 +20,12 @@ class SpaceSubscriptionController extends Controller
     public function create(string $spaceId): Response
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $memberCount = $space->users()->count();
-        
+
         return Inertia::render('Subscriptions/Create', [
             'space' => $space,
             'member_count' => $memberCount,
@@ -53,10 +53,10 @@ class SpaceSubscriptionController extends Controller
     public function store(Request $request, string $spaceId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $request->validate([
             'payment_method' => 'required',
             'plan' => 'required',
@@ -68,14 +68,14 @@ class SpaceSubscriptionController extends Controller
         try {
             // Create the subscription with the initial member count
             $user->newSubscription('default', $request->plan)
-                 ->quantity($memberCount)
-                 ->create($request->payment_method);
-                 
+                ->quantity($memberCount)
+                ->create($request->payment_method);
+
             // Store the space ID in the subscription metadata
             $user->subscription('default')->syncMetadata([
-                'space_id' => $space->id
+                'space_id' => $space->id,
             ]);
-            
+
             // Update the space data
             $space->update([
                 'data' => array_merge($space->data ?? [], [
@@ -99,21 +99,21 @@ class SpaceSubscriptionController extends Controller
     public function show(string $spaceId): Response
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure the user has access to view billing
         $this->authorize('manageBilling', $space);
-        
+
         $user = User::find($space->owner_id);
         $subscription = $user->subscription('default');
-        
+
         // Check if the subscription exists and belongs to this space
-        if (!$subscription || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
+        if (! $subscription || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
             return Inertia::render('Subscriptions/None', [
                 'space' => $space,
                 'member_count' => $space->users()->count(),
             ]);
         }
-        
+
         return Inertia::render('Subscriptions/Show', [
             'space' => $space,
             'subscription' => [
@@ -136,26 +136,26 @@ class SpaceSubscriptionController extends Controller
     public function update(Request $request, string $spaceId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $request->validate([
             'plan' => 'nullable|string',
         ]);
 
         $user = User::find($space->owner_id);
         $subscription = $user->subscription('default');
-        
+
         // Check if the subscription exists and belongs to this space
-        if (!$subscription || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
+        if (! $subscription || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
             return back()->with('error', 'No subscription found for this space.');
         }
-        
+
         // If changing plan
         if ($request->has('plan') && $request->plan !== $subscription->stripe_price) {
             $subscription->swap($request->plan);
-            
+
             // Update the space data
             $space->update([
                 'data' => array_merge($space->data ?? [], [
@@ -163,7 +163,7 @@ class SpaceSubscriptionController extends Controller
                 ]),
             ]);
         }
-        
+
         // Sync member count with subscription quantity
         $space->syncMemberCount();
 
@@ -176,18 +176,18 @@ class SpaceSubscriptionController extends Controller
     public function destroy(string $spaceId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $user = User::find($space->owner_id);
         $subscription = $user->subscription('default');
-        
+
         // Check if the subscription exists and belongs to this space
-        if (!$subscription || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
+        if (! $subscription || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
             return back()->with('error', 'No subscription found for this space.');
         }
-        
+
         // Cancel at period end
         $subscription->cancel();
 
@@ -200,18 +200,18 @@ class SpaceSubscriptionController extends Controller
     public function resume(string $spaceId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $user = User::find($space->owner_id);
         $subscription = $user->subscription('default');
-        
+
         // Check if the subscription exists, is canceled, and belongs to this space
-        if (!$subscription || !$subscription->canceled() || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
+        if (! $subscription || ! $subscription->canceled() || $subscription->asStripeSubscription()->metadata->space_id !== $space->id) {
             return back()->with('error', 'Cannot resume subscription.');
         }
-        
+
         // Resume the subscription
         $subscription->resume();
 
@@ -224,16 +224,16 @@ class SpaceSubscriptionController extends Controller
     public function updatePaymentMethod(Request $request, string $spaceId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $request->validate([
             'payment_method' => 'required',
         ]);
 
         $user = User::find($space->owner_id);
-        
+
         // Update the payment method
         $user->updateDefaultPaymentMethod($request->payment_method);
 
@@ -246,12 +246,12 @@ class SpaceSubscriptionController extends Controller
     public function billingPortal(string $spaceId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Ensure only the owner can manage billing
         $this->authorize('manageBilling', $space);
-        
+
         $user = User::find($space->owner_id);
-        
+
         // Redirect to the Stripe customer portal
         return $user->redirectToBillingPortal(route('spaces.subscriptions.show', $space->id));
     }

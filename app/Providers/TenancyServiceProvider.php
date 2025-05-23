@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Http\Middleware\CustomInitializeTenancyByDomainOrSubdomain;
 use App\Http\Middleware\EnsureValidTenant;
 use App\Models\Space;
 use Illuminate\Support\Facades\Event;
@@ -99,7 +98,7 @@ class TenancyServiceProvider extends ServiceProvider
     {
         // Register the Space model as the tenant model
         $this->app->bind(\Stancl\Tenancy\Contracts\Tenant::class, Space::class);
-        
+
         // Configure the package tenant model to use our custom Space model
         // This is important for working with domains() and other Stancl Tenancy features
         config(['tenancy.tenant_model' => Space::class]);
@@ -115,7 +114,7 @@ class TenancyServiceProvider extends ServiceProvider
         // Register our custom middlewares
         $this->app['router']->aliasMiddleware('ensure-landing', \App\Http\Middleware\EnsureLandingForMainDomains::class);
         $this->app['router']->aliasMiddleware('bypass-tenancy', \App\Http\Middleware\BypassTenancyForMainDomains::class);
-        
+
         // Register custom middleware to check tenant validity (subscription status, etc.)
         $this->app['router']->aliasMiddleware('valid-tenant', EnsureValidTenant::class);
         $this->app['router']->aliasMiddleware('tenant.access', \App\Http\Middleware\EnsureUserHasTenantAccess::class);
@@ -126,26 +125,29 @@ class TenancyServiceProvider extends ServiceProvider
         // Customize the behavior of PreventAccessFromCentralDomains
         \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
             $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-            
+
             // Always allow access from main domains, and set bypass flag for extra safety
             if (in_array($request->getHost(), $mainDomains)) {
                 $request->attributes->set('bypass_tenancy', true);
-                \Log::info("PreventAccessFromCentralDomains: Allowing access from main domain: " . $request->getHost());
+                \Log::info('PreventAccessFromCentralDomains: Allowing access from main domain: '.$request->getHost());
+
                 return $next($request);
             }
-            
+
             // For other central domains, check if they're defined in config
             if (in_array($request->getHost(), config('tenancy.central_domains', []))) {
-                \Log::info("PreventAccessFromCentralDomains: Allowing access from central domain: " . $request->getHost());
+                \Log::info('PreventAccessFromCentralDomains: Allowing access from central domain: '.$request->getHost());
+
                 return $next($request);
             }
 
             // Only block access if this is not a main domain trying to access tenant routes
-            if (!$request->attributes->get('bypass_tenancy', false)) {
-                \Log::warning("PreventAccessFromCentralDomains: Blocked access to tenant route from: " . $request->getHost());
+            if (! $request->attributes->get('bypass_tenancy', false)) {
+                \Log::warning('PreventAccessFromCentralDomains: Blocked access to tenant route from: '.$request->getHost());
+
                 return abort(404, 'This page is not accessible from this domain.');
             }
-            
+
             return $next($request);
         };
 
@@ -183,10 +185,10 @@ class TenancyServiceProvider extends ServiceProvider
         $tenancyMiddleware = [
             // First priority: Force landing page for main domains
             \App\Http\Middleware\EnsureLandingForMainDomains::class,
-            
+
             // Second priority: Bypass tenancy for main domains
             \App\Http\Middleware\BypassTenancyForMainDomains::class,
-            
+
             // Even higher priority than the initialization middleware
             Middleware\PreventAccessFromCentralDomains::class,
 

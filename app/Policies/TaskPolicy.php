@@ -3,12 +3,10 @@
 namespace App\Policies;
 
 use App\Enums\SpacePermission;
-use App\Models\Project;
 use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TaskPolicy
 {
@@ -18,16 +16,17 @@ class TaskPolicy
     protected function getSpaceUser(User $user, ?Task $task = null): ?SpaceUser
     {
         $space = Space::find(tenant('id'));
-        
+
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($space && $user->id === $space->owner_id) {
             $spaceUser = app(SpaceUser::class);
             $spaceUser->tenant_id = $space->id;
             $spaceUser->user_id = $user->id;
             $spaceUser->role = \App\Enums\SpaceRole::OWNER;
+
             return $spaceUser;
         }
-        
+
         // Otherwise, get the actual SpaceUser record
         return $space ? $space->users()->where('user_id', $user->id)->first() : null;
     }
@@ -38,11 +37,12 @@ class TaskPolicy
     public function viewAny(User $user): bool
     {
         $space = Space::find(tenant('id'));
-        if (!$space) {
+        if (! $space) {
             return false;
         }
-        
+
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_ALL_TASKS);
     }
 
@@ -52,12 +52,12 @@ class TaskPolicy
     public function view(User $user, Task $task): bool
     {
         $spaceUser = $this->getSpaceUser($user, $task);
-        
+
         // Check if user has permission to view all tasks
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_ALL_TASKS)) {
             return true;
         }
-        
+
         // Check if user is assigned to this task
         return $user->id === $task->user_id;
     }
@@ -68,11 +68,12 @@ class TaskPolicy
     public function create(User $user): bool
     {
         $space = Space::find(tenant('id'));
-        if (!$space) {
+        if (! $space) {
             return false;
         }
-        
+
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::CREATE_TASKS);
     }
 
@@ -82,17 +83,17 @@ class TaskPolicy
     public function update(User $user, Task $task): bool
     {
         $spaceUser = $this->getSpaceUser($user, $task);
-        
+
         // Check if user has permission to edit any task
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::EDIT_ANY_TASK)) {
             return true;
         }
-        
+
         // Check if user has permission to edit own tasks and is the task owner
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::EDIT_OWN_TASKS) && $user->id === $task->user_id) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -102,17 +103,17 @@ class TaskPolicy
     public function delete(User $user, Task $task): bool
     {
         $spaceUser = $this->getSpaceUser($user, $task);
-        
+
         // Check if user has permission to delete any task
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::DELETE_ANY_TASK)) {
             return true;
         }
-        
+
         // Check if user has permission to delete own tasks and is the task owner
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::DELETE_OWN_TASKS) && $user->id === $task->user_id) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -130,6 +131,7 @@ class TaskPolicy
     public function forceDelete(User $user, Task $task): bool
     {
         $spaceUser = $this->getSpaceUser($user, $task);
+
         return $spaceUser && ($spaceUser->isOwner() || $spaceUser->isAdmin());
     }
 
@@ -155,7 +157,7 @@ class TaskPolicy
     public function addComment(User $user, Task $task): bool
     {
         $spaceUser = $this->getSpaceUser($user, $task);
-        
+
         // Check if user has permission to create comments
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::CREATE_COMMENTS);
     }

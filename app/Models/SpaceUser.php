@@ -61,9 +61,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user has the given role in this space.
-     *
-     * @param SpaceRole $role
-     * @return bool
      */
     public function hasRole(SpaceRole $role): bool
     {
@@ -72,9 +69,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user has a role with equal or higher permissions than the given role.
-     *
-     * @param SpaceRole $role
-     * @return bool
      */
     public function hasRoleEqualOrHigherThan(SpaceRole $role): bool
     {
@@ -83,9 +77,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user has a role with higher permissions than the given role.
-     *
-     * @param SpaceRole $role
-     * @return bool
      */
     public function hasRoleHigherThan(SpaceRole $role): bool
     {
@@ -94,8 +85,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user is an owner of this space.
-     *
-     * @return bool
      */
     public function isOwner(): bool
     {
@@ -104,8 +93,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user is an admin in this space.
-     *
-     * @return bool
      */
     public function isAdmin(): bool
     {
@@ -114,8 +101,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user is a manager in this space.
-     *
-     * @return bool
      */
     public function isManager(): bool
     {
@@ -124,8 +109,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user is a member in this space.
-     *
-     * @return bool
      */
     public function isMember(): bool
     {
@@ -134,8 +117,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user is a guest in this space.
-     *
-     * @return bool
      */
     public function isGuest(): bool
     {
@@ -144,9 +125,6 @@ class SpaceUser extends Pivot
 
     /**
      * Check if the user has the given permission in this space.
-     *
-     * @param SpacePermission $permission
-     * @return bool
      */
     public function hasPermission(SpacePermission $permission): bool
     {
@@ -155,8 +133,6 @@ class SpaceUser extends Pivot
 
     /**
      * Get all permissions for this user in this space.
-     *
-     * @return array
      */
     public function getPermissions(): array
     {

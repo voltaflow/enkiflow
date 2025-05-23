@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
             $table->morphs('taggable');
             $table->timestamps();
-            
+
             $table->primary(['tag_id', 'taggable_id', 'taggable_type']);
         });
     }

@@ -7,7 +7,6 @@ use App\Enums\SpaceRole;
 use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class SpacePolicy
 {
@@ -18,10 +17,11 @@ class SpacePolicy
     {
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($user->id === $space->owner_id) {
-            $spaceUser = new SpaceUser();
+            $spaceUser = new SpaceUser;
             $spaceUser->tenant_id = $space->id;
             $spaceUser->user_id = $user->id;
             $spaceUser->role = SpaceRole::OWNER;
+
             return $spaceUser;
         }
 
@@ -45,7 +45,7 @@ class SpacePolicy
     {
         // Users can view spaces they own or belong to
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::VIEW_SPACE);
     }
 
@@ -64,7 +64,7 @@ class SpacePolicy
     public function update(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::MANAGE_SPACE);
     }
 
@@ -74,7 +74,7 @@ class SpacePolicy
     public function delete(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::DELETE_SPACE);
     }
 
@@ -84,7 +84,7 @@ class SpacePolicy
     public function restore(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::DELETE_SPACE);
     }
 
@@ -94,7 +94,7 @@ class SpacePolicy
     public function forceDelete(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::DELETE_SPACE);
     }
 
@@ -104,7 +104,7 @@ class SpacePolicy
     public function invite(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::INVITE_USERS);
     }
 
@@ -115,22 +115,22 @@ class SpacePolicy
     {
         $spaceUser = $this->getSpaceUser($user, $space);
         $targetSpaceUser = $this->getSpaceUser($targetUser, $space);
-        
+
         // User must have REMOVE_USERS permission
-        if (!$spaceUser || !$spaceUser->hasPermission(SpacePermission::REMOVE_USERS)) {
+        if (! $spaceUser || ! $spaceUser->hasPermission(SpacePermission::REMOVE_USERS)) {
             return false;
         }
-        
+
         // Cannot remove the space owner
         if ($targetUser->id === $space->owner_id) {
             return false;
         }
-        
+
         // Cannot remove users with higher roles
         if ($targetSpaceUser && $targetSpaceUser->hasRoleHigherThan($spaceUser->role)) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -141,29 +141,29 @@ class SpacePolicy
     {
         $spaceUser = $this->getSpaceUser($user, $space);
         $targetSpaceUser = $this->getSpaceUser($targetUser, $space);
-        
+
         // User must have MANAGE_USER_ROLES permission
-        if (!$spaceUser || !$spaceUser->hasPermission(SpacePermission::MANAGE_USER_ROLES)) {
+        if (! $spaceUser || ! $spaceUser->hasPermission(SpacePermission::MANAGE_USER_ROLES)) {
             return false;
         }
-        
+
         // Cannot change the space owner's role
         if ($targetUser->id === $space->owner_id) {
             return false;
         }
-        
+
         // Cannot manage users with higher roles
         if ($targetSpaceUser && $targetSpaceUser->hasRoleHigherThan($spaceUser->role)) {
             return false;
         }
-        
+
         // Cannot assign roles higher than your own (except owner)
         if ($newRole !== null && $newRole !== SpaceRole::OWNER && $spaceUser->role !== SpaceRole::OWNER) {
             if ($newRole->higherThan($spaceUser->role)) {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -173,7 +173,7 @@ class SpacePolicy
     public function manageBilling(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::MANAGE_BILLING);
     }
 
@@ -183,17 +183,17 @@ class SpacePolicy
     public function viewInvoices(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::VIEW_INVOICES);
     }
-    
+
     /**
      * Determine whether the user can view the statistics for the space.
      */
     public function viewStatistics(User $user, Space $space): bool
     {
         $spaceUser = $this->getSpaceUser($user, $space);
-        
+
         return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::VIEW_STATISTICS);
     }
 }

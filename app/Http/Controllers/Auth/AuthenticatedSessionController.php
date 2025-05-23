@@ -32,7 +32,7 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
-        
+
         // Verificar si estamos en un tenant o en la aplicación central
         if (function_exists('tenant') && tenant()) {
             return redirect()->intended(route('tenant.dashboard', absolute: false));
@@ -41,7 +41,7 @@ class AuthenticatedSessionController extends Controller
             if (auth()->user()->spaces()->count() > 0) {
                 return redirect()->intended(route('spaces.index', absolute: false));
             }
-            
+
             // Si no tiene espacios, redirigir a la creación de espacio
             return redirect()->intended(route('spaces.create', absolute: false));
         }

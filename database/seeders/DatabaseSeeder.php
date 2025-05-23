@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        
+
         // Create space and tenant data
         $this->call([
             SpaceSeeder::class,

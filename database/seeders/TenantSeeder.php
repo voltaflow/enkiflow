@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Tag;
 use App\Models\Task;
-use App\Models\Comment;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -26,23 +26,23 @@ class TenantSeeder extends Seeder
 
         // Create project statuses
         $projectStatuses = ['active', 'completed'];
-        
+
         // Create task statuses
         $taskStatuses = ['pending', 'in_progress', 'completed'];
-        
+
         // Create tags
         $tags = [
             'bug', 'feature', 'enhancement', 'documentation', 'design',
             'frontend', 'backend', 'database', 'ui', 'ux', 'testing',
-            'security', 'performance', 'urgent', 'low-priority'
+            'security', 'performance', 'urgent', 'low-priority',
         ];
-        
+
         foreach ($tags as $tagName) {
             Tag::firstOrCreate(['name' => $tagName]);
         }
-        
+
         $allTags = Tag::all();
-        
+
         // Create 5 projects
         Project::factory(5)
             ->create([
@@ -52,7 +52,7 @@ class TenantSeeder extends Seeder
             ->each(function ($project) use ($user, $taskStatuses, $allTags) {
                 // Create 3-7 tasks per project
                 $tasksCount = rand(3, 7);
-                
+
                 Task::factory($tasksCount)
                     ->create([
                         'project_id' => $project->id,
@@ -68,7 +68,7 @@ class TenantSeeder extends Seeder
                                 $allTags->random($tagCount)->pluck('id')->toArray()
                             );
                         }
-                        
+
                         // Create 0-5 comments per task
                         $commentCount = rand(0, 5);
                         if ($commentCount > 0) {
@@ -78,7 +78,7 @@ class TenantSeeder extends Seeder
                             ]);
                         }
                     });
-                
+
                 // Attach 0-3 tags to each project
                 $tagCount = rand(0, 3);
                 if ($tagCount > 0) {

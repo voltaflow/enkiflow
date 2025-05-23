@@ -4,17 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Space;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookController;
-use Stripe\Subscription as StripeSubscription;
 
 class StripeWebhookController extends CashierWebhookController
 {
     /**
      * Handle customer subscription updated.
      *
-     * @param array $payload
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handleCustomerSubscriptionUpdated(array $payload)
@@ -33,7 +30,6 @@ class StripeWebhookController extends CashierWebhookController
     /**
      * Handle customer subscription deleted.
      *
-     * @param array $payload
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handleCustomerSubscriptionDeleted(array $payload)
@@ -52,7 +48,6 @@ class StripeWebhookController extends CashierWebhookController
     /**
      * Handle customer deleted.
      *
-     * @param array $payload
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handleCustomerDeleted(array $payload)
@@ -78,7 +73,6 @@ class StripeWebhookController extends CashierWebhookController
     /**
      * Handle invoice payment succeeded.
      *
-     * @param array $payload
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handleInvoicePaymentSucceeded(array $payload)
@@ -89,11 +83,11 @@ class StripeWebhookController extends CashierWebhookController
         if ($user && isset($invoice['subscription'])) {
             // Fetch the subscription details to get metadata
             $stripeSubscription = \Stripe\Subscription::retrieve($invoice['subscription']);
-            
+
             if (isset($stripeSubscription->metadata->space_id)) {
                 $spaceId = $stripeSubscription->metadata->space_id;
                 $space = Space::find($spaceId);
-                
+
                 if ($space) {
                     // Update space data
                     $space->update([
@@ -112,7 +106,6 @@ class StripeWebhookController extends CashierWebhookController
     /**
      * Handle invoice payment failed.
      *
-     * @param array $payload
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handleInvoicePaymentFailed(array $payload)
@@ -123,11 +116,11 @@ class StripeWebhookController extends CashierWebhookController
         if ($user && isset($invoice['subscription'])) {
             // Fetch the subscription details to get metadata
             $stripeSubscription = \Stripe\Subscription::retrieve($invoice['subscription']);
-            
+
             if (isset($stripeSubscription->metadata->space_id)) {
                 $spaceId = $stripeSubscription->metadata->space_id;
                 $space = Space::find($spaceId);
-                
+
                 if ($space) {
                     // Update space data to reflect payment failure
                     $space->update([
@@ -146,8 +139,7 @@ class StripeWebhookController extends CashierWebhookController
     /**
      * Update space data based on subscription changes.
      *
-     * @param array $subscription
-     * @param \App\Models\User $user
+     * @param  array  $subscription
      * @return void
      */
     protected function updateSpaceSubscriptionData($subscription, User $user)
@@ -157,7 +149,7 @@ class StripeWebhookController extends CashierWebhookController
             if (isset($subscription['metadata']['space_id'])) {
                 $spaceId = $subscription['metadata']['space_id'];
                 $space = Space::find($spaceId);
-                
+
                 if ($space && $space->owner_id === $user->id) {
                     // Update subscription data in the space
                     $space->update([
@@ -171,7 +163,7 @@ class StripeWebhookController extends CashierWebhookController
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Error updating space subscription data: ' . $e->getMessage(), [
+            Log::error('Error updating space subscription data: '.$e->getMessage(), [
                 'subscription' => $subscription['id'],
                 'user_id' => $user->id,
             ]);
@@ -181,7 +173,7 @@ class StripeWebhookController extends CashierWebhookController
     /**
      * Get the user by Stripe ID.
      *
-     * @param string $stripeId
+     * @param  string  $stripeId
      * @return \App\Models\User|null
      */
     protected function getUserByStripeId($stripeId)

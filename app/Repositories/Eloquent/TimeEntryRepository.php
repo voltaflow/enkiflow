@@ -19,7 +19,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             ->orderBy('started_at', 'desc')
             ->get();
     }
-    
+
     /**
      * Get paginated time entries.
      */
@@ -29,7 +29,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             ->orderBy('started_at', 'desc')
             ->paginate($perPage);
     }
-    
+
     /**
      * Find time entry by ID.
      */
@@ -38,7 +38,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
         return TimeEntry::with(['task', 'project', 'category', 'user'])
             ->find($id);
     }
-    
+
     /**
      * Create a new time entry.
      */
@@ -46,7 +46,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
     {
         return TimeEntry::create($data);
     }
-    
+
     /**
      * Update a time entry.
      */
@@ -55,11 +55,13 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
         $timeEntry = $this->find($id);
         if ($timeEntry) {
             $timeEntry->update($data);
+
             return $timeEntry->fresh();
         }
+
         return null;
     }
-    
+
     /**
      * Delete a time entry.
      */
@@ -69,9 +71,10 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
         if ($timeEntry) {
             return $timeEntry->delete();
         }
+
         return false;
     }
-    
+
     /**
      * Get currently running time entry for a user.
      */
@@ -83,7 +86,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             ->whereNull('ended_at')
             ->first();
     }
-    
+
     /**
      * Get time entries for a specific task.
      */
@@ -94,7 +97,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             ->orderBy('started_at', 'desc')
             ->get();
     }
-    
+
     /**
      * Get time entries for a specific project.
      */
@@ -105,7 +108,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             ->orderBy('started_at', 'desc')
             ->get();
     }
-    
+
     /**
      * Get time entries for a specific user in a date range.
      */
@@ -117,7 +120,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             ->orderBy('started_at', 'desc')
             ->get();
     }
-    
+
     /**
      * Get total duration of time entries in a collection.
      */
@@ -125,7 +128,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
     {
         return $timeEntries->sum('duration');
     }
-    
+
     /**
      * Get billable duration of time entries in a collection.
      */
@@ -133,7 +136,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
     {
         return $timeEntries->where('is_billable', true)->sum('duration');
     }
-    
+
     /**
      * Get time entries grouped by date.
      */
@@ -143,7 +146,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
             return Carbon::parse($entry->started_at)->format('Y-m-d');
         })->toArray();
     }
-    
+
     /**
      * Get time entries grouped by project.
      */
@@ -151,7 +154,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
     {
         return $timeEntries->groupBy('project_id')->toArray();
     }
-    
+
     /**
      * Get time entries grouped by category.
      */
@@ -159,7 +162,7 @@ class TimeEntryRepository implements TimeEntryRepositoryInterface
     {
         return $timeEntries->groupBy('category_id')->toArray();
     }
-    
+
     /**
      * Get unbilled time entries for a project.
      */

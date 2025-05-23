@@ -27,17 +27,17 @@ if ($tenants->isEmpty()) {
 } else {
     foreach ($tenants as $tenant) {
         echo "Tenant ID: {$tenant->id} - Nombre: {$tenant->name}\n";
-        
+
         // Intentar obtener los dominios asociados a este tenant
         try {
             $tenantDomains = $tenant->domains()->get();
             if ($tenantDomains->isEmpty()) {
                 echo "  * No tiene dominios asociados.\n";
             } else {
-                echo "  * Dominios asociados: " . implode(', ', $tenantDomains->pluck('domain')->toArray()) . "\n";
+                echo '  * Dominios asociados: '.implode(', ', $tenantDomains->pluck('domain')->toArray())."\n";
             }
         } catch (Exception $e) {
-            echo "  * Error al obtener dominios: " . $e->getMessage() . "\n";
+            echo '  * Error al obtener dominios: '.$e->getMessage()."\n";
         }
     }
 }
@@ -48,10 +48,10 @@ try {
     // Verificar si hay al menos un tenant
     if ($tenants->isNotEmpty()) {
         $tenant = $tenants->first();
-        
+
         // Verificar si ya existe el dominio enkiflow.test
         $existingDomain = \Stancl\Tenancy\Database\Models\Domain::where('domain', 'enkiflow.test')->first();
-        
+
         if ($existingDomain) {
             echo "El dominio 'enkiflow.test' ya existe y está asociado al tenant ID: {$existingDomain->tenant_id}\n";
         } else {
@@ -60,12 +60,12 @@ try {
                 'domain' => 'enkiflow.test',
                 'tenant_id' => $tenant->id,
             ]);
-            
+
             echo "Se ha creado el dominio 'enkiflow.test' y se ha asociado al tenant ID: {$tenant->id}\n";
         }
     } else {
         echo "No se puede crear el dominio de prueba porque no hay tenants disponibles.\n";
     }
 } catch (Exception $e) {
-    echo "Error al crear dominio de prueba: " . $e->getMessage() . "\n";
+    echo 'Error al crear dominio de prueba: '.$e->getMessage()."\n";
 }

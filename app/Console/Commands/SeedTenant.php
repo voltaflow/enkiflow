@@ -28,30 +28,31 @@ class SeedTenant extends Command
     public function handle()
     {
         $tenantId = $this->argument('tenant_id');
-        
+
         // Find the tenant
         $tenant = Space::find($tenantId);
-        
-        if (!$tenant) {
+
+        if (! $tenant) {
             $this->error("Tenant with ID {$tenantId} not found.");
+
             return 1;
         }
-        
+
         $this->info("Seeding tenant: {$tenant->name} ({$tenant->id})");
-        
+
         // Execute within tenant context
         tenancy()->initialize($tenant);
-        
+
         // Run the tenant seeder
         $this->call('db:seed', [
             '--class' => TenantSeeder::class,
         ]);
-        
+
         // End tenancy
         tenancy()->end();
-        
+
         $this->info("Tenant {$tenant->name} has been seeded successfully!");
-        
+
         return 0;
     }
 }

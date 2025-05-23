@@ -2,9 +2,6 @@
 
 namespace Tests\Feature\Tenant;
 
-use App\Models\Project;
-use App\Models\Task;
-use App\Models\User;
 use Tests\TestCase;
 
 class SimpleTaskTest extends TestCase

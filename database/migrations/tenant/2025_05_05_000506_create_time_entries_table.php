@@ -27,7 +27,7 @@ return new class extends Migration
             $table->json('metadata')->nullable(); // para datos de actividad, inactividad, etc.
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Índices para optimizar consultas frecuentes
             $table->index(['user_id', 'started_at']);
             $table->index(['project_id', 'started_at']);

@@ -50,9 +50,6 @@ class Comment extends Model
 
     /**
      * Update the comment content and mark as edited.
-     *
-     * @param string $content
-     * @return bool
      */
     public function updateContent(string $content): bool
     {

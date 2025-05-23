@@ -64,24 +64,24 @@ class SpaceSetupController extends Controller
             ],
         ]);
     }
-    
+
     /**
      * Show the second step of the space setup wizard (space details).
      */
     public function details(Request $request)
     {
         $plan = $request->input('plan', 'free');
-        
+
         // Validate plan
-        if (!in_array($plan, ['free', 'pro', 'business'])) {
+        if (! in_array($plan, ['free', 'pro', 'business'])) {
             $plan = 'free';
         }
-        
+
         return Inertia::render('Spaces/Setup/Details', [
             'plan' => $plan,
         ]);
     }
-    
+
     /**
      * Show the third step of the space setup wizard (invite members).
      */
@@ -93,21 +93,21 @@ class SpaceSetupController extends Controller
             'subdomain' => ['required', 'string', 'max:63', 'regex:/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/'],
             'plan' => ['required', 'string', 'in:free,pro,business'],
         ]);
-        
+
         // Store in session for use in store method
         session([
             'space_setup.name' => $request->input('name'),
             'space_setup.subdomain' => $request->input('subdomain'),
             'space_setup.plan' => $request->input('plan'),
         ]);
-        
+
         return Inertia::render('Spaces/Setup/InviteMembers', [
             'name' => $request->input('name'),
             'subdomain' => $request->input('subdomain'),
             'plan' => $request->input('plan'),
         ]);
     }
-    
+
     /**
      * Show the fourth step of the space setup wizard (confirmation).
      */
@@ -119,10 +119,10 @@ class SpaceSetupController extends Controller
             'invites.*.email' => ['required', 'email'],
             'invites.*.role' => ['required', 'string', 'in:admin,manager,member,guest'],
         ]);
-        
+
         // Store in session for use in store method
         session(['space_setup.invites' => $request->input('invites', [])]);
-        
+
         // Get setup data from session
         $setupData = [
             'name' => session('space_setup.name'),
@@ -130,10 +130,10 @@ class SpaceSetupController extends Controller
             'plan' => session('space_setup.plan'),
             'invites' => session('space_setup.invites', []),
         ];
-        
+
         return Inertia::render('Spaces/Setup/Confirm', $setupData);
     }
-    
+
     /**
      * Create the space and finish the setup.
      */
@@ -144,22 +144,22 @@ class SpaceSetupController extends Controller
         $subdomain = session('space_setup.subdomain');
         $plan = session('space_setup.plan');
         $invites = session('space_setup.invites', []);
-        
+
         // Final validation
-        if (!$name || !$subdomain || !$plan) {
+        if (! $name || ! $subdomain || ! $plan) {
             return redirect()->route('spaces.setup.index')
                 ->with('error', 'Falta información necesaria para crear el espacio.');
         }
-        
+
         // Check if subdomain is unique
-        if (DB::table('domains')->where('domain', $subdomain . '.' . config('app.url'))->exists()) {
+        if (DB::table('domains')->where('domain', $subdomain.'.'.config('app.url'))->exists()) {
             return redirect()->route('spaces.setup.details')
                 ->with('error', 'El subdominio ya está en uso. Por favor, elige otro.');
         }
-        
+
         // Create the space inside a transaction
         DB::beginTransaction();
-        
+
         try {
             // Create the space
             $space = Space::create([
@@ -170,42 +170,42 @@ class SpaceSetupController extends Controller
                     'plan' => $plan,
                 ],
             ]);
-            
+
             // Create the domain
-            $domainName = $subdomain . '.' . parse_url(config('app.url'), PHP_URL_HOST);
+            $domainName = $subdomain.'.'.parse_url(config('app.url'), PHP_URL_HOST);
             $space->domains()->create([
                 'domain' => $domainName,
             ]);
-            
+
             // Add owner with admin role
             $space->users()->attach(Auth::id(), [
                 'role' => 'admin',
             ]);
-            
+
             // Process invites (in a real app, you would send emails here)
             foreach ($invites as $invite) {
                 // Check if user exists
                 $user = User::where('email', $invite['email'])->first();
-                
+
                 // Skip invite if user doesn't exist
-                if (!$user) {
+                if (! $user) {
                     continue;
                 }
-                
+
                 // Add user to space
-                if (!$space->users()->where('user_id', $user->id)->exists()) {
+                if (! $space->users()->where('user_id', $user->id)->exists()) {
                     $space->users()->attach($user->id, [
                         'role' => $invite['role'],
                     ]);
                 }
             }
-            
+
             // Create database for tenant (trigger TenantCreated event)
             event(new TenantCreated($space));
-            
+
             // Update subscription quantity
             $space->syncMemberCount();
-            
+
             // Clear session data
             $request->session()->forget([
                 'space_setup.name',
@@ -213,18 +213,18 @@ class SpaceSetupController extends Controller
                 'space_setup.plan',
                 'space_setup.invites',
             ]);
-            
+
             DB::commit();
-            
+
             // Redirect to the new space (in a real app, you would show a success page first)
             return redirect()->route('spaces.show', $space->id)
-                ->with('success', 'Espacio creado correctamente. ¡Bienvenido a ' . $space->name . '!');
-                
+                ->with('success', 'Espacio creado correctamente. ¡Bienvenido a '.$space->name.'!');
+
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return redirect()->route('spaces.setup.index')
-                ->with('error', 'Error al crear el espacio: ' . $e->getMessage());
+                ->with('error', 'Error al crear el espacio: '.$e->getMessage());
         }
     }
 }

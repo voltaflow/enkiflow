@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\LandingController;
-use App\Http\Controllers\LandingPageController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web', 'ensure-landing', 'bypass-tenancy'])->group(function () {
     // CRITICAL: Home route
     Route::get('/', [LandingController::class, 'index'])->name('landing.home');
-    
+
     // Other landing routes
     Route::get('/features', [LandingController::class, 'features'])->name('landing.features');
     Route::get('/pricing', [LandingController::class, 'pricing'])->name('landing.pricing');

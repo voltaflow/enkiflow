@@ -15,7 +15,7 @@ enum SpaceRole: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::OWNER => 'Propietario',
             self::ADMIN => 'Administrador',
             self::MANAGER => 'Gerente',
@@ -29,7 +29,7 @@ enum SpaceRole: string
      */
     public function description(): string
     {
-        return match($this) {
+        return match ($this) {
             self::OWNER => 'Control total del espacio, incluida la facturación y eliminación.',
             self::ADMIN => 'Administración del espacio, incluidos usuarios, proyectos y configuraciones.',
             self::MANAGER => 'Gestión de proyectos y tareas, vista de estadísticas.',
@@ -80,7 +80,7 @@ enum SpaceRole: string
 
         return $hierarchy[$this->value] > $hierarchy[$role->value];
     }
-    
+
     /**
      * Check if this role has equal or higher permission level than the given role.
      */

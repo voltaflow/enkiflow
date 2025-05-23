@@ -25,7 +25,7 @@ class TimeCategoryFactory extends Factory
     public function definition(): array
     {
         $colors = ['#6366F1', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'];
-        
+
         return [
             'name' => $this->faker->unique()->word(),
             'color' => $this->faker->randomElement($colors),
@@ -33,7 +33,7 @@ class TimeCategoryFactory extends Factory
             'is_billable_default' => $this->faker->boolean(80),
         ];
     }
-    
+
     /**
      * Indicate that the category is billable by default.
      */
@@ -45,7 +45,7 @@ class TimeCategoryFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Indicate that the category is not billable by default.
      */

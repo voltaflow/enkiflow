@@ -10,17 +10,17 @@ $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 // Verificar si el dominio ya existe
 $domain = \Stancl\Tenancy\Database\Models\Domain::where('domain', 'enkiflow.test')->first();
 
-if (!$domain) {
+if (! $domain) {
     // Obtener el primer tenant
     $tenant = \App\Models\Space::first();
-    
+
     if ($tenant) {
         // Crear el dominio y asociarlo al tenant
         $domain = new \Stancl\Tenancy\Database\Models\Domain;
         $domain->domain = 'enkiflow.test';
         $domain->tenant_id = $tenant->id;
         $domain->save();
-        
+
         echo "Dominio 'enkiflow.test' creado y asociado al tenant {$tenant->id}\n";
     } else {
         echo "No hay tenants disponibles para asociar al dominio\n";

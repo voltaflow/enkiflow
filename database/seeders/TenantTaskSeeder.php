@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class TenantTaskSeeder extends Seeder
@@ -41,6 +40,7 @@ class TenantTaskSeeder extends Seeder
 
         if ($projects->isEmpty() || $users->isEmpty()) {
             $this->command->info('No hay proyectos o usuarios para crear tareas.');
+
             return;
         }
 
@@ -66,7 +66,7 @@ class TenantTaskSeeder extends Seeder
             $user = $users->random();
             $status = $statuses[array_rand($statuses)];
             $priority = $priorities[array_rand($priorities)];
-            
+
             $task = \App\Models\Task::create([
                 'title' => $title,
                 'description' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod mauris vel nunc fringilla, vitae tincidunt nulla feugiat.',
@@ -77,11 +77,11 @@ class TenantTaskSeeder extends Seeder
                 'due_date' => now()->addDays(rand(1, 30)),
                 'completed_at' => $status === 'completed' ? now()->subDays(rand(1, 5)) : null,
             ]);
-            
+
             // Attach random tags
             $tagIds = \App\Models\Tag::inRandomOrder()->limit(rand(1, 3))->pluck('id')->toArray();
             $task->tags()->attach($tagIds);
-            
+
             // Add comments to some tasks
             if (rand(0, 1)) {
                 $numComments = rand(1, 3);

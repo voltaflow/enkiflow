@@ -13,7 +13,7 @@ use Laravel\Cashier\Billable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, Billable;
+    use Billable, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -63,15 +63,12 @@ class User extends Authenticatable
     public function spaces(): BelongsToMany
     {
         return $this->belongsToMany(Space::class, 'space_users', 'user_id', 'tenant_id')
-                    ->withPivot('role')
-                    ->withTimestamps();
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     /**
      * Check if the user owns the given space.
-     *
-     * @param Space $space
-     * @return bool
      */
     public function ownsSpace(Space $space): bool
     {

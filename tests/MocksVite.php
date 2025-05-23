@@ -9,7 +9,7 @@ trait MocksVite
 {
     /**
      * Disable Vite for tests.
-     * 
+     *
      * This prevents the "Vite manifest not found" error in feature tests
      * that render views.
      */
@@ -20,13 +20,14 @@ trait MocksVite
             $vite->method('__invoke')->willReturn('');
             $vite->method('reactRefresh')->willReturn('');
             $vite->method('content')->willReturn('');
+
             return $vite;
         });
     }
-    
+
     /**
      * Set up the test environment.
-     * 
+     *
      * @return void
      */
     protected function setUpMocksVite()

@@ -7,7 +7,6 @@ use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\Tag;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TagPolicy
 {
@@ -17,16 +16,17 @@ class TagPolicy
     protected function getSpaceUser(User $user): ?SpaceUser
     {
         $space = Space::find(tenant('id'));
-        
+
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($space && $user->id === $space->owner_id) {
             $spaceUser = app(SpaceUser::class);
             $spaceUser->tenant_id = $space->id;
             $spaceUser->user_id = $user->id;
             $spaceUser->role = \App\Enums\SpaceRole::OWNER;
+
             return $spaceUser;
         }
-        
+
         // Otherwise, get the actual SpaceUser record
         return $space ? $space->users()->where('user_id', $user->id)->first() : null;
     }
@@ -37,12 +37,13 @@ class TagPolicy
     public function viewAny(User $user): bool
     {
         $space = Space::find(tenant('id'));
-        if (!$space) {
+        if (! $space) {
             return false;
         }
-        
+
         // Tags are visible to anyone who can view the space
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_SPACE);
     }
 
@@ -53,6 +54,7 @@ class TagPolicy
     {
         // Tags are visible to anyone who can view the space
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_SPACE);
     }
 
@@ -62,6 +64,7 @@ class TagPolicy
     public function create(User $user): bool
     {
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::MANAGE_TAGS);
     }
 
@@ -71,6 +74,7 @@ class TagPolicy
     public function update(User $user, Tag $tag): bool
     {
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::MANAGE_TAGS);
     }
 
@@ -80,6 +84,7 @@ class TagPolicy
     public function delete(User $user, Tag $tag): bool
     {
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::MANAGE_TAGS);
     }
 
@@ -89,6 +94,7 @@ class TagPolicy
     public function restore(User $user, Tag $tag): bool
     {
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::MANAGE_TAGS);
     }
 
@@ -98,15 +104,17 @@ class TagPolicy
     public function forceDelete(User $user, Tag $tag): bool
     {
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && ($spaceUser->isOwner() || $spaceUser->isAdmin());
     }
-    
+
     /**
      * Determine whether the user can apply tags to models.
      */
     public function applyTag(User $user): bool
     {
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::MANAGE_TAGS);
     }
 }

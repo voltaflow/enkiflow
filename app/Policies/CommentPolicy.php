@@ -7,7 +7,6 @@ use App\Models\Comment;
 use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class CommentPolicy
 {
@@ -17,16 +16,17 @@ class CommentPolicy
     protected function getSpaceUser(User $user, ?Comment $comment = null): ?SpaceUser
     {
         $space = Space::find(tenant('id'));
-        
+
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($space && $user->id === $space->owner_id) {
             $spaceUser = app(SpaceUser::class);
             $spaceUser->tenant_id = $space->id;
             $spaceUser->user_id = $user->id;
             $spaceUser->role = \App\Enums\SpaceRole::OWNER;
+
             return $spaceUser;
         }
-        
+
         // Otherwise, get the actual SpaceUser record
         return $space ? $space->users()->where('user_id', $user->id)->first() : null;
     }
@@ -46,11 +46,12 @@ class CommentPolicy
     public function create(User $user): bool
     {
         $space = Space::find(tenant('id'));
-        if (!$space) {
+        if (! $space) {
             return false;
         }
-        
+
         $spaceUser = $this->getSpaceUser($user);
+
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::CREATE_COMMENTS);
     }
 
@@ -60,17 +61,17 @@ class CommentPolicy
     public function update(User $user, Comment $comment): bool
     {
         $spaceUser = $this->getSpaceUser($user, $comment);
-        
+
         // Check if user has permission to edit any comment
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::EDIT_ANY_COMMENT)) {
             return true;
         }
-        
+
         // Check if user has permission to edit own comments and is the comment owner
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::EDIT_OWN_COMMENTS) && $user->id === $comment->user_id) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -80,17 +81,17 @@ class CommentPolicy
     public function delete(User $user, Comment $comment): bool
     {
         $spaceUser = $this->getSpaceUser($user, $comment);
-        
+
         // Check if user has permission to delete any comment
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::DELETE_ANY_COMMENT)) {
             return true;
         }
-        
+
         // Check if user has permission to delete own comments and is the comment owner
         if ($spaceUser && $spaceUser->hasPermission(SpacePermission::DELETE_OWN_COMMENTS) && $user->id === $comment->user_id) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -108,6 +109,7 @@ class CommentPolicy
     public function forceDelete(User $user, Comment $comment): bool
     {
         $spaceUser = $this->getSpaceUser($user, $comment);
+
         return $spaceUser && ($spaceUser->isOwner() || $spaceUser->isAdmin());
     }
 }

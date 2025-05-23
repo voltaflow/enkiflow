@@ -14,7 +14,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 
 class TimeEntryController extends Controller
 {
@@ -36,49 +35,49 @@ class TimeEntryController extends Controller
      */
     public function index(Request $request)
     {
-        $startDate = $request->query('start_date') 
-            ? Carbon::parse($request->query('start_date')) 
+        $startDate = $request->query('start_date')
+            ? Carbon::parse($request->query('start_date'))
             : Carbon::now()->subDays(6);
-        
+
         $endDate = $request->query('end_date')
             ? Carbon::parse($request->query('end_date'))
             : Carbon::now();
-        
+
         $userId = Auth::id();
         $projectId = $request->query('project_id');
         $taskId = $request->query('task_id');
-        
+
         // Get time entries for the selected range
         $timeEntries = $this->timeEntryService->getTimeEntriesForDateRange(
             $userId,
             $startDate->toDateString(),
             $endDate->toDateString()
         );
-        
+
         // If project ID is specified, filter entries
         if ($projectId) {
             $timeEntries = $timeEntries->where('project_id', $projectId);
         }
-        
+
         // If task ID is specified, filter entries
         if ($taskId) {
             $timeEntries = $timeEntries->where('task_id', $taskId);
         }
-        
+
         // Get statistics for the selected range
         $stats = $this->timeEntryService->getTimeStatistics(
             $userId,
             $startDate->toDateString(),
             $endDate->toDateString()
         );
-        
+
         // Get running time entry if exists
         $runningEntry = $this->timeEntryService->getRunningTimeEntryForUser($userId);
-        
+
         // Get projects and categories for selection
         $projects = Project::orderBy('name')->get(['id', 'name']);
         $categories = TimeCategory::orderBy('name')->get(['id', 'name', 'color']);
-        
+
         return Inertia::render('Tenant/Time/Index', [
             'timeEntries' => $timeEntries,
             'projects' => $projects,
@@ -101,18 +100,18 @@ class TimeEntryController extends Controller
     {
         $data = $request->validated();
         $data['user_id'] = Auth::id();
-        
+
         // Parse date and times to create start and end datetime
         if (isset($data['date']) && isset($data['start_time']) && isset($data['end_time'])) {
-            $data['started_at'] = Carbon::parse($data['date'] . ' ' . $data['start_time']);
-            $data['ended_at'] = Carbon::parse($data['date'] . ' ' . $data['end_time']);
-            
+            $data['started_at'] = Carbon::parse($data['date'].' '.$data['start_time']);
+            $data['ended_at'] = Carbon::parse($data['date'].' '.$data['end_time']);
+
             // Remove temporary fields
             unset($data['date'], $data['start_time'], $data['end_time']);
         }
-        
+
         $this->timeEntryService->createTimeEntry($data);
-        
+
         return redirect()->route('tenant.time.index')
             ->with('success', 'Time entry created successfully.');
     }
@@ -127,20 +126,20 @@ class TimeEntryController extends Controller
             'project_id' => 'nullable|exists:projects,id',
             'description' => 'nullable|string|max:255',
         ]);
-        
+
         $userId = Auth::id();
-        
+
         $timeEntry = $this->timeEntryService->startTimeEntry(
             $userId,
             $validatedData['task_id'] ?? null,
             $validatedData['project_id'] ?? null,
             $validatedData['description'] ?? null
         );
-        
+
         if ($request->wantsJson()) {
             return response()->json($timeEntry);
         }
-        
+
         return redirect()->back()
             ->with('success', 'Timer started successfully.');
     }
@@ -151,13 +150,13 @@ class TimeEntryController extends Controller
     public function stop(TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
-        
+
         $this->timeEntryService->stopTimeEntry($timeEntry->id);
-        
+
         if (request()->wantsJson()) {
             return response()->json(['success' => true]);
         }
-        
+
         return redirect()->back()
             ->with('success', 'Timer stopped successfully.');
     }
@@ -169,7 +168,7 @@ class TimeEntryController extends Controller
     {
         $userId = Auth::id();
         $timeEntry = $this->timeEntryService->getRunningTimeEntryForUser($userId);
-        
+
         return response()->json($timeEntry);
     }
 
@@ -179,31 +178,31 @@ class TimeEntryController extends Controller
     public function update(UpdateTimeEntryRequest $request, TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
-        
+
         $data = $request->validated();
-        
+
         // Handle date and time updates if provided
         if (isset($data['date'])) {
             if (isset($data['start_time'])) {
-                $startDateTime = Carbon::parse($data['date'] . ' ' . $data['start_time']);
+                $startDateTime = Carbon::parse($data['date'].' '.$data['start_time']);
                 $data['started_at'] = $startDateTime;
             }
-            
+
             if (isset($data['end_time'])) {
-                $endDateTime = Carbon::parse($data['date'] . ' ' . $data['end_time']);
+                $endDateTime = Carbon::parse($data['date'].' '.$data['end_time']);
                 $data['ended_at'] = $endDateTime;
             }
-            
+
             // Remove temporary fields
             unset($data['date'], $data['start_time'], $data['end_time']);
         }
-        
+
         $this->timeEntryService->updateTimeEntry($timeEntry->id, $data);
-        
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true]);
         }
-        
+
         return redirect()->back()
             ->with('success', 'Time entry updated successfully.');
     }
@@ -214,19 +213,19 @@ class TimeEntryController extends Controller
     public function updateField(Request $request, TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
-        
+
         $field = $request->input('field');
         $value = $request->input('value');
-        
+
         $allowedFields = ['description', 'task_id', 'project_id', 'category_id', 'is_billable', 'tags'];
-        
-        if (!in_array($field, $allowedFields)) {
+
+        if (! in_array($field, $allowedFields)) {
             return response()->json(['error' => 'Invalid field'], 422);
         }
-        
+
         $data = [$field => $value];
         $updatedEntry = $this->timeEntryService->updateTimeEntry($timeEntry->id, $data);
-        
+
         return response()->json($updatedEntry);
     }
 
@@ -236,9 +235,9 @@ class TimeEntryController extends Controller
     public function destroy(TimeEntry $timeEntry)
     {
         $this->authorize('delete', $timeEntry);
-        
+
         $this->timeEntryService->deleteTimeEntry($timeEntry->id);
-        
+
         return redirect()->back()
             ->with('success', 'Time entry deleted successfully.');
     }
@@ -252,16 +251,16 @@ class TimeEntryController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->toDateString());
         $type = $request->input('type', 'project');
         $groupBy = $request->input('group_by', 'daily');
-        
+
         $userId = Auth::id();
-        
+
         // Get raw time entries for the date range
         $entries = $this->timeEntryService->getTimeEntriesForDateRange($userId, $startDate, $endDate);
-        
+
         // Generate summary data based on requested type
         $summary = [];
         $timeline = [];
-        
+
         if ($type === 'project') {
             $summary = $this->generateProjectSummary($entries);
             $timeline = $this->generateProjectTimeline($entries, $groupBy);
@@ -275,10 +274,10 @@ class TimeEntryController extends Controller
             $summary = $this->generateBillableSummary($entries);
             $timeline = $this->generateBillableTimeline($entries, $groupBy);
         }
-        
+
         // Get statistics for the range
         $stats = $this->timeEntryService->getTimeStatistics($userId, $startDate, $endDate);
-        
+
         return response()->json([
             'summary' => $summary,
             'timeline' => $timeline,
@@ -295,7 +294,7 @@ class TimeEntryController extends Controller
             ->map(function ($group) {
                 $project = $group->first()->project;
                 $projectName = $project ? $project->name : 'No Project';
-                
+
                 return [
                     'id' => $group->first()->project_id,
                     'name' => $projectName,
@@ -307,7 +306,7 @@ class TimeEntryController extends Controller
             ->sortByDesc('value')
             ->values()
             ->all();
-            
+
         return $projectSummary;
     }
 
@@ -320,7 +319,7 @@ class TimeEntryController extends Controller
             ->map(function ($group) {
                 $category = $group->first()->category;
                 $categoryName = $category ? $category->name : 'Uncategorized';
-                
+
                 return [
                     'id' => $group->first()->category_id,
                     'name' => $categoryName,
@@ -332,7 +331,7 @@ class TimeEntryController extends Controller
             ->sortByDesc('value')
             ->values()
             ->all();
-            
+
         return $categorySummary;
     }
 
@@ -345,7 +344,7 @@ class TimeEntryController extends Controller
             ->map(function ($group) {
                 $task = $group->first()->task;
                 $taskName = $task ? $task->title : 'No Task';
-                
+
                 return [
                     'id' => $group->first()->task_id,
                     'name' => $taskName,
@@ -357,7 +356,7 @@ class TimeEntryController extends Controller
             ->sortByDesc('value')
             ->values()
             ->all();
-            
+
         return $taskSummary;
     }
 
@@ -378,7 +377,7 @@ class TimeEntryController extends Controller
             ->sortByDesc('value')
             ->values()
             ->all();
-            
+
         return $billableSummary;
     }
 
@@ -415,7 +414,7 @@ class TimeEntryController extends Controller
         $groupEntries = $entries->groupBy(function ($entry) use ($format) {
             return Carbon::parse($entry->started_at)->format($format);
         });
-        
+
         return $groupEntries->map(function ($dayEntries, $date) {
             return [
                 'date' => $date,
@@ -432,27 +431,27 @@ class TimeEntryController extends Controller
     private function generateGenericTimeline($entries, $groupBy, $groupField)
     {
         $format = $this->getDateFormat($groupBy);
-        
+
         // First group by date
         $dateGroups = $entries->groupBy(function ($entry) use ($format) {
             return Carbon::parse($entry->started_at)->format($format);
         });
-        
+
         // Create a comprehensive result with all dates
         $result = [];
-        
+
         foreach ($dateGroups as $date => $dateEntries) {
             $dayData = [
                 'date' => $date,
                 'total' => $dateEntries->sum('duration'),
             ];
-            
+
             // Group this day's entries by the requested field
             $fieldGroups = $dateEntries->groupBy($groupField);
-            
+
             foreach ($fieldGroups as $fieldId => $fieldEntries) {
                 $fieldName = null;
-                
+
                 if ($groupField === 'project_id' && $fieldEntries->first()->project) {
                     $fieldName = $fieldEntries->first()->project->name;
                 } elseif ($groupField === 'category_id' && $fieldEntries->first()->category) {
@@ -460,9 +459,9 @@ class TimeEntryController extends Controller
                 } elseif ($groupField === 'task_id' && $fieldEntries->first()->task) {
                     $fieldName = $fieldEntries->first()->task->title;
                 }
-                
+
                 if ($fieldName) {
-                    $key = 'field_' . ($fieldId ?: 'none');
+                    $key = 'field_'.($fieldId ?: 'none');
                     $dayData[$key] = [
                         'id' => $fieldId,
                         'name' => $fieldName ?: 'None',
@@ -470,10 +469,10 @@ class TimeEntryController extends Controller
                     ];
                 }
             }
-            
+
             $result[] = $dayData;
         }
-        
+
         return $result;
     }
 

@@ -12,7 +12,7 @@ class UpdateProjectRequest extends FormRequest
     public function authorize(): bool
     {
         $project = $this->route('project');
-        
+
         // Only the project owner can update it
         return $this->user()->id === $project->user_id;
     }
@@ -34,7 +34,7 @@ class UpdateProjectRequest extends FormRequest
             'tags.*' => 'exists:tags,id',
         ];
     }
-    
+
     /**
      * Configure the validator instance.
      */
@@ -43,7 +43,7 @@ class UpdateProjectRequest extends FormRequest
         $validator->after(function ($validator) {
             $data = $validator->getData();
             $project = $this->route('project');
-            
+
             // If status is changed to completed, set completed_at
             if (isset($data['status']) && $data['status'] === 'completed' && $project->status !== 'completed') {
                 $this->merge(['completed_at' => now()]);

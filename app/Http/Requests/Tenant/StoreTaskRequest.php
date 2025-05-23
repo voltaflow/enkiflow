@@ -32,7 +32,7 @@ class StoreTaskRequest extends FormRequest
             'tags.*' => 'exists:tags,id',
         ];
     }
-    
+
     /**
      * Prepare the data for validation.
      */

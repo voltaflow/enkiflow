@@ -42,7 +42,7 @@ if ($isMainDomain) {
         // Root route for main domains - CRITICAL
         Route::get('/', [\App\Http\Controllers\LandingController::class, 'index'])
             ->name('landing.home.direct');
-        
+
         // Other high-priority landing routes
         Route::get('/features', [\App\Http\Controllers\LandingController::class, 'features'])
             ->name('landing.features.direct');
@@ -53,7 +53,7 @@ if ($isMainDomain) {
         Route::get('/contact', [\App\Http\Controllers\LandingController::class, 'contact'])
             ->name('landing.contact.direct');
     });
-    
+
     // Regular landing routes with standard middleware (fallback)
     require __DIR__.'/landing.php';
 }
@@ -69,29 +69,33 @@ Route::middleware(['web', 'ensure-landing', 'bypass-tenancy'])->get('/', functio
     $isMainDomain = in_array($host, $mainDomains) || request()->attributes->get('is_main_domain', false);
 
     // IMPORTANT: Special debug for home route
-    \Log::info("HOME ROUTE HANDLING - Domain: {$host}, Is Main: " . ($isMainDomain ? 'yes' : 'no'));
+    \Log::info("HOME ROUTE HANDLING - Domain: {$host}, Is Main: ".($isMainDomain ? 'yes' : 'no'));
 
     // For main domains, use the landing controller (this is a fallback, the route above should handle this)
     if ($isMainDomain) {
-        \Log::info("Main domain root route - redirecting to landing controller");
+        \Log::info('Main domain root route - redirecting to landing controller');
+
         return app(\App\Http\Controllers\LandingController::class)->index();
     }
-    
+
     // For tenant domains, check authentication
     if (auth()->check()) {
         if (auth()->user()->spaces()->count() > 0) {
-            \Log::info("Authenticated user with spaces - redirecting to spaces.index");
+            \Log::info('Authenticated user with spaces - redirecting to spaces.index');
+
             return redirect()->route('spaces.index');
         }
 
-        \Log::info("Authenticated user without spaces - redirecting to spaces.create");
+        \Log::info('Authenticated user without spaces - redirecting to spaces.create');
+
         return redirect()->route('spaces.create');
     }
 
     // For tenant domains where user is not authenticated, just show landing
-    \Log::info("Tenant domain, not authenticated - showing landing view");
+    \Log::info('Tenant domain, not authenticated - showing landing view');
+
     return view('landing.pages.home', [
-        'appearance' => session('appearance', 'system')
+        'appearance' => session('appearance', 'system'),
     ]);
 })->name('home');
 
@@ -107,12 +111,12 @@ Route::get('/dashboard', function () {
     $inProgressTasks = \App\Models\Task::where('status', 'in_progress')->count();
     $completedTasks = \App\Models\Task::where('status', 'completed')->count();
     $totalTasks = $pendingTasks + $inProgressTasks + $completedTasks;
-    
+
     // Get project statistics
     $pendingProjects = \App\Models\Project::where('status', 'active')->count();
     $completedProjects = \App\Models\Project::where('status', 'completed')->count();
     $totalProjects = $pendingProjects + $completedProjects;
-    
+
     // Get recent tasks
     $recentTasks = \App\Models\Task::with(['project'])
         ->orderBy('created_at', 'desc')
@@ -127,7 +131,7 @@ Route::get('/dashboard', function () {
                 'priority' => $task->priority,
             ];
         });
-    
+
     // Get overdue tasks
     $overdueTasks = \App\Models\Task::with(['project'])
         ->where('status', '!=', 'completed')
@@ -142,7 +146,7 @@ Route::get('/dashboard', function () {
                 'project_name' => $task->project->name,
             ];
         });
-    
+
     return Inertia::render('dashboard', [
         'stats' => [
             'pending_tasks' => $pendingTasks,
@@ -154,7 +158,7 @@ Route::get('/dashboard', function () {
             'total_projects' => $totalProjects,
             'recent_tasks' => $recentTasks,
             'overdue_tasks' => $overdueTasks,
-        ]
+        ],
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -172,7 +176,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('spaces', SpaceController::class);
     Route::post('/spaces/{id}/invite', [SpaceController::class, 'invite'])->name('spaces.invite');
     Route::delete('/spaces/{spaceId}/users/{userId}', [SpaceController::class, 'removeUser'])->name('spaces.users.destroy');
-    
+
     // Space Setup Wizard Routes
     Route::prefix('spaces/setup')->name('spaces.setup.')->group(function () {
         Route::get('/', [SpaceSetupController::class, 'index'])->name('index');
@@ -197,12 +201,12 @@ require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 
 // Only include tenant.php for non-main domains
-if (!$isMainDomain) {
+if (! $isMainDomain) {
     \Log::info("Loading tenant routes for: {$host}");
     try {
         require __DIR__.'/tenant.php';
     } catch (\Exception $e) {
-        \Log::error("Error loading tenant routes: " . $e->getMessage());
+        \Log::error('Error loading tenant routes: '.$e->getMessage());
     }
 }
 

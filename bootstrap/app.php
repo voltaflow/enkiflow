@@ -22,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Prioritize our public landing page access middleware above everything else
         // This ensures main domains always show the landing page without auth redirects
         $middleware->prepend(PublicLandingPageAccess::class);
-        
+
         // Registra nuestro middleware de verificación de dominios principales
         // como el segundo middleware de la aplicación
         $middleware->prepend(CheckMainDomains::class);
@@ -32,19 +32,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(function ($request) {
             // Explicitly check if this is a main domain - using multiple checks for reliability
             $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-            $isMainDomain = in_array($request->getHost(), $mainDomains) || 
+            $isMainDomain = in_array($request->getHost(), $mainDomains) ||
                           $request->attributes->get('is_main_domain', false) ||
-                          $request->attributes->get('bypass_tenancy', false) || 
+                          $request->attributes->get('bypass_tenancy', false) ||
                           $request->attributes->get('skip_tenancy', false);
-            
-            \Log::info("Guest redirection check - Host: {$request->getHost()}, Is main: " . ($isMainDomain ? 'yes' : 'no') . ", Path: {$request->getPathInfo()}");
-            
+
+            \Log::info("Guest redirection check - Host: {$request->getHost()}, Is main: ".($isMainDomain ? 'yes' : 'no').", Path: {$request->getPathInfo()}");
+
             // For main domains, NEVER redirect to login
             if ($isMainDomain) {
                 // Do not redirect, allow access to the landing page
                 return null;
             }
-            
+
             // For all other domains, maintain default behavior
             return route('login');
         });
@@ -58,7 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             SetLocale::class,
         ]);
-        
+
         $middleware->alias([
             'tenant.access' => EnsureUserHasTenantAccess::class,
             'auth' => CustomAuthenticate::class, // Reemplazar el middleware de autenticación por defecto

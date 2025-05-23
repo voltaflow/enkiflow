@@ -2,24 +2,22 @@
 
 namespace Tests\Unit\Models;
 
-use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TenancyTestCase;
 
 class TaskTest extends TenancyTestCase
 {
     private Project $project;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create a project for all tests
         $this->project = Project::factory()->create([
-            'user_id' => $this->owner->id
+            'user_id' => $this->owner->id,
         ]);
     }
 
@@ -28,7 +26,7 @@ class TaskTest extends TenancyTestCase
     {
         $task = Task::factory()->create([
             'project_id' => $this->project->id,
-            'user_id' => $this->owner->id
+            'user_id' => $this->owner->id,
         ]);
 
         $this->assertInstanceOf(Project::class, $task->project);
@@ -40,13 +38,12 @@ class TaskTest extends TenancyTestCase
     {
         $task = Task::factory()->create([
             'project_id' => $this->project->id,
-            'user_id' => $this->owner->id
+            'user_id' => $this->owner->id,
         ]);
 
         $this->assertEquals($this->owner->id, $task->user_id);
         $this->assertNotNull($task->user_id);
     }
-
 
     #[Test]
     public function it_can_filter_by_status()
@@ -54,19 +51,19 @@ class TaskTest extends TenancyTestCase
         Task::factory()->create([
             'project_id' => $this->project->id,
             'user_id' => $this->owner->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
-        
+
         Task::factory()->create([
             'project_id' => $this->project->id,
             'user_id' => $this->owner->id,
-            'status' => 'in_progress'
+            'status' => 'in_progress',
         ]);
-        
+
         Task::factory()->create([
             'project_id' => $this->project->id,
             'user_id' => $this->owner->id,
-            'status' => 'completed'
+            'status' => 'completed',
         ]);
 
         $this->assertCount(1, Task::pending()->get());
@@ -81,9 +78,9 @@ class TaskTest extends TenancyTestCase
             'project_id' => $this->project->id,
             'user_id' => $this->owner->id,
             'status' => 'pending',
-            'completed_at' => null
+            'completed_at' => null,
         ]);
-        
+
         $task->markAsCompleted();
 
         $this->assertEquals('completed', $task->status);
@@ -96,9 +93,9 @@ class TaskTest extends TenancyTestCase
         $task = Task::factory()->create([
             'project_id' => $this->project->id,
             'user_id' => $this->owner->id,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
-        
+
         $task->markAsInProgress();
 
         $this->assertEquals('in_progress', $task->status);
@@ -111,9 +108,9 @@ class TaskTest extends TenancyTestCase
             'project_id' => $this->project->id,
             'user_id' => $this->owner->id,
             'status' => 'completed',
-            'completed_at' => now()
+            'completed_at' => now(),
         ]);
-        
+
         $task->markAsPending();
 
         $this->assertEquals('pending', $task->status);

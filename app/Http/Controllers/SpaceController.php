@@ -55,12 +55,12 @@ class SpaceController extends Controller
 
         // Generate a slug for the space ID
         $id = Str::slug($request->name);
-        
+
         // Check if ID exists and make it unique if needed
         $count = 1;
         $originalId = $id;
         while (Space::find($id)) {
-            $id = $originalId . '-' . $count++;
+            $id = $originalId.'-'.$count++;
         }
 
         // Create the tenant (space)
@@ -111,7 +111,7 @@ class SpaceController extends Controller
     public function edit(string $id): Response
     {
         $space = Space::with('domains')->findOrFail($id);
-        
+
         // Check if the user can edit this space
         $this->authorize('update', $space);
 
@@ -126,7 +126,7 @@ class SpaceController extends Controller
     public function update(Request $request, string $id): RedirectResponse
     {
         $space = Space::findOrFail($id);
-        
+
         // Check if the user can update this space
         $this->authorize('update', $space);
 
@@ -148,7 +148,7 @@ class SpaceController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         $space = Space::findOrFail($id);
-        
+
         // Check if the user can delete this space
         $this->authorize('delete', $space);
 
@@ -165,7 +165,7 @@ class SpaceController extends Controller
     public function invite(Request $request, string $id): RedirectResponse
     {
         $space = Space::findOrFail($id);
-        
+
         // Check if the user can invite others to this space
         $this->authorize('invite', $space);
 
@@ -183,7 +183,7 @@ class SpaceController extends Controller
 
         // Add user to the space
         $space->users()->attach($user->id, ['role' => $request->role]);
-        
+
         // Update subscription quantity if needed
         $space->syncMemberCount();
 
@@ -196,7 +196,7 @@ class SpaceController extends Controller
     public function removeUser(string $spaceId, string $userId): RedirectResponse
     {
         $space = Space::findOrFail($spaceId);
-        
+
         // Check if the user can remove others from this space
         $this->authorize('removeUser', $space);
 
@@ -207,7 +207,7 @@ class SpaceController extends Controller
 
         // Remove the user
         $space->users()->detach($userId);
-        
+
         // Update subscription quantity
         $space->syncMemberCount();
 

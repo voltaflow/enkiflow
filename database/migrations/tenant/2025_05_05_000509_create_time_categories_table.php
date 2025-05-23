@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_billable_default')->default(true);
             $table->timestamps();
-            
+
             // Añadir índice para búsquedas por nombre
             $table->index('name');
         });

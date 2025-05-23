@@ -11,8 +11,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 {
     /**
      * Get all projects.
-     *
-     * @return Collection
      */
     public function all(): Collection
     {
@@ -21,9 +19,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Get paginated projects.
-     *
-     * @param int $perPage
-     * @return LengthAwarePaginator
      */
     public function paginate(int $perPage = 15): LengthAwarePaginator
     {
@@ -32,9 +27,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Get a project by ID.
-     *
-     * @param int $id
-     * @return Project|null
      */
     public function find(int $id): ?Project
     {
@@ -43,9 +35,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Create a new project.
-     *
-     * @param array $data
-     * @return Project
      */
     public function create(array $data): Project
     {
@@ -54,23 +43,17 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Update a project.
-     *
-     * @param int $id
-     * @param array $data
-     * @return Project
      */
     public function update(int $id, array $data): Project
     {
         $project = $this->find($id);
         $project->update($data);
+
         return $project;
     }
 
     /**
      * Delete a project.
-     *
-     * @param int $id
-     * @return bool
      */
     public function delete(int $id): bool
     {
@@ -79,8 +62,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Get all active projects.
-     *
-     * @return Collection
      */
     public function active(): Collection
     {
@@ -89,8 +70,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Get all completed projects.
-     *
-     * @return Collection
      */
     public function completed(): Collection
     {
@@ -99,9 +78,6 @@ class ProjectRepository implements ProjectRepositoryInterface
 
     /**
      * Get all projects for a specific user.
-     *
-     * @param int $userId
-     * @return Collection
      */
     public function forUser(int $userId): Collection
     {

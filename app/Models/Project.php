@@ -84,7 +84,7 @@ class Project extends Model
             'completed_at' => null,
         ]);
     }
-    
+
     /**
      * Get the tasks for the project.
      */
@@ -92,7 +92,7 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
-    
+
     /**
      * Get the tags for the project.
      */
