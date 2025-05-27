@@ -3,7 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Stancl\Tenancy\Database\TenantMigration;
 
+#[TenantMigration(tags: ['time-tracking', 'core'])]
 return new class extends Migration
 {
     /**
