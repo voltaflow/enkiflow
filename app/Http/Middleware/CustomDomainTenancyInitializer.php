@@ -16,8 +16,6 @@ class CustomDomainTenancyInitializer extends InitializeTenancyByDomain
     {
         // If this is a main domain, bypass tenancy initialization
         if ($request->attributes->get('bypass_tenancy', false)) {
-            Log::info('Skipping tenancy initialization for main domain: '.$request->getHost());
-
             return $next($request);
         }
 
@@ -25,8 +23,6 @@ class CustomDomainTenancyInitializer extends InitializeTenancyByDomain
             // Standard tenancy initialization for non-main domains
             return parent::handle($request, $next);
         } catch (\Exception $e) {
-            // Log the error but allow the request to proceed
-            Log::error('Tenancy initialization error: '.$e->getMessage());
 
             // For domains that should be handled as tenants but failed to initialize,
             // we could redirect to a central domain or show an error page

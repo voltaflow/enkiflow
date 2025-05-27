@@ -27,8 +27,21 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            // The routes are loaded directly from web.php which includes
-            // conditional loading based on domain type
+            // Primero verificamos si estamos en un subdominio de tenant
+            $host = request()->getHost();
+            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            $isMainDomain = in_array($host, $mainDomains);
+
+            // Si NO estamos en un dominio principal, cargamos primero las rutas de tenant
+            if (!$isMainDomain) {
+                // Cargamos las rutas de tenant primero para subdominios
+                if (file_exists(base_path('routes/tenant.php'))) {
+                    Route::middleware('web')
+                        ->group(base_path('routes/tenant.php'));
+                }
+            }
+
+            // Luego cargamos las rutas web normales
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 

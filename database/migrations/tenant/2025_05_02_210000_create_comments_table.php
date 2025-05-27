@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->text('content');
             $table->foreignId('task_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained();
+            $table->unsignedBigInteger('user_id'); // User from central database
             $table->timestamp('edited_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
