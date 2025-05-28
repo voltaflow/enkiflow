@@ -127,6 +127,13 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'tenant_migrations' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/tenant-migrations.log'),
+            'level' => 'debug',
+            'days' => 14,
+        ],
+
         'query_debug' => [
             'driver' => 'daily',
             'path' => storage_path('logs/query_debug.log'),

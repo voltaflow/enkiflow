@@ -5,4 +5,5 @@ return [
     App\Providers\RepositoryServiceProvider::class,
     App\Providers\QueryDebugServiceProvider::class,
     App\Providers\TenancyServiceProvider::class,
+    App\Providers\EventServiceProvider::class,
 ];
