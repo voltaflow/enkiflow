@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Tenant\ProjectController;
 use App\Http\Controllers\Tenant\TaskController;
 use App\Http\Controllers\Tenant\TimeEntryController;
+use App\Http\Controllers\Tenant\TimerController;
+use App\Http\Controllers\Tenant\ReportController;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
@@ -86,6 +88,25 @@ Route::middleware([
             Route::get('/running', [TimeEntryController::class, 'running'])->name('running');
             Route::post('/{timeEntry}/field', [TimeEntryController::class, 'updateField'])->name('update-field');
             Route::get('/report-data', [TimeEntryController::class, 'reportData'])->name('report-data');
+        });
+
+        // Timer API endpoints
+        Route::prefix('api/timer')->name('api.timer.')->group(function () {
+            Route::get('/current', [TimerController::class, 'current'])->name('current');
+            Route::post('/start', [TimerController::class, 'start'])->name('start');
+            Route::post('/{timer}/stop', [TimerController::class, 'stop'])->name('stop');
+            Route::post('/{timer}/pause', [TimerController::class, 'pause'])->name('pause');
+            Route::post('/{timer}/resume', [TimerController::class, 'resume'])->name('resume');
+            Route::put('/{timer}', [TimerController::class, 'update'])->name('update');
+            Route::delete('/{timer}', [TimerController::class, 'destroy'])->name('destroy');
+        });
+
+        // Report API endpoints
+        Route::prefix('api/reports')->name('api.reports.')->group(function () {
+            Route::get('/daily', [ReportController::class, 'daily'])->name('daily');
+            Route::get('/weekly', [ReportController::class, 'weekly'])->name('weekly');
+            Route::get('/monthly', [ReportController::class, 'monthly'])->name('monthly');
+            Route::get('/project', [ReportController::class, 'project'])->name('project');
         });
 
         // User roles and permissions

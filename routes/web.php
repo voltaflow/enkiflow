@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\SpaceSetupController;
 use App\Http\Controllers\SpaceSubscriptionController;

@@ -31,9 +31,7 @@ interface Space {
     id: string;
     name: string;
     owner_id: number;
-    data: {
-        plan: string;
-    };
+    plan: string | null;
     users: SpaceUser[];
     domains: Domain[];
     owner: {
@@ -109,7 +107,7 @@ export default function Index({ owned_spaces, member_spaces }: IndexProps) {
                                             <Badge className="bg-blue-500">Propietario</Badge>
                                         </div>
                                         <CardDescription>
-                                            Plan: {space.data.plan === 'free' ? 'Gratuito' : 'Premium'}
+                                            Plan: {space.plan === 'free' ? 'Gratuito' : 'Premium'}
                                         </CardDescription>
                                     </CardHeader>
                                     

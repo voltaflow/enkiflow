@@ -65,8 +65,11 @@ class Space extends BaseTenant implements TenantWithDatabase
     protected $fillable = [
         'id',
         'name',
+        'slug',
         'owner_id',
         'data',
+        'auto_tracking_enabled',
+        'status',
     ];
 
     /**
@@ -87,6 +90,7 @@ class Space extends BaseTenant implements TenantWithDatabase
     protected $casts = [
         'data' => 'array',
         'trial_ends_at' => 'datetime',
+        'auto_tracking_enabled' => 'boolean',
     ];
 
     /**
@@ -142,5 +146,57 @@ class Space extends BaseTenant implements TenantWithDatabase
         }
 
         return false;
+    }
+
+    /**
+     * Generate a subdomain from the company name.
+     *
+     * @param string $companyName
+     * @return string
+     */
+    public static function generateSubdomain(string $companyName): string
+    {
+        // Convert to lowercase and replace spaces with hyphens
+        $subdomain = strtolower($companyName);
+        $subdomain = preg_replace('/[^a-z0-9]+/', '-', $subdomain);
+        $subdomain = trim($subdomain, '-');
+        
+        // Ensure subdomain is not empty
+        if (empty($subdomain)) {
+            $subdomain = 'space';
+        }
+        
+        // Ensure subdomain is unique
+        $originalSubdomain = $subdomain;
+        $counter = 1;
+        
+        while (static::whereHas('domains', function ($query) use ($subdomain) {
+            $query->where('domain', $subdomain);
+        })->exists()) {
+            $subdomain = $originalSubdomain . '-' . $counter;
+            $counter++;
+        }
+        
+        return $subdomain;
+    }
+
+    /**
+     * Check if the space is active.
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if auto tracking is enabled.
+     *
+     * @return bool
+     */
+    public function hasAutoTrackingEnabled(): bool
+    {
+        return $this->auto_tracking_enabled === true;
     }
 }

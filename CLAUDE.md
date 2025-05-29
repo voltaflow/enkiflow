@@ -2,407 +2,314 @@
 
 Este archivo proporciona guía a Claude Code (claude.ai/code) cuando trabaja con código en este repositorio.
 
+## Estado del Proyecto (Mayo 2025)
+
+EnkiFlow es una plataforma SaaS de productividad con time tracking, gestión de proyectos y documentación colaborativa. Actualmente ~40% completado hacia el MVP.
+
+### Stack Tecnológico
+- **Backend**: Laravel 12.0, PHP 8.3, MySQL 8.0
+- **Servidor**: Laravel Octane con Swoole (alto rendimiento)
+- **Frontend**: React 19.0, TypeScript 5.0, Inertia.js, Tailwind CSS 3.4
+- **Multi-tenancy**: Stancl/Tenancy 3.9 (bases de datos separadas por tenant)
+- **Pagos**: Stripe con Laravel Cashier
+- **Real-time**: Laravel Echo + Pusher/Ably (pendiente)
+- **Testing**: PHPUnit, Vitest (coverage actual ~20%)
+
+### Arquitectura Implementada
+```
+- app/Models/          # Space(Tenant), User, Project, Task, TimeEntry, Timer
+- app/Services/        # TimerService, TrackingAnalyzer, TenantCreator
+- app/Http/Controllers/
+  ├── Tenant/         # DashboardController, ProjectController, TimeEntryController, TimerController
+  └── Settings/       # ProfileController, PasswordController
+- resources/js/
+  ├── components/     # UI components, time-tracking widgets
+  └── pages/          # Spaces, Tasks, TimeTracking, Settings
+```
+
 ## Comandos de Desarrollo
 
-- Iniciar entorno: `composer dev` (servidor web, colas, logs, vite)
-- Desarrollo frontend: `npm run dev`
-- Compilar: `npm run build` o `npm run build:ssr` (con SSR)
-- Formatear código: `npm run format` y `./vendor/bin/pint` (PHP)
-- Lint código: `npm run lint`
-- Verificación de tipos: `npm run types`
-- Ejecutar pruebas: `composer test` o `php artisan test`
-- Ejecutar prueba individual: `php artisan test --filter=TestClassName::testMethodName`
-- Ejecutar suite de pruebas: `php artisan test --testsuite=Unit`
+### Desarrollo Local con Laravel Octane
+```bash
+# Iniciar entorno completo con Octane (recomendado)
+php artisan octane:start --watch  # Servidor Octane con hot reload
+npm run dev                        # Vite para frontend en otra terminal
 
-## Comandos de Verificación para CI/CD y Workflows
+# O usar el comando composer personalizado
+composer dev          # Inicia Octane, colas, logs y vite
 
-**IMPORTANTE**: Antes de hacer commit o crear un PR, siempre ejecutar estos comandos de verificación:
+# Comandos Octane específicos
+php artisan octane:reload  # Recargar workers sin downtime
+php artisan octane:stop    # Detener servidor Octane
+php artisan octane:status  # Ver estado del servidor
+```
 
-1. **Verificación de tipos TypeScript** (CRÍTICO):
-   ```bash
-   npm run types
-   ```
-   - Este comando DEBE pasar sin errores
-   - Verifica que todos los tipos estén correctamente definidos
-   - No debe haber errores tipo `TS2322`, `TS2339`, `TS2304`, etc.
+### Build y Producción
+```bash
+npm run build        # Build para producción
+npm run build:ssr    # Build con SSR (Octane lo soporta)
+php artisan optimize # Optimizar para producción
+php artisan octane:start --workers=4 --task-workers=6  # Producción
+```
 
-2. **Linting de código**:
-   ```bash
-   npm run lint
-   ```
-   - Verifica estilo de código y mejores prácticas
-   - Los warnings de ESLint son aceptables pero deben minimizarse
-   - Los errores de ESLint deben corregirse
+### Calidad de Código
+```bash
+# Formateo
+npm run format       # Prettier para JS/TS
+./vendor/bin/pint    # Laravel Pint para PHP
 
-3. **Formateo de código**:
-   ```bash
-   npm run format
-   ./vendor/bin/pint
-   ```
-   - Asegura consistencia en el formato del código
-   - Ejecutar antes de cada commit
+# Linting
+npm run lint         # ESLint para JS/TS
+npm run lint:fix     # Auto-fix problemas de lint
 
-4. **Pruebas**:
-   ```bash
-   composer test
-   ```
-   - Todas las pruebas deben pasar
-   - Agregar nuevas pruebas para nuevas funcionalidades
+# Type checking
+npm run types        # TypeScript type check (DEBE pasar antes de commit)
 
-5. **Build de producción**:
-   ```bash
-   npm run build
-   ```
-   - Verifica que el código compile correctamente para producción
-   - No debe haber errores de compilación
-
-## Arquitectura y Estilo
-
-- Laravel 12 + React TypeScript SaaS con multi-tenancy (Stancl Tenancy)
-- Base de datos central para usuarios/espacios, bases de datos de tenant para datos específicos de espacio
-- PHP: Seguir PSR-12, usar tipado estricto, tipar todos los métodos/propiedades
-- TypeScript: Componentes funcionales con hooks, definiciones de tipo explícitas
-- UI: Usar componentes del directorio ui/, seguir sistema de apariencia
-- Testing: Escribir tests unitarios para modelos/servicios, tests de feature para endpoints
-- Seguridad: Validar inputs, usar middleware para validación de tenant
-
-## Organización del Código
-
-- Controladores agrupados por carpetas de funcionalidades
-- Componentes React organizados por funcionalidad
-- Migraciones de base de datos separadas por tenant/central
-- Definir relaciones claramente en los modelos
-- Extraer lógica reutilizable a hooks personalizados
-- Seguir diseños responsivos para móviles
-
-## Estructura de Multi-Tenancy Implementada
-
-### Modelos Principales
-
-- **Space (Tenant)**: Representa un espacio/organización.
-  - Implementa interfaces de Tenant requeridas por Stancl Tenancy
-  - Gestiona suscripciones a través de Stripe Cashier
-  - Relaciones con usuarios y dominios
-
-- **Project**: Modelo específico del tenant para proyectos.
-  - Incluye métodos para cambio de estado (active, completed)
-  - Relaciones con tareas y etiquetas (tags)
-  - Scopes para filtrar por estado
-
-- **Task**: Modelo específico del tenant para tareas.
-  - Estados: pending, in_progress, completed
-  - Jerarquía: pertenece a un Project
-  - Relaciones con comentarios y etiquetas
-  - Métodos para cambios de estado
-
-- **Comment**: Modelo para comentarios en tareas.
-  - Pertenece a una Task y a un User
-  - Incluye funcionalidad de edición
-
-- **Tag**: Modelo para etiquetado de recursos.
-  - Implementa relaciones polimórficas
-  - Puede aplicarse a Projects y Tasks
-
-### Patrón Repositorio/Servicio Implementado
-
-#### Repositorios
-- **ProjectRepositoryInterface** y **TaskRepositoryInterface**
-  - Definen operaciones CRUD y métodos de consulta específicos
-  - Abstraen detalles de la implementación de Eloquent
-
-- **ProjectRepository** y **TaskRepository**
-  - Implementaciones concretas usando Eloquent
-  - Ejecutan consultas optimizadas con eager loading
-  - Implementan métodos específicos para filtrado
-
-#### Servicios
-- **ProjectService** y **TaskService**
-  - Encapsulan lógica de negocio
-  - Usan repositorios para acceso a datos
-  - Proporcionan una API clara para los controladores
-  - Manejan operaciones como cambios de estado y relaciones
-
-### Form Requests para Validación
-
-- **StoreProjectRequest**, **UpdateProjectRequest**
-- **StoreTaskRequest**, **UpdateTaskRequest**
-  - Implementan reglas de validación
-  - Autorizan operaciones basadas en relaciones de usuario
-  - Preparan datos antes de la validación
-
-### Controladores
-
-- **ProjectController** y **TaskController**
-  - Controladores delgados que delegan a servicios
-  - Implementan respuestas de API consistentes
-  - Usan patrón de Resource Controller
-  - Integran con Inertia.js para respuestas
-
-### Tests
-
-- **Unitarios**: Para modelos, repositorios y servicios
-- **Feature**: Para controladores y endpoints
-- **TenancyTestCase**: Base personalizada para tests en entorno multi-tenant
-
-## Buenas Prácticas Laravel
-
-### Estructura de Aplicación
-
-- **Patrón Repositorio/Servicio**: Usar repositorios para abstraer el acceso a datos y servicios para encapsular la lógica de negocio.
-  ```php
-  class TaskService
-  {
-      public function __construct(
-          protected TaskRepositoryInterface $taskRepository
-      ) {}
-      
-      public function markTaskAsCompleted(int $id): Task
-      {
-          $task = $this->taskRepository->find($id);
-          $task->markAsCompleted();
-          return $task;
-      }
-  }
-  ```
-
-- **Single Responsibility Principle**: Cada clase debe tener una única responsabilidad.
-  ```php
-  // Controlador ligero que delega a servicios
-  public function update(UpdateTaskRequest $request, Task $task)
-  {
-      $validated = $request->validated();
-      
-      $this->taskService->updateTask($task->id, $validated);
-      
-      if ($request->has('tags')) {
-          $this->taskService->syncTags($task->id, $request->tags);
-      }
-      
-      return redirect()->route('tasks.show', $task)
-          ->with('success', 'Task updated successfully.');
-  }
-  ```
-
-- **Modelos Eloquent robustos**: Aprovechar scopes locales y métodos de consulta.
-  ```php
-  // En el modelo Task
-  public function scopePending($query)
-  {
-      return $query->where('status', 'pending');
-  }
-  
-  public function scopeInProgress($query)
-  {
-      return $query->where('status', 'in_progress');
-  }
-  
-  // Uso en repositorio
-  public function pending(): Collection
-  {
-      return Task::pending()->get();
-  }
-  ```
-
-- **Inyección de Dependencias**: Usar el contenedor IoC de Laravel para gestionar dependencias.
-  ```php
-  public function __construct(
-      protected ProjectRepositoryInterface $projectRepository
-  ) {}
-  ```
-
-### Base de Datos y Rendimiento
-
-- **Eager Loading**: Siempre usar Eager Loading para evitar problemas N+1.
-  ```php
-  // En TaskController::show
-  $task->load(['project', 'user', 'comments.user', 'tags']);
-  ```
-
-- **Chunking**: Procesar conjuntos grandes de datos en fragmentos.
-  ```php
-  Project::where('status', 'active')->chunk(100, function ($projects) {
-      foreach ($projects as $project) {
-          // Procesar datos en lotes manejables
-      }
-  });
-  ```
-
-- **Transacciones**: Usar transacciones para operaciones que involucran múltiples cambios.
-  ```php
-  DB::transaction(function () {
-      // Operaciones en múltiples tablas que deben ser atómicas
-  });
-  ```
-
-### Seguridad
-
-- **Mass Assignment**: Usar siempre `$fillable` o `$guarded` en los modelos.
-  ```php
-  protected $fillable = [
-      'title', 'description', 'project_id', 'user_id',
-      'status', 'priority', 'due_date', 'completed_at',
-      'settings',
-  ];
-  ```
-
-- **Validación**: Usar Form Requests para validación.
-  ```php
-  class StoreTaskRequest extends FormRequest
-  {
-      public function rules(): array
-      {
-          return [
-              'title' => 'required|string|max:255',
-              'description' => 'nullable|string',
-              'project_id' => 'required|exists:projects,id',
-              'status' => 'required|in:pending,in_progress,completed',
-              'priority' => 'required|integer|min:0|max:5',
-              'due_date' => 'nullable|date',
-          ];
-      }
-  }
-  ```
-
-- **Autorización**: Usar Policies para lógica de autorización.
-  ```php
-  public function update(User $user, Project $project)
-  {
-      return $user->id === $project->user_id || 
-             $user->hasRole('admin');
-  }
-  ```
+# Testing
+composer test        # Ejecutar todos los tests
+php artisan test --parallel # Tests en paralelo
+php artisan test --filter=TimerServiceTest # Test específico
+```
 
 ### Multi-tenancy
+```bash
+# Crear nuevo tenant (espacio)
+php artisan tinker
+$tenant = App\Models\Space::create(['name' => 'Mi Empresa', 'slug' => 'mi-empresa']);
+$tenant->domains()->create(['domain' => 'mi-empresa.enkiflow.test']);
 
-- **Middleware de Tenant**: Asegurar que las solicitudes tengan un tenant válido.
-  ```php
-  // En EnsureValidTenant middleware
-  public function handle(Request $request, Closure $next)
-  {
-      if (!tenant() || !tenant()->exists) {
-          return redirect()->route('spaces.index')
-              ->with('error', 'Espacio no válido o inactivo.');
-      }
-      
-      return $next($request);
-  }
-  ```
+# Ejecutar migraciones para un tenant específico
+php artisan tenants:artisan "migrate" --tenant=1
 
-- **Scope Global de Tenant**: Aplicar automáticamente el scope de tenant a consultas.
-  ```php
-  // En el modelo tenant Project
-  protected static function booted()
-  {
-      static::addGlobalScope('tenant', function (Builder $builder) {
-          // Stancl Tenancy maneja esto automáticamente 
-          // al usar la base de datos del tenant
-      });
-  }
-  ```
+# Ejecutar comando en todos los tenants
+php artisan tenants:artisan "cache:clear"
+```
 
-### Frontend con Inertia.js
+## Verificaciones Pre-Commit (IMPORTANTE)
 
-- **Prop Types**: Definir siempre tipos para las props de Inertia.
-  ```typescript
-  interface Task {
-    id: number;
-    title: string;
-    description: string | null;
-    project_id: number;
-    status: 'pending' | 'in_progress' | 'completed';
-    priority: number;
-    due_date: string | null;
-  }
-  
-  interface Props {
-    task: Task;
-    project: Project;
-  }
-  ```
+Antes de hacer commit, SIEMPRE ejecutar:
 
-- **Compartir Datos Globales**: Usar middleware para compartir datos comunes.
-  ```php
-  // En HandleInertiaRequests.php
-  public function share(Request $request)
-  {
-      return array_merge(parent::share($request), [
-          'auth' => [
-              'user' => $request->user() ? [
-                  'id' => $request->user()->id,
-                  'name' => $request->user()->name,
-              ] : null,
-          ],
-          'tenant' => tenant() ? [
-              'id' => tenant()->id,
-              'name' => tenant()->name,
-          ] : null,
-      ]);
-  }
-  ```
+```bash
+# 1. Type checking (CRÍTICO - no debe tener errores)
+npm run types
 
-## Convenciones Importantes
+# 2. Linting
+npm run lint
 
-- **Naming**: Seguir convenciones de Laravel (CamelCase para clases, snake_case para métodos)
-- **Comentarios**: Documentar métodos complejos y decisiones de diseño importantes
-- **Cacheo**: Usar cache cuando sea apropiado para optimizar rendimiento
-- **Procesos Asíncronos**: Usar colas para operaciones costosas o no críticas en tiempo
-- **Pruebas**: Mantener cobertura de pruebas para funcionalidades críticas del sistema
+# 3. Formateo
+npm run format && ./vendor/bin/pint
 
-## Mejores Prácticas de TypeScript
+# 4. Tests
+composer test
 
-### Tipos y Interfaces
+# 5. Build de producción
+npm run build
+```
 
-1. **PageProps genérico**: Usar `PageProps<T>` para componentes de página:
-   ```typescript
-   interface MyPageProps {
-     users: User[];
-     canEdit: boolean;
-   }
-   
-   export default function MyPage({ users, canEdit }: PageProps<MyPageProps>) {
-     // ...
-   }
-   ```
+## Estructura de Base de Datos
 
-2. **Componentes con forwardRef**: Para componentes que usan `Slot` de Radix UI:
-   ```typescript
-   const MyComponent = React.forwardRef<HTMLDivElement, ComponentProps>(
-     ({ className, asChild, ...props }, ref) => {
-       const Comp = asChild ? Slot : "div";
-       return <Comp ref={ref as any} {...props} />;
-     }
-   );
-   MyComponent.displayName = "MyComponent";
-   ```
+### Base Central
+- `users` - Usuarios del sistema
+- `tenants` (spaces) - Espacios de trabajo/organizaciones
+- `domains` - Dominios personalizados
+- `space_users` - Relación usuarios-espacios con roles
+- `subscriptions` - Suscripciones Stripe
 
-3. **Formularios con Inertia**: Para formularios complejos, manejar el estado localmente:
-   ```typescript
-   const [items, setItems] = useState<Item[]>([]);
-   const { post } = useForm({});
-   
-   const submit = () => {
-     router.post(route('endpoint'), { items }, {
-       onSuccess: () => { /* ... */ }
-     });
-   };
-   ```
+### Base por Tenant
+- `projects` - Proyectos (active, completed, archived)
+- `tasks` - Tareas con estados y prioridades
+- `time_entries` - Registros de tiempo históricos
+- `timers` - Timers activos
+- `time_categories` - Categorías de tiempo
+- `comments` - Sistema de comentarios polimórfico
+- `tags` & `taggables` - Sistema de etiquetas
+- `application_sessions` - Tracking automático de apps
+- `daily_summaries` - Resúmenes diarios de productividad
 
-4. **Importaciones necesarias**: Siempre importar hooks y tipos necesarios:
-   ```typescript
-   import { useState, useEffect, useCallback } from 'react';
-   import type { LucideIcon } from 'lucide-react';
-   ```
+## Modelos y Servicios Principales
 
-### Errores Comunes a Evitar
+### Timer System
+```php
+// TimerService - Gestión de timers activos
+$timerService->start($user, ['project_id' => 1, 'description' => 'Working on feature']);
+$timerService->pause($timer);
+$timerService->resume($timer);
+$timerService->stop($timer); // Crea TimeEntry automáticamente
 
-1. **No asumir propiedades opcionales**: Usar optional chaining (`?.`)
-2. **Tipar explícitamente parámetros de callbacks**: Evitar `any` implícito
-3. **Exportar interfaces necesarias**: Como `PageProps`, `Task`, `User`, etc.
-4. **Verificar imports**: Asegurar que todos los hooks y componentes estén importados
+// Timer Model
+Timer::forUser($userId)->running()->first(); // Timer activo del usuario
+$timer->getTotalDurationAttribute(); // Duración total incluyendo pausas
+```
 
-## Recursos para el Desarrollo
+### Time Tracking
+```php
+// TimeEntry Model
+TimeEntry::forUser($userId)
+    ->billable()
+    ->between($startDate, $endDate)
+    ->with(['project', 'task', 'category'])
+    ->get();
 
-- Documentación Laravel: https://laravel.com/docs/12.x
-- Documentación Stancl/Tenancy: https://tenancyforlaravel.com/docs/v3/
-- Documentación Inertia.js: https://inertiajs.com/
-- Laravel Best Practices: https://github.com/alexeymezenin/laravel-best-practices
+// TrackingAnalyzer Service
+$analyzer->processTrackingData($user, $data); // Procesa datos de tracking externo
+$analyzer->getProductivityStats($user, $start, $end); // Estadísticas de productividad
+```
+
+### Projects & Tasks
+```php
+// Project scopes
+Project::active()->owned()->withTaskCount()->get();
+
+// Task estados
+Task::pending()->inProject($projectId)->get();
+$task->markAsCompleted(); // Cambia estado y registra timestamp
+```
+
+## Componentes React Principales
+
+### Timer Widget
+```typescript
+// Ubicación: resources/js/components/time-tracking/timer-widget.tsx
+<TimerWidget 
+  projects={projects} 
+  tasks={tasks} 
+  onTimerStop={(timeEntry) => handleNewEntry(timeEntry)} 
+/>
+```
+
+### Tipos TypeScript Importantes
+```typescript
+interface Timer {
+  id: number;
+  description: string;
+  project_id: number | null;
+  task_id: number | null;
+  started_at: string;
+  is_running: boolean;
+  total_duration: number;
+  project?: Project;
+  task?: Task;
+}
+
+interface TimeEntry {
+  id: number;
+  user_id: number;
+  project_id: number | null;
+  task_id: number | null;
+  started_at: string;
+  ended_at: string | null;
+  duration: number;
+  description: string;
+  is_billable: boolean;
+  created_via: 'manual' | 'timer' | 'import';
+}
+```
+
+## Features Implementadas vs Pendientes
+
+### ✅ Completado
+- Multi-tenancy con subdominios
+- Autenticación y autorización
+- Gestión de espacios y usuarios
+- CRUD de proyectos
+- Timer funcional (start/stop/pause)
+- Modelos de time tracking
+- Integración con Stripe
+- Sistema de tags y comentarios
+
+### 🚧 En Progreso
+- UI completa de tareas
+- Dashboard con métricas
+- Reportes de tiempo
+- Sistema de notificaciones
+
+### ❌ Pendiente para MVP
+- Timesheet semanal (como la versión Node.js)
+- Exportación de reportes (CSV/PDF)
+- Entrada manual de tiempo (UI)
+- Filtros avanzados y búsqueda
+- Onboarding de usuarios
+- Documentación de API
+
+### 🎯 Post-MVP
+- Integración con calendarios (Google/Outlook)
+- API REST pública
+- Tracking automático de aplicaciones
+- IA para categorización automática
+- Editor de documentos tipo Notion
+- Mobile apps
+
+## Convenciones del Proyecto
+
+### PHP/Laravel
+- PSR-12 para estilo de código
+- Tipado estricto en todos los archivos
+- Form Requests para validación
+- Servicios para lógica de negocio compleja
+- Repositorios para queries complejas (opcional)
+- Policies para autorización
+
+### TypeScript/React
+- Componentes funcionales con hooks
+- Props tipadas con interfaces
+- Evitar `any` - usar tipos específicos
+- Componentes en PascalCase
+- Hooks personalizados en camelCase con prefijo `use`
+
+### Testing
+- Mínimo un test por servicio/feature nueva
+- Usar factories para datos de prueba
+- Tests de integración para flujos críticos
+- Mocks para servicios externos
+
+### Git
+- Commits en inglés
+- Mensajes descriptivos (qué y por qué)
+- Una feature por PR
+- Code review obligatorio
+
+## Problemas Conocidos
+
+1. **Coverage de tests bajo (~20%)** - Priorizar tests para features críticas
+2. **Falta documentación de API** - Considerar Laravel Scribe o similar
+3. **Performance con muchos time entries** - Implementar paginación/lazy loading
+4. **No hay rate limiting** - Agregar throttling a APIs
+5. **Falta validación de límites de plan** - Implementar checks de suscripción
+6. **Octane memory leaks** - Monitorear uso de memoria en workers largos
+7. **Tenancy con Octane** - Asegurar limpieza de contexto entre requests
+
+## Consideraciones con Laravel Octane
+
+### Mejores Prácticas
+```php
+// Evitar estado compartido entre requests
+// MAL
+class TimerService {
+    private static $activeTimers = []; // NO - se compartirá entre requests
+}
+
+// BIEN
+class TimerService {
+    public function getActiveTimers($userId) {
+        return Cache::remember("timers:$userId", 60, function() use ($userId) {
+            return Timer::forUser($userId)->running()->get();
+        });
+    }
+}
+```
+
+### Configuración Octane para Multi-tenancy
+```php
+// En config/octane.php agregar a 'flush'
+'flush' => [
+    'tenancy', // Limpiar contexto de tenant entre requests
+],
+```
+
+## Enlaces Útiles
+
+- Documentación Laravel 12: https://laravel.com/docs/12.x
+- Stancl/Tenancy: https://tenancyforlaravel.com/docs/v3/
+- Inertia.js: https://inertiajs.com/
+- Radix UI: https://www.radix-ui.com/
+- Stripe Laravel Cashier: https://laravel.com/docs/12.x/billing
