@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
             App::setLocale($locale);
             \Log::info("AppServiceProvider: Setting application locale to {$locale}");
         }
-        
+
         // Registrar comandos personalizados
         if ($this->app->runningInConsole()) {
             $this->commands([

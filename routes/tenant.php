@@ -6,7 +6,6 @@ use App\Http\Controllers\Tenant\ProjectController;
 use App\Http\Controllers\Tenant\TaskController;
 use App\Http\Controllers\Tenant\TimeEntryController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------

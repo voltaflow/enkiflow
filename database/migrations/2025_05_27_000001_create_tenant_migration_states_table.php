@@ -24,11 +24,11 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->unsignedInteger('batch')->nullable();
             $table->timestamps();
-            
+
             // No podemos hacer foreign key a 'tenants' si está en otra conexión
             // Solo mantenemos el índice y unique constraint
             $table->unique(['tenant_id', 'migration']);
-            
+
             // Índice para consultas rápidas por estado
             $table->index(['status', 'tenant_id']);
             $table->index('tenant_id');

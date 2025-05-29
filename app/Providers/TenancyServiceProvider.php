@@ -186,20 +186,20 @@ class TenancyServiceProvider extends ServiceProvider
         $tenancyMiddleware = [
             // Primero: Inicializador de tenancy personalizado
             \App\Http\Middleware\CustomDomainTenancyInitializer::class,
-            
+
             // Segundo: Prevenir acceso desde dominios centrales
             \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
-            
+
             // Tercero: Bypass tenancy para dominios principales
             \App\Http\Middleware\BypassTenancyForMainDomains::class,
-            
+
             // Cuarto: Forzar página de inicio para dominios principales
             \App\Http\Middleware\EnsureLandingForMainDomains::class,
-            
+
             // Otros middleware de inicialización
             \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
             \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
-            
+
             // Middleware personalizado (después de que se inicializa tenancy)
             \App\Http\Middleware\EnsureValidTenant::class,
         ];

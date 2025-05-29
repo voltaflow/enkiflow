@@ -20,7 +20,7 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        
+
         // Eventos de migración de tenant
         \Stancl\Tenancy\Events\MigratingDatabase::class => [
             \App\Listeners\RegisterMigrationStart::class,

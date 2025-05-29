@@ -22,10 +22,6 @@ class MigrationFailed
 
     /**
      * Crea una nueva instancia del evento.
-     *
-     * @param TenantWithDatabase $tenant
-     * @param string $migration
-     * @param \Throwable $exception
      */
     public function __construct(TenantWithDatabase $tenant, string $migration, \Throwable $exception)
     {
