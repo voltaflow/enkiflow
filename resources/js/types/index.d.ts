@@ -96,4 +96,4 @@ export type PageProps<T = Record<string, unknown>> = T & {
         current: string;
         available: Record<string, string>;
     };
-}
+};

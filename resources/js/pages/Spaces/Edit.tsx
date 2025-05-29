@@ -1,8 +1,8 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
@@ -49,56 +49,40 @@ export default function Edit({ space }: EditProps) {
     };
 
     // Get primary domain if exists
-    const primaryDomain = space.domains && space.domains.length > 0 
-        ? space.domains[0].domain 
-        : null;
+    const primaryDomain = space.domains && space.domains.length > 0 ? space.domains[0].domain : null;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Editar Espacio: ${space.name}`} />
-            
+
             <div className="flex h-full flex-1 flex-col items-center justify-center p-4">
                 <Card className="w-full max-w-md">
                     <form onSubmit={handleSubmit}>
                         <CardHeader>
                             <CardTitle>Editar Espacio</CardTitle>
-                            <CardDescription>
-                                Actualiza la configuración de tu espacio.
-                            </CardDescription>
+                            <CardDescription>Actualiza la configuración de tu espacio.</CardDescription>
                         </CardHeader>
-                        
+
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre del Espacio</Label>
-                                <Input
-                                    id="name"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    required
-                                />
+                                <Input id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} required />
                                 <InputError message={errors.name} />
                             </div>
-                            
+
                             {primaryDomain && (
                                 <div className="space-y-2">
                                     <Label>Dominio</Label>
-                                    <div className="p-2 bg-muted rounded-md">
+                                    <div className="bg-muted rounded-md p-2">
                                         <p className="text-sm">{primaryDomain}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            El dominio no se puede cambiar una vez creado.
-                                        </p>
+                                        <p className="text-muted-foreground mt-1 text-xs">El dominio no se puede cambiar una vez creado.</p>
                                     </div>
                                 </div>
                             )}
                         </CardContent>
-                        
+
                         <CardFooter className="flex justify-between">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => window.history.back()}
-                                disabled={processing}
-                            >
+                            <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={processing}>
                                 Cancelar
                             </Button>
                             <Button type="submit" disabled={processing}>

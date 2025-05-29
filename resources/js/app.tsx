@@ -3,7 +3,6 @@ import '../css/app.css';
 // Importar el polyfill de React Refresh
 import './react-refresh.js';
 
-import React from 'react';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
