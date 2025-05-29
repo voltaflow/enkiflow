@@ -22,10 +22,12 @@ use Inertia\Inertia;
 */
 
 // Health check routes (must be before tenant middleware)
-Route::get('/health', [HealthCheckController::class, 'health'])->name('health');
-Route::get('/health/db', [HealthCheckController::class, 'database'])->name('health.database');
-Route::get('/health/queue', [HealthCheckController::class, 'queue'])->name('health.queue');
-Route::get('/health/full', [HealthCheckController::class, 'full'])->name('health.full');
+Route::middleware(['throttle:60,1'])->group(function () {
+    Route::get('/health', [HealthCheckController::class, 'health'])->name('health');
+    Route::get('/health/db', [HealthCheckController::class, 'database'])->name('health.database');
+    Route::get('/health/queue', [HealthCheckController::class, 'queue'])->name('health.queue');
+    Route::get('/health/full', [HealthCheckController::class, 'full'])->name('health.full');
+});
 
 // Check if we're on a main domain
 $host = request()->getHost();

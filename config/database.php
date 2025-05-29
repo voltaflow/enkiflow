@@ -53,9 +53,9 @@ return [
             'url' => env('TENANT_DB_URL'),
             'host' => env('TENANT_DB_HOST', '127.0.0.1'),
             'port' => env('TENANT_DB_PORT', '5432'),
-            'database' => null, // This will be set dynamically by the tenancy package
-            'username' => env('TENANT_DB_USERNAME', 'root'),
-            'password' => env('TENANT_DB_PASSWORD', ''),
+            'database' => null, // Will be set dynamically by tenancy
+            'username' => env('TENANT_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('TENANT_DB_PASSWORD', env('DB_PASSWORD', '')),
             'charset' => env('TENANT_DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
