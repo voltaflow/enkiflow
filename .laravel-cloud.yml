@@ -1,0 +1,78 @@
+# Laravel Cloud Configuration
+# ==========================
+
+name: EnkiFlow
+type: laravel
+php_version: "8.3"
+
+# Build configuration
+build:
+  - composer install --no-dev --optimize-autoloader
+  - npm ci
+  - npm run build
+  - php artisan config:cache
+  - php artisan route:cache
+  - php artisan view:cache
+  - php artisan event:cache
+
+# Deployment configuration
+deploy:
+  - php artisan migrate --force
+  - php artisan tenants:migrate --force
+  - php artisan octane:restart
+  - php artisan horizon:terminate
+
+# Health checks
+health_checks:
+  http:
+    path: /health
+    interval: 30
+    timeout: 10
+  
+  database:
+    path: /health/db
+    interval: 60
+    timeout: 5
+  
+  queue:
+    path: /health/queue
+    interval: 60
+    timeout: 10
+
+# Services
+services:
+  - redis
+  - postgresql
+
+# Workers configuration
+workers:
+  default:
+    command: php artisan horizon
+    replicas: 2
+    memory: 512
+  
+  octane:
+    command: php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000
+    replicas: auto
+    memory: 1024
+    health_check:
+      path: /health
+      interval: 30
+
+# Cron jobs
+cron:
+  - schedule: "* * * * *"
+    command: php artisan schedule:run
+
+# Environment-specific configurations
+environments:
+  production:
+    replicas:
+      min: 1
+      max: 2
+    auto_scale:
+      cpu_threshold: 70
+      memory_threshold: 80
+    database:
+      pool_size: 20
+      max_connections: 100

@@ -81,6 +81,7 @@ return [
 
         RequestTerminated::class => [
             // FlushUploadedFiles::class,
+            \App\Http\Middleware\TenantDiagnostics::class,
         ],
 
         TaskReceived::class => [
@@ -137,7 +138,7 @@ return [
     ],
 
     'flush' => [
-        //
+        'tenancy',
     ],
 
     /*
