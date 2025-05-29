@@ -1,11 +1,11 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { CalendarDays, CheckCircle2, Clock, Plus, ListTodo, Folder, AlertCircle } from 'lucide-react';
+import { AlertCircle, CalendarDays, CheckCircle2, Clock, Folder, ListTodo, Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,7 +37,7 @@ interface DashboardProps {
             project_id: number;
             project_name: string;
         }[];
-    }
+    };
 }
 
 export default function Dashboard({ stats }: DashboardProps) {
@@ -56,22 +56,22 @@ export default function Dashboard({ stats }: DashboardProps) {
                 title: 'Configurar entorno de desarrollo',
                 status: 'completed',
                 due_date: '2025-05-10',
-                priority: 3
+                priority: 3,
             },
             {
                 id: 2,
                 title: 'Crear componentes UI para tareas',
                 status: 'in_progress',
                 due_date: '2025-05-12',
-                priority: 4
+                priority: 4,
             },
             {
                 id: 3,
                 title: 'Implementar sistema de filtros',
                 status: 'pending',
                 due_date: '2025-05-15',
-                priority: 2
-            }
+                priority: 2,
+            },
         ],
         overdue_tasks: [
             {
@@ -79,16 +79,14 @@ export default function Dashboard({ stats }: DashboardProps) {
                 title: 'Actualizar documentación',
                 due_date: '2025-05-01',
                 project_id: 1,
-                project_name: 'Proyecto Demo'
-            }
-        ]
+                project_name: 'Proyecto Demo',
+            },
+        ],
     };
 
     const dashboardStats = stats || defaultStats;
     const totalTasks = dashboardStats.total_tasks;
-    const completedPercentage = totalTasks > 0 
-        ? Math.round((dashboardStats.completed_tasks / totalTasks) * 100) 
-        : 0;
+    const completedPercentage = totalTasks > 0 ? Math.round((dashboardStats.completed_tasks / totalTasks) * 100) : 0;
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -112,10 +110,10 @@ export default function Dashboard({ stats }: DashboardProps) {
     const formatDate = (dateString: string | null) => {
         if (!dateString) return 'Sin fecha';
         const date = new Date(dateString);
-        return date.toLocaleDateString('es', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
+        return date.toLocaleDateString('es', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
         });
     };
 
@@ -134,15 +132,15 @@ export default function Dashboard({ stats }: DashboardProps) {
                             <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
                                     <span className="text-3xl font-bold">{dashboardStats.completed_tasks}</span>
-                                    <span className="text-sm text-muted-foreground">Tareas completadas</span>
+                                    <span className="text-muted-foreground text-sm">Tareas completadas</span>
                                 </div>
                                 <div className="flex flex-col items-end">
                                     <span className="text-3xl font-bold">{totalTasks}</span>
-                                    <span className="text-sm text-muted-foreground">Total tareas</span>
+                                    <span className="text-muted-foreground text-sm">Total tareas</span>
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <div className="flex items-center justify-between mb-1">
+                                <div className="mb-1 flex items-center justify-between">
                                     <span className="text-sm">Progreso</span>
                                     <span className="text-sm font-semibold">{completedPercentage}%</span>
                                 </div>
@@ -150,7 +148,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                             </div>
                         </CardContent>
                         <CardFooter className="pt-1">
-                            <div className="flex w-full justify-between text-xs text-muted-foreground">
+                            <div className="text-muted-foreground flex w-full justify-between text-xs">
                                 <div className="flex items-center gap-1">
                                     <Clock className="h-3 w-3" />
                                     <span>{dashboardStats.pending_tasks} pendientes</span>
@@ -176,27 +174,30 @@ export default function Dashboard({ stats }: DashboardProps) {
                             <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
                                     <span className="text-3xl font-bold">{dashboardStats.completed_projects}</span>
-                                    <span className="text-sm text-muted-foreground">Completados</span>
+                                    <span className="text-muted-foreground text-sm">Completados</span>
                                 </div>
                                 <div className="flex flex-col items-end">
                                     <span className="text-3xl font-bold">{dashboardStats.total_projects}</span>
-                                    <span className="text-sm text-muted-foreground">Total proyectos</span>
+                                    <span className="text-muted-foreground text-sm">Total proyectos</span>
                                 </div>
                             </div>
                             <div className="mt-4">
-                                <div className="flex items-center justify-between mb-1">
+                                <div className="mb-1 flex items-center justify-between">
                                     <span className="text-sm">Progreso</span>
                                     <span className="text-sm font-semibold">
-                                        {dashboardStats.total_projects > 0 
-                                            ? Math.round((dashboardStats.completed_projects / dashboardStats.total_projects) * 100) 
-                                            : 0}%
+                                        {dashboardStats.total_projects > 0
+                                            ? Math.round((dashboardStats.completed_projects / dashboardStats.total_projects) * 100)
+                                            : 0}
+                                        %
                                     </span>
                                 </div>
-                                <Progress 
-                                    value={dashboardStats.total_projects > 0 
-                                        ? Math.round((dashboardStats.completed_projects / dashboardStats.total_projects) * 100) 
-                                        : 0} 
-                                    className="h-2" 
+                                <Progress
+                                    value={
+                                        dashboardStats.total_projects > 0
+                                            ? Math.round((dashboardStats.completed_projects / dashboardStats.total_projects) * 100)
+                                            : 0
+                                    }
+                                    className="h-2"
                                 />
                             </div>
                         </CardContent>
@@ -242,16 +243,13 @@ export default function Dashboard({ stats }: DashboardProps) {
                         <CardContent>
                             <div className="space-y-4">
                                 {dashboardStats.recent_tasks.length > 0 ? (
-                                    dashboardStats.recent_tasks.map(task => (
+                                    dashboardStats.recent_tasks.map((task) => (
                                         <div key={task.id} className="flex items-start justify-between border-b pb-3 last:border-b-0 last:pb-0">
                                             <div>
-                                                <Link 
-                                                    href={`/tasks/${task.id}`} 
-                                                    className="font-medium hover:underline"
-                                                >
+                                                <Link href={`/tasks/${task.id}`} className="font-medium hover:underline">
                                                     {task.title}
                                                 </Link>
-                                                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                                                <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
                                                     <CalendarDays className="h-3 w-3" />
                                                     <span>Vence: {formatDate(task.due_date)}</span>
                                                 </div>
@@ -263,17 +261,13 @@ export default function Dashboard({ stats }: DashboardProps) {
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="text-center py-4 text-muted-foreground">
-                                        No hay tareas recientes
-                                    </div>
+                                    <div className="text-muted-foreground py-4 text-center">No hay tareas recientes</div>
                                 )}
                             </div>
                         </CardContent>
                         <CardFooter>
                             <Button variant="outline" asChild className="w-full">
-                                <Link href="/tasks">
-                                    Ver todas las tareas
-                                </Link>
+                                <Link href="/tasks">Ver todas las tareas</Link>
                             </Button>
                         </CardFooter>
                     </Card>
@@ -295,49 +289,34 @@ export default function Dashboard({ stats }: DashboardProps) {
                         <CardContent>
                             <div className="space-y-4">
                                 {dashboardStats.overdue_tasks.length > 0 ? (
-                                    dashboardStats.overdue_tasks.map(task => (
+                                    dashboardStats.overdue_tasks.map((task) => (
                                         <div key={task.id} className="flex items-start justify-between border-b pb-3 last:border-b-0 last:pb-0">
                                             <div>
-                                                <Link 
-                                                    href={`/tasks/${task.id}`} 
-                                                    className="font-medium hover:underline"
-                                                >
+                                                <Link href={`/tasks/${task.id}`} className="font-medium hover:underline">
                                                     {task.title}
                                                 </Link>
-                                                <div className="mt-1 flex flex-col gap-1 text-xs text-muted-foreground">
+                                                <div className="text-muted-foreground mt-1 flex flex-col gap-1 text-xs">
                                                     <div className="flex items-center gap-1">
                                                         <AlertCircle className="h-3 w-3 text-red-500" />
                                                         <span className="text-red-500">Vencida: {formatDate(task.due_date)}</span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
                                                         <Folder className="h-3 w-3" />
-                                                        <Link 
-                                                            href={`/projects/${task.project_id}`}
-                                                            className="hover:underline"
-                                                        >
+                                                        <Link href={`/projects/${task.project_id}`} className="hover:underline">
                                                             {task.project_name}
                                                         </Link>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <Button 
-                                                variant="outline" 
-                                                size="sm" 
-                                                asChild
-                                                className="mt-2"
-                                            >
-                                                <Link href={`/tasks/${task.id}/edit`}>
-                                                    Actualizar
-                                                </Link>
+                                            <Button variant="outline" size="sm" asChild className="mt-2">
+                                                <Link href={`/tasks/${task.id}/edit`}>Actualizar</Link>
                                             </Button>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-8 text-center">
                                         <CheckCircle2 className="mb-2 h-12 w-12 text-green-500" />
-                                        <p className="text-muted-foreground">
-                                            No tienes tareas vencidas
-                                        </p>
+                                        <p className="text-muted-foreground">No tienes tareas vencidas</p>
                                     </div>
                                 )}
                             </div>
@@ -345,9 +324,7 @@ export default function Dashboard({ stats }: DashboardProps) {
                         {dashboardStats.overdue_tasks.length > 0 && (
                             <CardFooter>
                                 <Button variant="outline" asChild className="w-full">
-                                    <Link href="/tasks?status=pending">
-                                        Ver todas las tareas pendientes
-                                    </Link>
+                                    <Link href="/tasks?status=pending">Ver todas las tareas pendientes</Link>
                                 </Button>
                             </CardFooter>
                         )}

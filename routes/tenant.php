@@ -8,7 +8,6 @@ use App\Http\Controllers\Tenant\TimeEntryController;
 use App\Http\Controllers\Tenant\TimerController;
 use App\Http\Controllers\Tenant\ReportController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------

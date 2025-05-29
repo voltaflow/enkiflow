@@ -89,11 +89,11 @@ export interface Comment {
     [key: string]: unknown;
 }
 
-export type PageProps<T = {}> = T & {
+export type PageProps<T = Record<string, unknown>> = T & {
     auth: Auth;
     ziggy: Config & { location: string };
     locale?: {
         current: string;
         available: Record<string, string>;
     };
-}
+};
