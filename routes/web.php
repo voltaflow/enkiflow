@@ -29,13 +29,11 @@ $isMainDomain = in_array($host, $mainDomains);
 if ($isMainDomain) {
     request()->attributes->set('bypass_tenancy', true);
     request()->attributes->set('is_main_domain', true);
-    \Log::info("Web routes: This is a main domain: {$host}");
 }
 
 // Specially prioritized routes for main domains (before any auth middleware)
 // These routes will be accessible without authentication
 if ($isMainDomain) {
-    \Log::info("Loading high-priority landing routes for main domain: {$host}");
     // Important: These routes are defined directly here, not in landing.php
     // This ensures they have the highest priority
     Route::group(['middleware' => ['web']], function () {
@@ -62,42 +60,12 @@ if ($isMainDomain) {
 // These routes have been moved up to be registered before any auth middleware
 // to ensure they always have the highest priority
 
-// Fallback route for other domains or subdomains
-Route::middleware(['web', 'ensure-landing', 'bypass-tenancy'])->get('/', function () {
-    $host = request()->getHost();
-    $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-    $isMainDomain = in_array($host, $mainDomains) || request()->attributes->get('is_main_domain', false);
-
-    // IMPORTANT: Special debug for home route
-    \Log::info("HOME ROUTE HANDLING - Domain: {$host}, Is Main: ".($isMainDomain ? 'yes' : 'no'));
-
-    // For main domains, use the landing controller (this is a fallback, the route above should handle this)
-    if ($isMainDomain) {
-        \Log::info('Main domain root route - redirecting to landing controller');
-
+// Modificar la ruta fallback para que solo se aplique a dominios principales
+if ($isMainDomain) {
+    Route::middleware(['web', 'ensure-landing', 'bypass-tenancy'])->get('/', function () {
         return app(\App\Http\Controllers\LandingController::class)->index();
-    }
-
-    // For tenant domains, check authentication
-    if (auth()->check()) {
-        if (auth()->user()->spaces()->count() > 0) {
-            \Log::info('Authenticated user with spaces - redirecting to spaces.index');
-
-            return redirect()->route('spaces.index');
-        }
-
-        \Log::info('Authenticated user without spaces - redirecting to spaces.create');
-
-        return redirect()->route('spaces.create');
-    }
-
-    // For tenant domains where user is not authenticated, just show landing
-    \Log::info('Tenant domain, not authenticated - showing landing view');
-
-    return view('landing.pages.home', [
-        'appearance' => session('appearance', 'system'),
-    ]);
-})->name('home');
+    })->name('home');
+}
 
 // Locale switcher route from landing.php takes precedence for both main and subdomains
 Route::get('/set-locale/{locale}', [App\Http\Controllers\LocaleController::class, 'setLocale'])->name('set-locale');
@@ -200,15 +168,15 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 
-// Only include tenant.php for non-main domains
-if (! $isMainDomain) {
-    \Log::info("Loading tenant routes for: {$host}");
-    try {
-        require __DIR__.'/tenant.php';
-    } catch (\Exception $e) {
-        \Log::error('Error loading tenant routes: '.$e->getMessage());
-    }
-}
+// Eliminar o comentar estas líneas - las rutas de tenant ahora se cargan desde RouteServiceProvider
+// if (! $isMainDomain) {
+//     \Log::info("Loading tenant routes for: {$host}");
+//     try {
+//         require __DIR__.'/tenant.php';
+//     } catch (\Exception $e) {
+//         \Log::error('Error loading tenant routes: '.$e->getMessage());
+//     }
+// }
 
 // Las rutas de landing ya se cargaron al inicio del archivo
 // para los dominios principales.

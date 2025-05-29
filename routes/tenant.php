@@ -24,14 +24,14 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 Route::middleware([
     'web',
-    'bypass-tenancy', // Apply our bypass check first
     \App\Http\Middleware\CustomDomainTenancyInitializer::class, // Use our custom initializer
-    PreventAccessFromCentralDomains::class,
+    \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    // NO incluir EnsureValidTenant aquí - se incluirá solo en rutas autenticadas
 ])->group(function () {
-    // Dashboard
+    // Ruta raíz para subdominios de tenant
     Route::get('/', function () {
         return redirect()->route('tenant.dashboard');
-    });
+    })->name('tenant.root');
 
     // Require authentication and tenant access for tenant routes
     Route::middleware(['auth', 'tenant.access'])->group(function () {

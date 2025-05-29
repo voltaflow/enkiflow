@@ -174,7 +174,7 @@ class TenancyServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             if (file_exists(base_path('routes/tenant.php'))) {
                 Route::namespace(static::$controllerNamespace)
-                    ->middleware([EnsureValidTenant::class]) // Add our custom middleware to tenant routes
+                    // ->middleware([EnsureValidTenant::class]) // Removed - will be applied selectively in routes
                     ->group(base_path('routes/tenant.php'));
             }
         });
@@ -183,26 +183,27 @@ class TenancyServiceProvider extends ServiceProvider
     protected function makeTenancyMiddlewareHighestPriority()
     {
         $tenancyMiddleware = [
-            // First priority: Force landing page for main domains
-            \App\Http\Middleware\EnsureLandingForMainDomains::class,
-
-            // Second priority: Bypass tenancy for main domains
-            \App\Http\Middleware\BypassTenancyForMainDomains::class,
-
-            // Even higher priority than the initialization middleware
-            Middleware\PreventAccessFromCentralDomains::class,
-
-            // Use our custom domain tenancy initializer that handles bypass flag
+            // Primero: Inicializador de tenancy personalizado
             \App\Http\Middleware\CustomDomainTenancyInitializer::class,
-            Middleware\InitializeTenancyByPath::class,
-            Middleware\InitializeTenancyByRequestData::class,
-
-            // Our custom middleware (after tenancy is initialized)
-            EnsureValidTenant::class,
+            
+            // Segundo: Prevenir acceso desde dominios centrales
+            \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+            
+            // Tercero: Bypass tenancy para dominios principales
+            \App\Http\Middleware\BypassTenancyForMainDomains::class,
+            
+            // Cuarto: Forzar página de inicio para dominios principales
+            \App\Http\Middleware\EnsureLandingForMainDomains::class,
+            
+            // Otros middleware de inicialización
+            \Stancl\Tenancy\Middleware\InitializeTenancyByPath::class,
+            \Stancl\Tenancy\Middleware\InitializeTenancyByRequestData::class,
+            
+            // Middleware personalizado (después de que se inicializa tenancy)
+            \App\Http\Middleware\EnsureValidTenant::class,
         ];
 
         foreach (array_reverse($tenancyMiddleware) as $middleware) {
-            // Ensure the middleware exists in Laravel's container before trying to prepend it
             if (class_exists($middleware)) {
                 $this->app[\Illuminate\Contracts\Http\Kernel::class]->prependToMiddlewarePriority($middleware);
             }
