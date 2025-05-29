@@ -23,11 +23,7 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
   const [invites, setInvites] = useState<InviteItem[]>([
     { email: '', role: 'member' },
   ]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const getError = (field: string): string | undefined => {
-    return errors[field];
-  };
+  // Removed unused errors state - error handling might be done through Inertia
 
   const addInvite = () => {
     setInvites([...invites, { email: '', role: 'member' }]);
@@ -55,7 +51,7 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
     
     setLoading(true);
     router.post(route('spaces.setup.confirm'), {
-      invites: filteredInvites as any,
+      invites: filteredInvites,
     }, {
       onSuccess: () => {
         setLoading(false);
@@ -119,9 +115,6 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                           onChange={(e) => updateInvite(index, 'email', e.target.value)}
                           placeholder="email@example.com"
                         />
-                        {getError(`invites.${index}.email`) && (
-                          <div className="text-red-500 text-sm">{getError(`invites.${index}.email`)}</div>
-                        )}
                       </div>
                       <div className="w-32">
                         <Label htmlFor={`role-${index}`} className="sr-only">
@@ -138,9 +131,6 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                           <option value="member">Miembro</option>
                           <option value="guest">Invitado</option>
                         </select>
-                        {getError(`invites.${index}.role`) && (
-                          <div className="text-red-500 text-sm">{getError(`invites.${index}.role`)}</div>
-                        )}
                       </div>
                       <Button
                         type="button"

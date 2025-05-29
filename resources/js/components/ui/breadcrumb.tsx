@@ -41,6 +41,7 @@ const BreadcrumbLink = React.forwardRef<
 
   return (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="breadcrumb-link"
       className={cn("hover:text-foreground transition-colors", className)}
