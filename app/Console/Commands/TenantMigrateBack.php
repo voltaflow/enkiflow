@@ -29,6 +29,7 @@ class TenantMigrateBack extends Command
         }
         
         // Determinar qué tenants procesar
+        /** @var array<Space> $tenants */
         $tenants = [];
         if ($tenantId) {
             $tenant = Space::find($tenantId);
@@ -38,9 +39,10 @@ class TenantMigrateBack extends Command
             }
             $tenants = [$tenant];
         } else {
-            $tenants = Space::all();
+            $tenants = Space::all()->all();
         }
         
+        /** @var Space $tenant */
         foreach ($tenants as $tenant) {
             $this->info("Revirtiendo migraciones para tenant: {$tenant->id} hasta el lote $batch");
             

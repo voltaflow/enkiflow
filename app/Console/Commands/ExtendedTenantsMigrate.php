@@ -26,7 +26,19 @@ class ExtendedTenantsMigrate extends Command
     {
         $tenantIds = $this->option('tenants');
         
-        tenancy()->runForMultiple($tenantIds ?: null, function ($tenant) {
+        // Filtrar valores null y convertir a array si es necesario
+        /** @var array<string>|null $filteredTenantIds */
+        $filteredTenantIds = null;
+        
+        if (is_array($tenantIds)) {
+            $filtered = array_filter($tenantIds, fn($id) => $id !== null && $id !== '');
+            if (!empty($filtered)) {
+                /** @var array<string> $filteredTenantIds */
+                $filteredTenantIds = array_values($filtered);
+            }
+        }
+        
+        tenancy()->runForMultiple($filteredTenantIds, function ($tenant) {
             $this->line("Tenant: {$tenant->getTenantKey()}");
             $tenantId = $tenant->getTenantKey();
 
@@ -62,7 +74,7 @@ class ExtendedTenantsMigrate extends Command
                     throw new \Exception("Error ejecutando migraciones para tenant {$tenantId}");
                 }
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // Disparar evento de fallo
                 event(new MigrationFailed($tenant, 'unknown', $e));
                 

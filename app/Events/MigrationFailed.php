@@ -17,7 +17,7 @@ class MigrationFailed
     /** @var string */
     public $migration;
 
-    /** @var \Exception */
+    /** @var \Throwable */
     public $exception;
 
     /**
@@ -25,9 +25,9 @@ class MigrationFailed
      *
      * @param TenantWithDatabase $tenant
      * @param string $migration
-     * @param \Exception $exception
+     * @param \Throwable $exception
      */
-    public function __construct(TenantWithDatabase $tenant, string $migration, \Exception $exception)
+    public function __construct(TenantWithDatabase $tenant, string $migration, \Throwable $exception)
     {
         $this->tenant = $tenant;
         $this->migration = $migration;

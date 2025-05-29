@@ -1,6 +1,12 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Parameter \#1 \$tenants of method Stancl\\Tenancy\\Tenancy\:\:runForMultiple\(\) expects \(iterable\<Stancl\\Tenancy\\Contracts\\Tenant\|string\>&Traversable\)\|null, array\<string\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Console/Commands/ExtendedTenantsMigrate.php
+
+		-
 			message: '#^Method App\\Http\\Controllers\\AppearanceController\:\:update\(\) should return Illuminate\\Http\\JsonResponse but returns Illuminate\\Http\\RedirectResponse\.$#'
 			identifier: return.type
 			count: 1

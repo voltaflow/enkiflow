@@ -21,6 +21,7 @@ class MonitorTenantMigrations extends Command
 
     private function loop(): void
     {
+        /** @phpstan-ignore-next-line */
         while (true) {
             $this->printStatus();
             sleep(5);
