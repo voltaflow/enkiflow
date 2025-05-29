@@ -35,61 +35,19 @@ class TimeEntryController extends Controller
      */
     public function index(Request $request)
     {
-        $startDate = $request->query('start_date')
-            ? Carbon::parse($request->query('start_date'))
-            : Carbon::now()->subDays(6);
+        // Get all projects and tasks for the timer widget
+        $projects = Project::where('status', 'active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+            
+        $tasks = Task::whereIn('project_id', $projects->pluck('id'))
+            ->where('status', '!=', 'completed')
+            ->orderBy('title')
+            ->get(['id', 'title', 'project_id']);
 
-        $endDate = $request->query('end_date')
-            ? Carbon::parse($request->query('end_date'))
-            : Carbon::now();
-
-        $userId = Auth::id();
-        $projectId = $request->query('project_id');
-        $taskId = $request->query('task_id');
-
-        // Get time entries for the selected range
-        $timeEntries = $this->timeEntryService->getTimeEntriesForDateRange(
-            $userId,
-            $startDate->toDateString(),
-            $endDate->toDateString()
-        );
-
-        // If project ID is specified, filter entries
-        if ($projectId) {
-            $timeEntries = $timeEntries->where('project_id', $projectId);
-        }
-
-        // If task ID is specified, filter entries
-        if ($taskId) {
-            $timeEntries = $timeEntries->where('task_id', $taskId);
-        }
-
-        // Get statistics for the selected range
-        $stats = $this->timeEntryService->getTimeStatistics(
-            $userId,
-            $startDate->toDateString(),
-            $endDate->toDateString()
-        );
-
-        // Get running time entry if exists
-        $runningEntry = $this->timeEntryService->getRunningTimeEntryForUser($userId);
-
-        // Get projects and categories for selection
-        $projects = Project::orderBy('name')->get(['id', 'name']);
-        $categories = TimeCategory::orderBy('name')->get(['id', 'name', 'color']);
-
-        return Inertia::render('Tenant/Time/Index', [
-            'timeEntries' => $timeEntries,
+        return Inertia::render('TimeTracking/Dashboard', [
             'projects' => $projects,
-            'categories' => $categories,
-            'stats' => $stats,
-            'filters' => [
-                'start_date' => $startDate->toDateString(),
-                'end_date' => $endDate->toDateString(),
-                'project_id' => $projectId,
-                'task_id' => $taskId,
-            ],
-            'running_entry' => $runningEntry,
+            'tasks' => $tasks,
         ]);
     }
 

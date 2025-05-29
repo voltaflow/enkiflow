@@ -1,0 +1,317 @@
+import { useState, useEffect, useCallback } from 'react';
+import { Play, Pause, Square, Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import axios from 'axios';
+
+interface Project {
+    id: number;
+    name: string;
+}
+
+interface Task {
+    id: number;
+    title: string;
+    project_id: number;
+}
+
+interface Timer {
+    id: number;
+    description: string;
+    project_id: number | null;
+    task_id: number | null;
+    started_at: string;
+    is_running: boolean;
+    total_duration: number;
+    project?: Project;
+    task?: Task;
+}
+
+interface TimerWidgetProps {
+    projects: Project[];
+    tasks: Task[];
+    onTimerStop?: (timeEntry: any) => void;
+}
+
+export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidgetProps) {
+    const [timer, setTimer] = useState<Timer | null>(null);
+    const [description, setDescription] = useState('');
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+    const [displayTime, setDisplayTime] = useState('00:00:00');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch current timer on mount
+    useEffect(() => {
+        fetchCurrentTimer();
+    }, []);
+
+    // Update display time every second
+    useEffect(() => {
+        if (!timer) {
+            setDisplayTime('00:00:00');
+            return;
+        }
+
+        const updateTimer = () => {
+            if (timer.is_running) {
+                const startTime = new Date(timer.started_at).getTime();
+                const now = new Date().getTime();
+                const elapsed = Math.floor((now - startTime) / 1000) + timer.total_duration;
+                setDisplayTime(formatTime(elapsed));
+            } else {
+                setDisplayTime(formatTime(timer.total_duration));
+            }
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(interval);
+    }, [timer]);
+
+    const fetchCurrentTimer = async () => {
+        try {
+            const response = await axios.get('/api/timer/current');
+            if (response.data.timer) {
+                setTimer(response.data.timer);
+                setDescription(response.data.timer.description || '');
+                setSelectedProjectId(response.data.timer.project_id?.toString() || '');
+                setSelectedTaskId(response.data.timer.task_id?.toString() || '');
+            }
+        } catch (err) {
+            console.error('Failed to fetch current timer:', err);
+        }
+    };
+
+    const formatTime = (seconds: number): string => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return `${hours.toString().padStart(2, '0')}:${minutes
+            .toString()
+            .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const handleStart = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post('/api/timer/start', {
+                description,
+                project_id: selectedProjectId ? parseInt(selectedProjectId) : null,
+                task_id: selectedTaskId ? parseInt(selectedTaskId) : null,
+            });
+
+            setTimer(response.data.timer);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to start timer');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePause = async () => {
+        if (!timer) return;
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post(`/api/timer/${timer.id}/pause`);
+            setTimer({ ...timer, ...response.data.timer });
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to pause timer');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResume = async () => {
+        if (!timer) return;
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post(`/api/timer/${timer.id}/resume`);
+            setTimer({ ...timer, ...response.data.timer });
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to resume timer');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleStop = async () => {
+        if (!timer) return;
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.post(`/api/timer/${timer.id}/stop`);
+            setTimer(null);
+            setDescription('');
+            setSelectedProjectId('');
+            setSelectedTaskId('');
+            
+            if (onTimerStop) {
+                onTimerStop(response.data.time_entry);
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to stop timer');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUpdateTimer = async () => {
+        if (!timer) return;
+
+        try {
+            await axios.put(`/api/timer/${timer.id}`, {
+                description,
+                project_id: selectedProjectId ? parseInt(selectedProjectId) : null,
+                task_id: selectedTaskId ? parseInt(selectedTaskId) : null,
+            });
+        } catch (err) {
+            console.error('Failed to update timer:', err);
+        }
+    };
+
+    const filteredTasks = selectedProjectId
+        ? tasks.filter(task => task.project_id === parseInt(selectedProjectId))
+        : tasks;
+
+    return (
+        <Card className="w-full">
+            <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">Time Tracker</h3>
+                    </div>
+                    <div className="text-2xl font-mono font-bold">{displayTime}</div>
+                </div>
+
+                <div className="space-y-4">
+                    <Input
+                        placeholder="What are you working on?"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        onBlur={timer ? handleUpdateTimer : undefined}
+                        disabled={loading}
+                    />
+
+                    <div className="grid grid-cols-2 gap-2">
+                        <Select
+                            value={selectedProjectId}
+                            onValueChange={setSelectedProjectId}
+                            disabled={loading}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select project" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">No project</SelectItem>
+                                {projects.map((project) => (
+                                    <SelectItem key={project.id} value={project.id.toString()}>
+                                        {project.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select
+                            value={selectedTaskId}
+                            onValueChange={setSelectedTaskId}
+                            disabled={loading || !selectedProjectId}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select task" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">No task</SelectItem>
+                                {filteredTasks.map((task) => (
+                                    <SelectItem key={task.id} value={task.id.toString()}>
+                                        {task.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {error && (
+                        <div className="text-sm text-destructive">{error}</div>
+                    )}
+
+                    <div className="flex gap-2">
+                        {!timer ? (
+                            <Button
+                                onClick={handleStart}
+                                disabled={loading}
+                                className="flex-1"
+                            >
+                                <Play className="h-4 w-4 mr-2" />
+                                Start Timer
+                            </Button>
+                        ) : (
+                            <>
+                                {timer.is_running ? (
+                                    <Button
+                                        onClick={handlePause}
+                                        disabled={loading}
+                                        variant="secondary"
+                                        className="flex-1"
+                                    >
+                                        <Pause className="h-4 w-4 mr-2" />
+                                        Pause
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        onClick={handleResume}
+                                        disabled={loading}
+                                        variant="secondary"
+                                        className="flex-1"
+                                    >
+                                        <Play className="h-4 w-4 mr-2" />
+                                        Resume
+                                    </Button>
+                                )}
+                                <Button
+                                    onClick={handleStop}
+                                    disabled={loading}
+                                    variant="destructive"
+                                    className="flex-1"
+                                >
+                                    <Square className="h-4 w-4 mr-2" />
+                                    Stop
+                                </Button>
+                            </>
+                        )}
+                    </div>
+
+                    {timer && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Badge variant={timer.is_running ? 'default' : 'secondary'}>
+                                {timer.is_running ? 'Running' : 'Paused'}
+                            </Badge>
+                            {timer.project && (
+                                <span>Project: {timer.project.name}</span>
+                            )}
+                            {timer.task && (
+                                <span>• Task: {timer.task.title}</span>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}

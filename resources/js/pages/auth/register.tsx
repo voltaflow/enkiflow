@@ -7,6 +7,7 @@ import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import AuthLayout from '@/layouts/auth-layout';
 
 type RegisterForm = {
@@ -14,6 +15,8 @@ type RegisterForm = {
     email: string;
     password: string;
     password_confirmation: string;
+    company_name: string;
+    enable_tracking: boolean;
 };
 
 export default function Register() {
@@ -22,6 +25,8 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        company_name: '',
+        enable_tracking: false,
     });
 
     const submit: FormEventHandler = (e) => {
@@ -101,15 +106,48 @@ export default function Register() {
                         <InputError message={errors.password_confirmation} />
                     </div>
 
-                    <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
+                    <div className="grid gap-2">
+                        <Label htmlFor="company_name">Company name</Label>
+                        <Input
+                            id="company_name"
+                            type="text"
+                            required
+                            tabIndex={5}
+                            value={data.company_name}
+                            onChange={(e) => setData('company_name', e.target.value)}
+                            disabled={processing}
+                            placeholder="Your company name"
+                        />
+                        <InputError message={errors.company_name} />
+                        <p className="text-xs text-muted-foreground">
+                            This will be used to create your workspace subdomain
+                        </p>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="enable_tracking"
+                            checked={data.enable_tracking}
+                            onCheckedChange={(checked) => setData('enable_tracking', checked as boolean)}
+                            disabled={processing}
+                        />
+                        <Label
+                            htmlFor="enable_tracking"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                            Enable automatic time tracking (optional)
+                        </Label>
+                    </div>
+
+                    <Button type="submit" className="mt-2 w-full" tabIndex={6} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Create account
+                        Create account & workspace
                     </Button>
                 </div>
 
                 <div className="text-muted-foreground text-center text-sm">
                     Already have an account?{' '}
-                    <TextLink href={route('login')} tabIndex={6}>
+                    <TextLink href={route('login')} tabIndex={7}>
                         Log in
                     </TextLink>
                 </div>

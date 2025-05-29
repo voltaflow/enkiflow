@@ -26,3 +26,4 @@ yarn-error.log
 .gitignore
 
 **/.claude/settings.local.json
+CLAUDE.local.md

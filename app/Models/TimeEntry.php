@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TimeEntry extends Model
@@ -27,6 +28,7 @@ class TimeEntry extends Model
         'description',
         'is_billable',
         'is_manual',
+        'created_via',
         'tags',
         'metadata',
     ];
@@ -140,5 +142,29 @@ class TimeEntry extends Model
         $minutes = floor(($this->duration % 3600) / 60);
 
         return $hours.'h '.$minutes.'m';
+    }
+
+    /**
+     * Get the application sessions linked to this time entry.
+     */
+    public function applicationSessions(): HasMany
+    {
+        return $this->hasMany(ApplicationSession::class, 'linked_time_entry_id');
+    }
+
+    /**
+     * Scope a query to only include time entries for a specific date range.
+     */
+    public function scopeBetween($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('started_at', [$startDate, $endDate]);
+    }
+
+    /**
+     * Scope a query to only include time entries for today.
+     */
+    public function scopeToday($query)
+    {
+        return $query->whereDate('started_at', today());
     }
 }

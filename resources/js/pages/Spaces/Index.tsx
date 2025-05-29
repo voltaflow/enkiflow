@@ -31,9 +31,7 @@ interface Space {
     id: string;
     name: string;
     owner_id: number;
-    data: {
-        plan: string;
-    };
+    plan: string | null;
     users: SpaceUser[];
     domains: Domain[];
     owner: {
