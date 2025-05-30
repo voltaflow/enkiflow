@@ -27,3 +27,4 @@ yarn-error.log
 
 **/.claude/settings.local.json
 CLAUDE.local.md
+.DS_Store
