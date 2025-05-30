@@ -100,7 +100,11 @@ export default function Index({ owned_spaces, member_spaces }: IndexProps) {
                                             <CardTitle className="truncate text-lg">{space.name}</CardTitle>
                                             <Badge className="bg-blue-500">Propietario</Badge>
                                         </div>
+<<<<<<< HEAD
                                         <CardDescription>Plan: {space.plan === 'free' ? 'Gratuito' : 'Premium'}</CardDescription>
+=======
+                                        <CardDescription>Plan: {space.data.plan === 'free' ? 'Gratuito' : 'Premium'}</CardDescription>
+>>>>>>> 83fa645f796570e19e5e8ef94c03f015ebf4a8b6
                                     </CardHeader>
 
                                     <CardContent className="pb-2">

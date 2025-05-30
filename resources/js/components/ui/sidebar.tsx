@@ -396,6 +396,7 @@ const SidebarGroupLabel = React.forwardRef<
 
   return (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="sidebar-group-label"
       data-sidebar="group-label"
@@ -418,6 +419,7 @@ const SidebarGroupAction = React.forwardRef<
 
   return (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="sidebar-group-action"
       data-sidebar="group-action"
@@ -505,6 +507,7 @@ const SidebarMenuButton = React.forwardRef<
 
   const button = (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="sidebar-menu-button"
       data-sidebar="menu-button"
@@ -550,6 +553,7 @@ const SidebarMenuAction = React.forwardRef<
 
   return (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="sidebar-menu-action"
       data-sidebar="menu-action"
@@ -672,6 +676,7 @@ const SidebarMenuSubButton = React.forwardRef<
 
   return (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="sidebar-menu-sub-button"
       data-sidebar="menu-sub-button"

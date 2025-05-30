@@ -45,6 +45,7 @@ const Button = React.forwardRef<
 
   return (
     <Comp
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}

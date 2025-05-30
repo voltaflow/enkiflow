@@ -31,5 +31,15 @@ class AppServiceProvider extends ServiceProvider
             App::setLocale($locale);
             \Log::info("AppServiceProvider: Setting application locale to {$locale}");
         }
+
+        // Registrar comandos personalizados
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \App\Console\Commands\ExtendedTenantsMigrate::class,
+                \App\Console\Commands\RetryFailedTenantMigrations::class,
+                \App\Console\Commands\TenantMigrationStatus::class,
+                \App\Console\Commands\TenantMigrateBack::class,
+            ]);
+        }
     }
 }
