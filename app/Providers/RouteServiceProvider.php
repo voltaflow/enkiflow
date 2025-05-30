@@ -33,7 +33,7 @@ class RouteServiceProvider extends ServiceProvider
             $isMainDomain = in_array($host, $mainDomains);
 
             // Si NO estamos en un dominio principal, cargamos primero las rutas de tenant
-            if (!$isMainDomain) {
+            if (! $isMainDomain) {
                 // Cargamos las rutas de tenant primero para subdominios
                 if (file_exists(base_path('routes/tenant.php'))) {
                     Route::middleware('web')

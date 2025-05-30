@@ -4,9 +4,9 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users, Clock, type LucideIcon } from 'lucide-react';
-import AppLogo from './app-logo';
+import { BookOpen, Clock, Folder, LayoutGrid, Users, type LucideIcon } from 'lucide-react';
 import { forwardRef } from 'react';
+import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
@@ -42,7 +42,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Tareas',
         href: '/tasks',
-        icon: forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function TaskIcon(props, ref) { 
+        icon: forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function TaskIcon(props, ref) {
             return (
                 <svg
                     ref={ref}
@@ -93,6 +93,33 @@ const mainNavItems: NavItem[] = [
         title: 'Registro de Tiempo',
         href: route('tenant.time.index'),
         icon: Clock,
+    },
+    {
+        title: 'Timesheet',
+        href: route('tenant.time.timesheet'),
+        icon: forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(function TimesheetIcon(props, ref) {
+            return (
+                <svg
+                    ref={ref}
+                    {...props}
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M3 9h18" />
+                    <path d="M3 15h18" />
+                    <path d="M9 3v18" />
+                    <path d="M15 3v18" />
+                </svg>
+            );
+        }) as LucideIcon,
     },
     {
         title: 'Usuarios',

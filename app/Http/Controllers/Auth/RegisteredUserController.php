@@ -58,9 +58,9 @@ class RegisteredUserController extends Controller
             // Generate the tenant URL
             $domain = config('app.domain', 'enkiflow.test');
             $tenantUrl = "http://{$space->slug}.{$domain}";
-            
+
             Auth::login($user);
-            
+
             // Redirect to the tenant subdomain
             return redirect($tenantUrl)->with('success', 'Your workspace has been created successfully!');
         }

@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Timer;
 use App\Models\TimeEntry;
+use App\Models\Timer;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -12,16 +12,13 @@ class TimerService
     /**
      * Start a new timer for a user.
      *
-     * @param User $user
-     * @param array $data
-     * @return Timer
      * @throws \Exception
      */
     public function start(User $user, array $data): Timer
     {
         // Check if user already has a running timer
         $runningTimer = Timer::forUser($user->id)->running()->first();
-        
+
         if ($runningTimer) {
             throw new \Exception('You already have a running timer. Please stop it before starting a new one.');
         }
@@ -40,13 +37,11 @@ class TimerService
     /**
      * Stop a timer and create a time entry.
      *
-     * @param Timer $timer
-     * @return TimeEntry
      * @throws \Exception
      */
     public function stop(Timer $timer): TimeEntry
     {
-        if (!$timer->is_running) {
+        if (! $timer->is_running) {
             throw new \Exception('This timer is not running.');
         }
 
@@ -58,13 +53,11 @@ class TimerService
     /**
      * Pause a running timer.
      *
-     * @param Timer $timer
-     * @return Timer
      * @throws \Exception
      */
     public function pause(Timer $timer): Timer
     {
-        if (!$timer->is_running) {
+        if (! $timer->is_running) {
             throw new \Exception('This timer is not running.');
         }
 
@@ -76,8 +69,6 @@ class TimerService
     /**
      * Resume a paused timer.
      *
-     * @param Timer $timer
-     * @return Timer
      * @throws \Exception
      */
     public function resume(Timer $timer): Timer
@@ -93,9 +84,6 @@ class TimerService
 
     /**
      * Get the current timer for a user.
-     *
-     * @param User $user
-     * @return Timer|null
      */
     public function getCurrentTimer(User $user): ?Timer
     {
@@ -104,10 +92,6 @@ class TimerService
 
     /**
      * Update timer details (project, task, description).
-     *
-     * @param Timer $timer
-     * @param array $data
-     * @return Timer
      */
     public function update(Timer $timer, array $data): Timer
     {
@@ -122,9 +106,6 @@ class TimerService
 
     /**
      * Delete a timer without creating a time entry.
-     *
-     * @param Timer $timer
-     * @return void
      */
     public function discard(Timer $timer): void
     {
@@ -157,7 +138,7 @@ class TimerService
                 $count++;
             } catch (\Exception $e) {
                 // Log error but continue with other timers
-                \Log::error('Failed to stop timer: ' . $e->getMessage(), ['timer_id' => $timer->id]);
+                \Log::error('Failed to stop timer: '.$e->getMessage(), ['timer_id' => $timer->id]);
             }
         }
 

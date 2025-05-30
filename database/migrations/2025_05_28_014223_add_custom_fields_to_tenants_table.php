@@ -31,7 +31,7 @@ return new class extends Migration
                 'slug',
                 'status',
                 'auto_tracking_enabled',
-                'trial_ends_at'
+                'trial_ends_at',
             ]);
         });
     }

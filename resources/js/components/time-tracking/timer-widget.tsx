@@ -1,11 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Play, Pause, Square, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useTimerSync } from '@/hooks/use-broadcast-sync';
 import axios from 'axios';
+import { Clock, Pause, Play, Square } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Project {
     id: number;
@@ -44,6 +45,9 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
     const [displayTime, setDisplayTime] = useState('00:00:00');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Multi-tab synchronization
+    const { notifyTimerStarted, notifyTimerStopped } = useTimerSync();
 
     // Fetch current timer on mount
     useEffect(() => {
@@ -92,9 +96,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
-        return `${hours.toString().padStart(2, '0')}:${minutes
-            .toString()
-            .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
     const handleStart = async () => {
@@ -109,6 +111,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
             });
 
             setTimer(response.data.timer);
+            notifyTimerStarted(response.data.timer);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to start timer');
         } finally {
@@ -160,7 +163,9 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
             setDescription('');
             setSelectedProjectId('');
             setSelectedTaskId('');
-            
+
+            notifyTimerStopped(timer, response.data.time_entry);
+
             if (onTimerStop) {
                 onTimerStop(response.data.time_entry);
             }
@@ -185,19 +190,17 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         }
     };
 
-    const filteredTasks = selectedProjectId
-        ? tasks.filter(task => task.project_id === parseInt(selectedProjectId))
-        : tasks;
+    const filteredTasks = selectedProjectId ? tasks.filter((task) => task.project_id === parseInt(selectedProjectId)) : tasks;
 
     return (
         <Card className="w-full">
             <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <Clock className="text-muted-foreground h-5 w-5" />
                         <h3 className="text-lg font-semibold">Time Tracker</h3>
                     </div>
-                    <div className="text-2xl font-mono font-bold">{displayTime}</div>
+                    <div className="font-mono text-2xl font-bold">{displayTime}</div>
                 </div>
 
                 <div className="space-y-4">
@@ -210,11 +213,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                     />
 
                     <div className="grid grid-cols-2 gap-2">
-                        <Select
-                            value={selectedProjectId}
-                            onValueChange={setSelectedProjectId}
-                            disabled={loading}
-                        >
+                        <Select value={selectedProjectId} onValueChange={setSelectedProjectId} disabled={loading}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select project" />
                             </SelectTrigger>
@@ -228,11 +227,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                             </SelectContent>
                         </Select>
 
-                        <Select
-                            value={selectedTaskId}
-                            onValueChange={setSelectedTaskId}
-                            disabled={loading || !selectedProjectId}
-                        >
+                        <Select value={selectedTaskId} onValueChange={setSelectedTaskId} disabled={loading || !selectedProjectId}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select task" />
                             </SelectTrigger>
@@ -247,50 +242,29 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                         </Select>
                     </div>
 
-                    {error && (
-                        <div className="text-sm text-destructive">{error}</div>
-                    )}
+                    {error && <div className="text-destructive text-sm">{error}</div>}
 
                     <div className="flex gap-2">
                         {!timer ? (
-                            <Button
-                                onClick={handleStart}
-                                disabled={loading}
-                                className="flex-1"
-                            >
-                                <Play className="h-4 w-4 mr-2" />
+                            <Button onClick={handleStart} disabled={loading} className="flex-1">
+                                <Play className="mr-2 h-4 w-4" />
                                 Start Timer
                             </Button>
                         ) : (
                             <>
                                 {timer.is_running ? (
-                                    <Button
-                                        onClick={handlePause}
-                                        disabled={loading}
-                                        variant="secondary"
-                                        className="flex-1"
-                                    >
-                                        <Pause className="h-4 w-4 mr-2" />
+                                    <Button onClick={handlePause} disabled={loading} variant="secondary" className="flex-1">
+                                        <Pause className="mr-2 h-4 w-4" />
                                         Pause
                                     </Button>
                                 ) : (
-                                    <Button
-                                        onClick={handleResume}
-                                        disabled={loading}
-                                        variant="secondary"
-                                        className="flex-1"
-                                    >
-                                        <Play className="h-4 w-4 mr-2" />
+                                    <Button onClick={handleResume} disabled={loading} variant="secondary" className="flex-1">
+                                        <Play className="mr-2 h-4 w-4" />
                                         Resume
                                     </Button>
                                 )}
-                                <Button
-                                    onClick={handleStop}
-                                    disabled={loading}
-                                    variant="destructive"
-                                    className="flex-1"
-                                >
-                                    <Square className="h-4 w-4 mr-2" />
+                                <Button onClick={handleStop} disabled={loading} variant="destructive" className="flex-1">
+                                    <Square className="mr-2 h-4 w-4" />
                                     Stop
                                 </Button>
                             </>
@@ -298,16 +272,10 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                     </div>
 
                     {timer && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Badge variant={timer.is_running ? 'default' : 'secondary'}>
-                                {timer.is_running ? 'Running' : 'Paused'}
-                            </Badge>
-                            {timer.project && (
-                                <span>Project: {timer.project.name}</span>
-                            )}
-                            {timer.task && (
-                                <span>• Task: {timer.task.title}</span>
-                            )}
+                        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                            <Badge variant={timer.is_running ? 'default' : 'secondary'}>{timer.is_running ? 'Running' : 'Paused'}</Badge>
+                            {timer.project && <span>Project: {timer.project.name}</span>}
+                            {timer.task && <span>• Task: {timer.task.title}</span>}
                         </div>
                     )}
                 </div>

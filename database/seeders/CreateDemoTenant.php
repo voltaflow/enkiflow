@@ -5,8 +5,8 @@ namespace Database\Seeders;
 use App\Models\Space;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class CreateDemoTenant extends Seeder
 {
@@ -31,6 +31,7 @@ class CreateDemoTenant extends Seeder
         $existingSpace = Space::find('demo');
         if ($existingSpace) {
             $this->command->warn("El tenant 'demo' ya existe");
+
             return;
         }
 
@@ -117,9 +118,9 @@ class CreateDemoTenant extends Seeder
         }
 
         $domain = config('app.domain', 'enkiflow.test');
-        $this->command->info("=== Información de acceso ===");
+        $this->command->info('=== Información de acceso ===');
         $this->command->info("URL: http://demo.{$domain}");
-        $this->command->info("Email: test@example.com");
-        $this->command->info("Password: password");
+        $this->command->info('Email: test@example.com');
+        $this->command->info('Password: password');
     }
 }

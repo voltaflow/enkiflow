@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,7 @@ class TimeEntry extends Model
      */
     protected $fillable = [
         'user_id',
+        'weekly_timesheet_id',
         'task_id',
         'project_id',
         'category_id',
@@ -29,8 +31,14 @@ class TimeEntry extends Model
         'is_billable',
         'is_manual',
         'created_via',
+        'created_from',
+        'parent_entry_id',
+        'locked',
+        'locked_at',
+        'locked_by',
         'tags',
         'metadata',
+        'hourly_rate',
     ];
 
     /**
@@ -44,6 +52,9 @@ class TimeEntry extends Model
         'duration' => 'integer',
         'is_billable' => 'boolean',
         'is_manual' => 'boolean',
+        'locked' => 'boolean',
+        'locked_at' => 'datetime',
+        'hourly_rate' => 'decimal:2',
         'tags' => 'array',
         'metadata' => 'array',
     ];
@@ -78,6 +89,38 @@ class TimeEntry extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(TimeCategory::class);
+    }
+
+    /**
+     * Get the weekly timesheet this entry belongs to.
+     */
+    public function weeklyTimesheet(): BelongsTo
+    {
+        return $this->belongsTo(WeeklyTimesheet::class);
+    }
+
+    /**
+     * Get the parent entry if this is a recurring entry.
+     */
+    public function parentEntry(): BelongsTo
+    {
+        return $this->belongsTo(TimeEntry::class, 'parent_entry_id');
+    }
+
+    /**
+     * Get child entries if this is a parent recurring entry.
+     */
+    public function childEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class, 'parent_entry_id');
+    }
+
+    /**
+     * Get the user who locked this entry.
+     */
+    public function lockedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'locked_by');
     }
 
     /**
@@ -166,5 +209,32 @@ class TimeEntry extends Model
     public function scopeToday($query)
     {
         return $query->whereDate('started_at', today());
+    }
+
+    /**
+     * Scope a query to only include unlocked entries.
+     */
+    public function scopeUnlocked($query)
+    {
+        return $query->where('locked', false);
+    }
+
+    /**
+     * Scope a query to only include entries for a specific week.
+     */
+    public function scopeForWeek($query, $weekStart)
+    {
+        $start = Carbon::parse($weekStart)->startOfWeek();
+        $end = $start->copy()->endOfWeek();
+
+        return $query->whereBetween('started_at', [$start, $end]);
+    }
+
+    /**
+     * Check if the entry is editable.
+     */
+    public function isEditable(): bool
+    {
+        return ! $this->locked && (! $this->weeklyTimesheet || $this->weeklyTimesheet->is_editable);
     }
 }

@@ -57,7 +57,7 @@ class ApplicationSession extends Model
      */
     public function end(): void
     {
-        if (!$this->end_time) {
+        if (! $this->end_time) {
             $this->end_time = now();
             $this->duration_seconds = $this->end_time->diffInSeconds($this->start_time);
             $this->save();

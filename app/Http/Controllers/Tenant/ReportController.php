@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Models\TimeEntry;
 use App\Models\DailySummary;
+use App\Models\TimeEntry;
 use App\Services\TrackingAnalyzer;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
@@ -89,7 +88,7 @@ class ReportController extends Controller
             'user_id' => 'nullable|exists:users,id',
         ]);
 
-        $startDate = $validated['start_date'] 
+        $startDate = $validated['start_date']
             ? Carbon::parse($validated['start_date'])->startOfWeek()
             : now()->startOfWeek();
         $endDate = $startDate->copy()->endOfWeek();
@@ -161,7 +160,7 @@ class ReportController extends Controller
         // Group by week
         $weeklyData = [];
         $currentWeek = $startDate->copy()->startOfWeek();
-        
+
         while ($currentWeek <= $endDate) {
             $weekEnd = $currentWeek->copy()->endOfWeek();
             $weekEntries = $timeEntries->filter(function ($entry) use ($currentWeek, $weekEnd) {

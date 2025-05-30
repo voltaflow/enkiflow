@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\User;
 use App\Models\Space;
+use App\Models\User;
 use App\Services\TenantCreator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
@@ -40,7 +40,7 @@ class CreateTestTenant extends Command
         $email = $this->option('email');
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             // Crear usuario
             $user = User::create([
                 'name' => $this->option('name'),
@@ -60,6 +60,7 @@ class CreateTestTenant extends Command
             $this->info("Subdominio: {$existingSpace->slug}");
             $domain = config('app.domain', 'enkiflow.test');
             $this->info("URL: http://{$existingSpace->slug}.{$domain}");
+
             return Command::SUCCESS;
         }
 
@@ -67,7 +68,7 @@ class CreateTestTenant extends Command
         try {
             $companyName = $this->option('company');
             $customSubdomain = $this->option('subdomain');
-            
+
             $spaceData = [
                 'name' => $companyName,
                 'auto_tracking_enabled' => true,
@@ -82,25 +83,26 @@ class CreateTestTenant extends Command
 
             $space = $tenantCreator->create($user, $spaceData);
 
-            $this->info("Tenant creado exitosamente!");
+            $this->info('Tenant creado exitosamente!');
             $this->info("Nombre: {$space->name}");
             $this->info("Subdominio: {$space->slug}");
-            
+
             $domain = config('app.domain', 'enkiflow.test');
             $tenantUrl = "http://{$space->slug}.{$domain}";
-            
+
             $this->newLine();
-            $this->info("=== Información de acceso ===");
+            $this->info('=== Información de acceso ===');
             $this->info("URL: {$tenantUrl}");
             $this->info("Email: {$email}");
-            $this->info("Password: " . $this->option('password'));
+            $this->info('Password: '.$this->option('password'));
             $this->newLine();
-            
+
             $this->info("✅ Puedes iniciar sesión en: {$tenantUrl}/login");
 
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->error("Error al crear tenant: " . $e->getMessage());
+            $this->error('Error al crear tenant: '.$e->getMessage());
+
             return Command::FAILURE;
         }
     }

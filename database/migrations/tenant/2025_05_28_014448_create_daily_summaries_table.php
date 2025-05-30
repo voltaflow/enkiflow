@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('daily_summaries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('user_id');
             $table->date('date');
             $table->integer('total_time_seconds')->default(0);
             $table->integer('manual_time')->default(0);
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('most_used_app')->nullable();
             $table->json('productivity_summary')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'date']);
             $table->index(['user_id', 'date']);
         });

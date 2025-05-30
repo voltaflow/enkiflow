@@ -5,9 +5,9 @@ import { FormEventHandler } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import AuthLayout from '@/layouts/auth-layout';
 
 type RegisterForm = {
@@ -119,9 +119,7 @@ export default function Register() {
                             placeholder="Your company name"
                         />
                         <InputError message={errors.company_name} />
-                        <p className="text-xs text-muted-foreground">
-                            This will be used to create your workspace subdomain
-                        </p>
+                        <p className="text-muted-foreground text-xs">This will be used to create your workspace subdomain</p>
                     </div>
 
                     <div className="flex items-center space-x-2">
@@ -133,7 +131,7 @@ export default function Register() {
                         />
                         <Label
                             htmlFor="enable_tracking"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                             Enable automatic time tracking (optional)
                         </Label>

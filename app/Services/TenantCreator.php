@@ -4,23 +4,18 @@ namespace App\Services;
 
 use App\Models\Space;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Stancl\Tenancy\Database\Models\Domain;
 
 class TenantCreator
 {
     /**
      * Create a new tenant with subdomain.
-     *
-     * @param User $owner
-     * @param array $data
-     * @return Space
      */
     public function create(User $owner, array $data): Space
     {
         // Generate subdomain
         $subdomain = Space::generateSubdomain($data['name']);
-        
+
         // Create the tenant (without transaction for database creation)
         $space = Space::create([
             'id' => $data['id'] ?? null,
@@ -65,10 +60,6 @@ class TenantCreator
 
     /**
      * Add a full domain to an existing tenant.
-     *
-     * @param Space $space
-     * @param string $domain
-     * @return Domain
      */
     public function addDomain(Space $space, string $domain): Domain
     {
@@ -79,40 +70,29 @@ class TenantCreator
 
     /**
      * Update tenant settings.
-     *
-     * @param Space $space
-     * @param array $settings
-     * @return Space
      */
     public function updateSettings(Space $space, array $settings): Space
     {
         $data = $space->data ?? [];
         $data['settings'] = array_merge($data['settings'] ?? [], $settings);
-        
+
         $space->update(['data' => $data]);
-        
+
         return $space;
     }
 
     /**
      * Activate or deactivate a tenant.
-     *
-     * @param Space $space
-     * @param bool $active
-     * @return Space
      */
     public function setActive(Space $space, bool $active): Space
     {
         $space->update(['status' => $active ? 'active' : 'inactive']);
-        
+
         return $space;
     }
 
     /**
      * Seed initial data for the tenant.
-     *
-     * @param Space $space
-     * @return void
      */
     protected function seedTenantData(Space $space): void
     {
@@ -138,7 +118,7 @@ class TenantCreator
 
             // Create a sample project
             $project = \App\Models\Project::create([
-                'name' => 'Welcome to ' . $space->name,
+                'name' => 'Welcome to '.$space->name,
                 'description' => 'This is your first project. Feel free to edit or delete it.',
                 'status' => 'active',
                 'user_id' => $space->owner_id,

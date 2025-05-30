@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\ApplicationSession;
 use App\Models\AppCategory;
+use App\Models\ApplicationSession;
 use App\Models\DailySummary;
 use App\Models\User;
 use Carbon\Carbon;
@@ -13,10 +13,6 @@ class TrackingAnalyzer
 {
     /**
      * Process tracking data from external application.
-     *
-     * @param User $user
-     * @param array $data
-     * @return ApplicationSession
      */
     public function processTrackingData(User $user, array $data): ApplicationSession
     {
@@ -52,9 +48,6 @@ class TrackingAnalyzer
 
     /**
      * Process heartbeat to keep session alive.
-     *
-     * @param ApplicationSession $session
-     * @return ApplicationSession
      */
     public function processHeartbeat(ApplicationSession $session): ApplicationSession
     {
@@ -66,9 +59,6 @@ class TrackingAnalyzer
 
     /**
      * End a tracking session.
-     *
-     * @param ApplicationSession $session
-     * @return ApplicationSession
      */
     public function endSession(ApplicationSession $session): ApplicationSession
     {
@@ -79,11 +69,6 @@ class TrackingAnalyzer
 
     /**
      * Get productivity stats for a user and date range.
-     *
-     * @param User $user
-     * @param Carbon $startDate
-     * @param Carbon $endDate
-     * @return array
      */
     public function getProductivityStats(User $user, Carbon $startDate, Carbon $endDate): array
     {
@@ -119,14 +104,14 @@ class TrackingAnalyzer
             }
 
             // App breakdown
-            if (!isset($stats['app_breakdown'][$session->app_name])) {
+            if (! isset($stats['app_breakdown'][$session->app_name])) {
                 $stats['app_breakdown'][$session->app_name] = 0;
             }
             $stats['app_breakdown'][$session->app_name] += $duration;
 
             // Category breakdown
             $category = $session->category->category ?? 'Other';
-            if (!isset($stats['category_breakdown'][$category])) {
+            if (! isset($stats['category_breakdown'][$category])) {
                 $stats['category_breakdown'][$category] = 0;
             }
             $stats['category_breakdown'][$category] += $duration;
@@ -151,11 +136,6 @@ class TrackingAnalyzer
 
     /**
      * Get time spent on each project based on tracking data.
-     *
-     * @param User $user
-     * @param Carbon $startDate
-     * @param Carbon $endDate
-     * @return Collection
      */
     public function getProjectTimeFromTracking(User $user, Carbon $startDate, Carbon $endDate): Collection
     {
@@ -166,10 +146,6 @@ class TrackingAnalyzer
 
     /**
      * Generate daily summary for a user.
-     *
-     * @param User $user
-     * @param string $date
-     * @return DailySummary
      */
     public function generateDailySummary(User $user, string $date): DailySummary
     {
@@ -179,7 +155,6 @@ class TrackingAnalyzer
     /**
      * Clean up old sessions that were not properly closed.
      *
-     * @param int $hoursThreshold
      * @return int Number of sessions closed
      */
     public function cleanupStaleSessions(int $hoursThreshold = 24): int
@@ -201,10 +176,6 @@ class TrackingAnalyzer
     /**
      * Link application sessions to a time entry.
      *
-     * @param int $timeEntryId
-     * @param Carbon $startTime
-     * @param Carbon $endTime
-     * @param int $userId
      * @return int Number of sessions linked
      */
     public function linkSessionsToTimeEntry(int $timeEntryId, Carbon $startTime, Carbon $endTime, int $userId): int

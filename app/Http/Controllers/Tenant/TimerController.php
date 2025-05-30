@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Models\Timer;
 use App\Services\TimerService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TimerController extends Controller
 {
@@ -24,7 +24,7 @@ class TimerController extends Controller
     {
         $timer = $this->timerService->getCurrentTimer($request->user());
 
-        if (!$timer) {
+        if (! $timer) {
             return response()->json([
                 'timer' => null,
                 'message' => 'No active timer found',

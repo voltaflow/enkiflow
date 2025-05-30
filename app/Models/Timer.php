@@ -105,7 +105,7 @@ class Timer extends Model
      */
     public function resume(): void
     {
-        if (!$this->is_running) {
+        if (! $this->is_running) {
             $this->started_at = now();
             $this->is_running = true;
             $this->save();

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('application_sessions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('user_id');
             $table->string('app_name');
             $table->string('window_title')->nullable();
             $table->timestamp('start_time');
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->integer('duration_seconds')->default(0);
             $table->foreignId('linked_time_entry_id')->nullable()->constrained('time_entries')->onDelete('set null');
             $table->timestamps();
-            
+
             $table->index(['user_id', 'start_time']);
             $table->index(['user_id', 'app_name']);
             $table->index('start_time');

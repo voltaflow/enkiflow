@@ -1,8 +1,8 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
@@ -35,17 +35,15 @@ export default function Create() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Crear Espacio" />
-            
+
             <div className="flex h-full flex-1 flex-col items-center justify-center p-4">
                 <Card className="w-full max-w-md">
                     <form onSubmit={handleSubmit}>
                         <CardHeader>
                             <CardTitle>Crear Nuevo Espacio</CardTitle>
-                            <CardDescription>
-                                Crea un nuevo espacio para tu organización o equipo.
-                            </CardDescription>
+                            <CardDescription>Crea un nuevo espacio para tu organización o equipo.</CardDescription>
                         </CardHeader>
-                        
+
                         <CardContent className="space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre del Espacio</Label>
@@ -57,11 +55,9 @@ export default function Create() {
                                     required
                                 />
                                 <InputError message={errors.name} />
-                                <p className="text-xs text-muted-foreground">
-                                    El nombre de tu organización o equipo.
-                                </p>
+                                <p className="text-muted-foreground text-xs">El nombre de tu organización o equipo.</p>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <Label htmlFor="domain">Dominio Personalizado (Opcional)</Label>
                                 <div className="flex">
@@ -72,24 +68,19 @@ export default function Create() {
                                         onChange={(e) => setData('domain', e.target.value)}
                                         className="rounded-r-none"
                                     />
-                                    <div className="flex items-center justify-center bg-muted px-3 rounded-r-md border border-l-0 border-input">
+                                    <div className="bg-muted border-input flex items-center justify-center rounded-r-md border border-l-0 px-3">
                                         .localhost
                                     </div>
                                 </div>
                                 <InputError message={errors.domain} />
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-muted-foreground text-xs">
                                     Un subdominio para acceder a tu espacio. Solo letras, números y guiones.
                                 </p>
                             </div>
                         </CardContent>
-                        
+
                         <CardFooter className="flex justify-between">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => window.history.back()}
-                                disabled={processing}
-                            >
+                            <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={processing}>
                                 Cancelar
                             </Button>
                             <Button type="submit" disabled={processing}>

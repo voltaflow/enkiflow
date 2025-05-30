@@ -150,9 +150,6 @@ class Space extends BaseTenant implements TenantWithDatabase
 
     /**
      * Generate a subdomain from the company name.
-     *
-     * @param string $companyName
-     * @return string
      */
     public static function generateSubdomain(string $companyName): string
     {
@@ -160,30 +157,28 @@ class Space extends BaseTenant implements TenantWithDatabase
         $subdomain = strtolower($companyName);
         $subdomain = preg_replace('/[^a-z0-9]+/', '-', $subdomain);
         $subdomain = trim($subdomain, '-');
-        
+
         // Ensure subdomain is not empty
         if (empty($subdomain)) {
             $subdomain = 'space';
         }
-        
+
         // Ensure subdomain is unique
         $originalSubdomain = $subdomain;
         $counter = 1;
-        
+
         while (static::whereHas('domains', function ($query) use ($subdomain) {
             $query->where('domain', $subdomain);
         })->exists()) {
-            $subdomain = $originalSubdomain . '-' . $counter;
+            $subdomain = $originalSubdomain.'-'.$counter;
             $counter++;
         }
-        
+
         return $subdomain;
     }
 
     /**
      * Check if the space is active.
-     *
-     * @return bool
      */
     public function isActive(): bool
     {
@@ -192,8 +187,6 @@ class Space extends BaseTenant implements TenantWithDatabase
 
     /**
      * Check if auto tracking is enabled.
-     *
-     * @return bool
      */
     public function hasAutoTrackingEnabled(): bool
     {

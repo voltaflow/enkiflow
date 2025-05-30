@@ -57,17 +57,28 @@ export interface Project {
 export interface Task {
     id: number;
     title: string;
-    description?: string;
+    description?: string | null;
     project_id: number;
     user_id: number;
-    status: string;
+    parent_task_id?: number | null;
+    status: 'pending' | 'in_progress' | 'completed';
     priority: number;
-    due_date?: string;
-    completed_at?: string;
+    position: number;
+    board_column?: string | null;
+    estimated_hours?: number | null;
+    due_date?: string | null;
+    completed_at?: string | null;
+    created_at: string;
+    updated_at: string;
     project?: Project;
     user?: User;
     tags?: Tag[];
     comments?: Comment[];
+    subtasks?: Task[];
+    subtasks_count?: number;
+    comments_count?: number;
+    time_entries_count?: number;
+    total_logged_hours?: number;
     [key: string]: unknown;
 }
 
@@ -96,4 +107,4 @@ export type PageProps<T = {}> = T & {
         current: string;
         available: Record<string, string>;
     };
-}
+};

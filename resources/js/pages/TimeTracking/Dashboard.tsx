@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Head } from '@inertiajs/react';
-import { CalendarDays, Clock, TrendingUp, BarChart3 } from 'lucide-react';
-import AppLayout from '@/layouts/app-layout';
 import TimerWidget from '@/components/time-tracking/timer-widget';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import axios from 'axios';
+import AppLayout from '@/layouts/app-layout';
 import type { PageProps } from '@/types';
+import { Head } from '@inertiajs/react';
+import axios from 'axios';
+import { BarChart3, CalendarDays, Clock, TrendingUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Project {
     id: number;
@@ -68,7 +67,7 @@ export default function TimeTrackingDashboard({ projects, tasks }: TimeTrackingD
         setLoading(true);
         try {
             const response = await axios.get('/api/reports/daily', {
-                params: { date }
+                params: { date },
             });
             setTimeEntries(response.data.time_entries);
             setDailySummary(response.data.summary);
@@ -94,10 +93,10 @@ export default function TimeTrackingDashboard({ projects, tasks }: TimeTrackingD
 
     const formatDateTime = (dateString: string): string => {
         const date = new Date(dateString);
-        return date.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
             minute: '2-digit',
-            hour12: true 
+            hour12: true,
         });
     };
 
@@ -116,7 +115,7 @@ export default function TimeTrackingDashboard({ projects, tasks }: TimeTrackingD
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="px-3 py-2 border rounded-md"
+                            className="rounded-md border px-3 py-2"
                             max={new Date().toISOString().split('T')[0]}
                         />
                     </div>
@@ -126,80 +125,58 @@ export default function TimeTrackingDashboard({ projects, tasks }: TimeTrackingD
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Time Today</CardTitle>
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <Clock className="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
-                                {dailySummary ? formatTime(dailySummary.total_time) : '0h 0m'}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                {timeEntries.length} time entries
-                            </p>
+                            <div className="text-2xl font-bold">{dailySummary ? formatTime(dailySummary.total_time) : '0h 0m'}</div>
+                            <p className="text-muted-foreground text-xs">{timeEntries.length} time entries</p>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Manual Time</CardTitle>
-                            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                            <CalendarDays className="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
-                                {dailySummary ? formatTime(dailySummary.manual_time) : '0h 0m'}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Timer & manual entries
-                            </p>
+                            <div className="text-2xl font-bold">{dailySummary ? formatTime(dailySummary.manual_time) : '0h 0m'}</div>
+                            <p className="text-muted-foreground text-xs">Timer & manual entries</p>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Productivity</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                            <TrendingUp className="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
-                                {dailySummary?.productivity?.productive_percentage || 0}%
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Productive time
-                            </p>
+                            <div className="text-2xl font-bold">{dailySummary?.productivity?.productive_percentage || 0}%</div>
+                            <p className="text-muted-foreground text-xs">Productive time</p>
                         </CardContent>
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-                            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                            <BarChart3 className="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">
-                                {projects.length}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Across all projects
-                            </p>
+                            <div className="text-2xl font-bold">{projects.length}</div>
+                            <p className="text-muted-foreground text-xs">Across all projects</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="lg:col-span-1">
-                        <TimerWidget
-                            projects={projects}
-                            tasks={tasks}
-                            onTimerStop={handleTimerStop}
-                        />
+                        <TimerWidget projects={projects} tasks={tasks} onTimerStop={handleTimerStop} />
                     </div>
 
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Time Entries</CardTitle>
-                                <CardDescription>
-                                    Your tracked time for {new Date(selectedDate).toLocaleDateString()}
-                                </CardDescription>
+                                <CardDescription>Your tracked time for {new Date(selectedDate).toLocaleDateString()}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -210,41 +187,31 @@ export default function TimeTrackingDashboard({ projects, tasks }: TimeTrackingD
                                     </TabsList>
                                     <TabsContent value="today" className="space-y-4">
                                         {loading ? (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                                Loading time entries...
-                                            </div>
+                                            <div className="text-muted-foreground py-8 text-center">Loading time entries...</div>
                                         ) : timeEntries.length === 0 ? (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                                No time entries for this date
-                                            </div>
+                                            <div className="text-muted-foreground py-8 text-center">No time entries for this date</div>
                                         ) : (
                                             <div className="space-y-2">
                                                 {timeEntries.map((entry) => (
                                                     <div
                                                         key={entry.id}
-                                                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                                                        className="hover:bg-accent/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
                                                     >
                                                         <div className="flex-1">
-                                                            <div className="font-medium">
-                                                                {entry.description || 'No description'}
-                                                            </div>
-                                                            <div className="text-sm text-muted-foreground">
+                                                            <div className="font-medium">{entry.description || 'No description'}</div>
+                                                            <div className="text-muted-foreground text-sm">
                                                                 {entry.project?.name || 'No project'}
                                                                 {entry.task && ` • ${entry.task.title}`}
                                                             </div>
-                                                            <div className="text-xs text-muted-foreground mt-1">
+                                                            <div className="text-muted-foreground mt-1 text-xs">
                                                                 {formatDateTime(entry.started_at)} - {formatDateTime(entry.ended_at)}
                                                                 {' • '}
                                                                 {entry.created_via === 'timer' ? 'Timer' : 'Manual'}
                                                             </div>
                                                         </div>
                                                         <div className="text-right">
-                                                            <div className="font-mono font-semibold">
-                                                                {entry.formatted_duration}
-                                                            </div>
-                                                            {entry.is_billable && (
-                                                                <span className="text-xs text-green-600">Billable</span>
-                                                            )}
+                                                            <div className="font-mono font-semibold">{entry.formatted_duration}</div>
+                                                            {entry.is_billable && <span className="text-xs text-green-600">Billable</span>}
                                                         </div>
                                                     </div>
                                                 ))}
@@ -252,14 +219,10 @@ export default function TimeTrackingDashboard({ projects, tasks }: TimeTrackingD
                                         )}
                                     </TabsContent>
                                     <TabsContent value="week">
-                                        <div className="text-center py-8 text-muted-foreground">
-                                            Week view coming soon...
-                                        </div>
+                                        <div className="text-muted-foreground py-8 text-center">Week view coming soon...</div>
                                     </TabsContent>
                                     <TabsContent value="month">
-                                        <div className="text-center py-8 text-muted-foreground">
-                                            Month view coming soon...
-                                        </div>
+                                        <div className="text-muted-foreground py-8 text-center">Month view coming soon...</div>
                                     </TabsContent>
                                 </Tabs>
                             </CardContent>

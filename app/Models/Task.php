@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -23,10 +24,15 @@ class Task extends Model
         'description',
         'project_id',
         'user_id',
+        'parent_task_id',
         'status',
         'priority',
+        'position',
+        'board_column',
+        'estimated_hours',
         'due_date',
         'completed_at',
+        'created_by',
         'settings',
     ];
 
@@ -40,6 +46,8 @@ class Task extends Model
         'completed_at' => 'datetime',
         'settings' => 'array',
         'priority' => 'integer',
+        'position' => 'integer',
+        'estimated_hours' => 'decimal:2',
     ];
 
     /**
@@ -137,5 +145,133 @@ class Task extends Model
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Tag::class, 'taggable');
+    }
+
+    /**
+     * Get the parent task.
+     */
+    public function parentTask(): BelongsTo
+    {
+        return $this->belongsTo(Task::class, 'parent_task_id');
+    }
+
+    /**
+     * Get the subtasks.
+     */
+    public function subtasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'parent_task_id');
+    }
+
+    /**
+     * Get the user who created the task.
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get all assignees for the task.
+     */
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'task_assignees')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get time entries for this task.
+     */
+    public function timeEntries(): HasMany
+    {
+        return $this->hasMany(TimeEntry::class);
+    }
+
+    /**
+     * Check if the task has subtasks.
+     */
+    public function hasSubtasks(): bool
+    {
+        return $this->subtasks()->exists();
+    }
+
+    /**
+     * Get total logged hours for this task.
+     */
+    public function getTotalLoggedHoursAttribute(): float
+    {
+        return $this->timeEntries()->sum('duration') / 3600;
+    }
+
+    /**
+     * Get completion percentage based on logged vs estimated hours.
+     */
+    public function getCompletionPercentageAttribute(): int
+    {
+        if (! $this->estimated_hours || $this->estimated_hours == 0) {
+            return $this->status === 'completed' ? 100 : 0;
+        }
+
+        $percentage = ($this->total_logged_hours / $this->estimated_hours) * 100;
+
+        return min(100, round($percentage));
+    }
+
+    /**
+     * Scope tasks by board column.
+     */
+    public function scopeInColumn($query, string $column)
+    {
+        return $query->where('board_column', $column);
+    }
+
+    /**
+     * Scope to get root tasks (no parent).
+     */
+    public function scopeRootTasks($query)
+    {
+        return $query->whereNull('parent_task_id');
+    }
+
+    /**
+     * Move task to a different column.
+     */
+    public function moveToColumn(string $column, ?int $position = null): void
+    {
+        $this->board_column = $column;
+
+        if ($position !== null) {
+            $this->position = $position;
+        }
+
+        // Update status based on column
+        switch ($column) {
+            case 'done':
+                $this->status = 'completed';
+                $this->completed_at = now();
+                break;
+            case 'in_progress':
+                $this->status = 'in_progress';
+                $this->completed_at = null;
+                break;
+            default:
+                $this->status = 'pending';
+                $this->completed_at = null;
+        }
+
+        $this->save();
+    }
+
+    /**
+     * Reorder tasks in a column.
+     */
+    public static function reorderInColumn(int $projectId, string $column, array $taskIds): void
+    {
+        foreach ($taskIds as $position => $taskId) {
+            static::where('id', $taskId)
+                ->where('project_id', $projectId)
+                ->update(['position' => $position]);
+        }
     }
 }

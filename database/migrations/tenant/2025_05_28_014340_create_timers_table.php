@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('timers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('user_id');
             $table->foreignId('project_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('task_id')->nullable()->constrained()->onDelete('set null');
             $table->string('description')->nullable();
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_running')->default(true);
             $table->integer('current_duration')->default(0); // in seconds
             $table->timestamps();
-            
+
             $table->index(['user_id', 'is_running']);
             $table->index('started_at');
         });

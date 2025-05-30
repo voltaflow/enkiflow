@@ -57,10 +57,10 @@ class HealthCheckController extends Controller
 
             // Check connection pool
             $centralConnections = DB::connection('central')
-                ->select("SELECT count(*) as count FROM pg_stat_activity WHERE datname = ?", [
-                    config('database.connections.central.database')
+                ->select('SELECT count(*) as count FROM pg_stat_activity WHERE datname = ?', [
+                    config('database.connections.central.database'),
                 ]);
-            
+
             $checks['connection_pool'] = [
                 'active_connections' => $centralConnections[0]->count ?? 0,
                 'max_connections' => config('database.connections.central.pool_size', 100),
@@ -89,14 +89,14 @@ class HealthCheckController extends Controller
 
         try {
             // Check if we can dispatch to queue
-            $testKey = 'health_check_queue_' . uniqid();
+            $testKey = 'health_check_queue_'.uniqid();
             Cache::put($testKey, true, 60);
-            
+
             // Check queue sizes
             $defaultQueueSize = DB::table('jobs')
                 ->where('queue', 'default')
                 ->count();
-                
+
             $highPriorityQueueSize = DB::table('jobs')
                 ->where('queue', 'high')
                 ->count();
@@ -193,7 +193,7 @@ class HealthCheckController extends Controller
         $diskFree = disk_free_space('/');
         $diskTotal = disk_total_space('/');
         $diskUsagePercent = round((($diskTotal - $diskFree) / $diskTotal) * 100, 2);
-        
+
         $checks['disk'] = [
             'free_gb' => round($diskFree / 1073741824, 2),
             'total_gb' => round($diskTotal / 1073741824, 2),

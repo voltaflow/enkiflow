@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class PreDeployCheck extends Command
@@ -129,9 +129,11 @@ class PreDeployCheck extends Command
 
         if ($allPassed) {
             $this->info('✅ All pre-deployment checks passed! Ready for Laravel Cloud deployment.');
+
             return Command::SUCCESS;
         } else {
             $this->error('❌ Some checks failed. Please fix the issues before deploying.');
+
             return Command::FAILURE;
         }
     }
@@ -155,6 +157,7 @@ class PreDeployCheck extends Command
         foreach ($required as $key) {
             if (empty(env($key))) {
                 $this->warn("   Missing required environment variable: {$key}");
+
                 return false;
             }
         }
@@ -163,6 +166,7 @@ class PreDeployCheck extends Command
         if (app()->environment('production')) {
             if (config('app.debug') === true) {
                 $this->warn('   APP_DEBUG should be false in production');
+
                 return false;
             }
         }
@@ -174,13 +178,14 @@ class PreDeployCheck extends Command
     {
         try {
             DB::connection('central')->getPdo();
-            
+
             // Check if we can run a simple query
             DB::connection('central')->select('SELECT 1');
-            
+
             return true;
         } catch (\Exception $e) {
-            $this->warn('   Database error: ' . $e->getMessage());
+            $this->warn('   Database error: '.$e->getMessage());
+
             return false;
         }
     }
@@ -191,10 +196,11 @@ class PreDeployCheck extends Command
             Cache::store('redis')->put('deploy_check', true, 10);
             $value = Cache::store('redis')->get('deploy_check');
             Cache::store('redis')->forget('deploy_check');
-            
+
             return $value === true;
         } catch (\Exception $e) {
-            $this->warn('   Redis error: ' . $e->getMessage());
+            $this->warn('   Redis error: '.$e->getMessage());
+
             return false;
         }
     }
@@ -205,8 +211,9 @@ class PreDeployCheck extends Command
             // Check if tenancy tables exist
             $tables = ['tenants', 'domains'];
             foreach ($tables as $table) {
-                if (!DB::connection('central')->getSchemaBuilder()->hasTable($table)) {
+                if (! DB::connection('central')->getSchemaBuilder()->hasTable($table)) {
                     $this->warn("   Missing tenancy table: {$table}");
+
                     return false;
                 }
             }
@@ -214,12 +221,14 @@ class PreDeployCheck extends Command
             // Check if tenancy is properly configured
             if (empty(config('tenancy.central_domains'))) {
                 $this->warn('   Central domains not configured');
+
                 return false;
             }
 
             return true;
         } catch (\Exception $e) {
-            $this->warn('   Tenancy check error: ' . $e->getMessage());
+            $this->warn('   Tenancy check error: '.$e->getMessage());
+
             return false;
         }
     }
@@ -236,7 +245,7 @@ class PreDeployCheck extends Command
         $allGood = true;
 
         foreach ($directories as $directory) {
-            if (!is_writable($directory)) {
+            if (! is_writable($directory)) {
                 $this->warn("   Directory not writable: {$directory}");
                 $allGood = false;
             }
@@ -248,7 +257,7 @@ class PreDeployCheck extends Command
     private function fixPermissions(): void
     {
         $this->info('   Attempting to fix permissions...');
-        
+
         $directories = [
             storage_path(),
             base_path('bootstrap/cache'),
@@ -263,16 +272,18 @@ class PreDeployCheck extends Command
     private function checkAssets(): bool
     {
         $manifestPath = public_path('build/manifest.json');
-        
-        if (!file_exists($manifestPath)) {
+
+        if (! file_exists($manifestPath)) {
             $this->warn('   Asset manifest not found. Run: npm run build');
+
             return false;
         }
 
         $manifest = json_decode(file_get_contents($manifestPath), true);
-        
+
         if (empty($manifest)) {
             $this->warn('   Asset manifest is empty');
+
             return false;
         }
 
@@ -290,25 +301,26 @@ class PreDeployCheck extends Command
             // Try direct controller call first (more reliable for local testing)
             $controller = app(\App\Http\Controllers\HealthCheckController::class);
             $response = $controller->health();
-            
+
             $data = json_decode($response->content(), true);
+
             return $data['status'] === 'healthy';
         } catch (\Exception $e) {
-            $this->warn('   Health check error: ' . $e->getMessage());
-            
+            $this->warn('   Health check error: '.$e->getMessage());
+
             // Try HTTP as fallback
             try {
-                $url = config('app.url') . '/health';
+                $url = config('app.url').'/health';
                 // Handle both HTTP and HTTPS
                 $response = Http::withOptions([
                     'verify' => false, // For local development with self-signed certs
                 ])->get($url);
-                
+
                 if ($response->successful() && $response->json('status') === 'healthy') {
                     return true;
                 }
             } catch (\Exception $httpError) {
-                $this->warn('   HTTP health check error: ' . $httpError->getMessage());
+                $this->warn('   HTTP health check error: '.$httpError->getMessage());
             }
         }
 
@@ -318,21 +330,24 @@ class PreDeployCheck extends Command
     private function checkOctane(): bool
     {
         // Check if Octane is installed
-        if (!class_exists(\Laravel\Octane\Octane::class)) {
+        if (! class_exists(\Laravel\Octane\Octane::class)) {
             $this->warn('   Laravel Octane is not installed');
+
             return false;
         }
 
         // Check Octane configuration
         if (config('octane.server') !== 'swoole') {
             $this->warn('   Octane should use Swoole server for Laravel Cloud');
+
             return false;
         }
 
         // Check if tenancy is in flush array
         $flushArray = config('octane.flush', []);
-        if (!in_array('tenancy', $flushArray)) {
+        if (! in_array('tenancy', $flushArray)) {
             $this->warn('   Octane should flush tenancy between requests');
+
             return false;
         }
 
@@ -342,14 +357,16 @@ class PreDeployCheck extends Command
     private function checkQueues(): bool
     {
         // Check if Horizon is installed
-        if (!class_exists(\Laravel\Horizon\Horizon::class)) {
+        if (! class_exists(\Laravel\Horizon\Horizon::class)) {
             $this->warn('   Laravel Horizon is not installed');
+
             return false;
         }
 
         // Check queue connection
-        if (!in_array(config('queue.default'), ['redis', 'database'])) {
+        if (! in_array(config('queue.default'), ['redis', 'database'])) {
             $this->warn('   Queue connection should be redis or database for production');
+
             return false;
         }
 

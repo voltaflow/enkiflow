@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('category');
             $table->enum('productivity_level', ['productive', 'neutral', 'distracting'])->default('neutral');
             $table->timestamps();
-            
+
             $table->index('app_name');
             $table->index('category');
         });

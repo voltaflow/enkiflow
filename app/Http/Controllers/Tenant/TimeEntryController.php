@@ -7,7 +7,6 @@ use App\Http\Requests\Tenant\StoreTimeEntryRequest;
 use App\Http\Requests\Tenant\UpdateTimeEntryRequest;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\TimeCategory;
 use App\Models\TimeEntry;
 use App\Services\TimeEntryService;
 use Carbon\Carbon;
@@ -39,7 +38,7 @@ class TimeEntryController extends Controller
         $projects = Project::where('status', 'active')
             ->orderBy('name')
             ->get(['id', 'name']);
-            
+
         $tasks = Task::whereIn('project_id', $projects->pluck('id'))
             ->where('status', '!=', 'completed')
             ->orderBy('title')

@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Tenant\ProjectController;
+use App\Http\Controllers\Tenant\ReportController;
 use App\Http\Controllers\Tenant\TaskController;
 use App\Http\Controllers\Tenant\TimeEntryController;
 use App\Http\Controllers\Tenant\TimerController;
-use App\Http\Controllers\Tenant\ReportController;
+use App\Http\Controllers\Tenant\WeeklyTimesheetController;
 use Illuminate\Support\Facades\Route;
-use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +54,9 @@ Route::middleware([
         Route::post('/projects/{project}/reactivate', [ProjectController::class, 'reactivate'])->name('tenant.projects.reactivate');
 
         // Tasks
+        // Task views (must come before resource routes)
+        Route::get('/tasks/kanban', [TaskController::class, 'kanban'])->name('tasks.kanban');
+
         Route::resource('tasks', TaskController::class)->names([
             'index' => 'tasks.index',
             'create' => 'tasks.create',
@@ -69,11 +72,26 @@ Route::middleware([
         Route::post('/tasks/{task}/in-progress', [TaskController::class, 'inProgress'])->name('tasks.in-progress');
         Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
 
+        // Kanban actions
+        Route::post('/tasks/move', [TaskController::class, 'move'])->name('tasks.move');
+
+        // Bulk actions
+        Route::post('/tasks/bulk-destroy', [TaskController::class, 'bulkDestroy'])->name('tasks.bulk-destroy');
+        Route::post('/tasks/bulk-complete', [TaskController::class, 'bulkComplete'])->name('tasks.bulk-complete');
+        Route::post('/tasks/bulk-in-progress', [TaskController::class, 'bulkInProgress'])->name('tasks.bulk-in-progress');
+
         // Time tracking
         Route::prefix('time')->name('tenant.time.')->group(function () {
             // Time tracking main views
             Route::get('/', [TimeEntryController::class, 'index'])->name('index');
             Route::get('/report', [TimeEntryController::class, 'report'])->name('report');
+
+            // Weekly Timesheet
+            Route::get('/timesheet', [WeeklyTimesheetController::class, 'index'])->name('timesheet');
+            Route::post('/timesheet/{timesheet}/update', [WeeklyTimesheetController::class, 'update'])->name('timesheet.update');
+            Route::post('/timesheet/{timesheet}/submit', [WeeklyTimesheetController::class, 'submit'])->name('timesheet.submit');
+            Route::post('/timesheet/quick-add', [WeeklyTimesheetController::class, 'quickAdd'])->name('timesheet.quick-add');
+            Route::get('/timesheet/week-data', [WeeklyTimesheetController::class, 'weekData'])->name('timesheet.week-data');
 
             // Time entry CRUD
             Route::post('/', [TimeEntryController::class, 'store'])->name('store');
@@ -101,6 +119,24 @@ Route::middleware([
             Route::delete('/{timer}', [TimerController::class, 'destroy'])->name('destroy');
         });
 
+        // Time Entry Templates API endpoints
+        Route::prefix('api/templates')->name('api.templates.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'store'])->name('store');
+            Route::put('/{template}', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'update'])->name('update');
+            Route::delete('/{template}', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'destroy'])->name('destroy');
+            Route::post('/{template}/use', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'createEntry'])->name('use');
+            Route::get('/suggestions', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'suggestions'])->name('suggestions');
+            Route::post('/bulk-use', [App\Http\Controllers\Tenant\TimeEntryTemplateController::class, 'bulkCreateEntries'])->name('bulk-use');
+        });
+
+        // Export API endpoints
+        Route::prefix('api/export')->name('api.export.')->group(function () {
+            Route::get('/csv', [App\Http\Controllers\Tenant\TimeEntryExportController::class, 'exportCsv'])->name('csv');
+            Route::get('/pdf', [App\Http\Controllers\Tenant\TimeEntryExportController::class, 'exportPdf'])->name('pdf');
+            Route::get('/templates', [App\Http\Controllers\Tenant\TimeEntryExportController::class, 'getTemplates'])->name('templates');
+        });
+
         // Report API endpoints
         Route::prefix('api/reports')->name('api.reports.')->group(function () {
             Route::get('/daily', [ReportController::class, 'daily'])->name('daily');
@@ -108,6 +144,11 @@ Route::middleware([
             Route::get('/monthly', [ReportController::class, 'monthly'])->name('monthly');
             Route::get('/project', [ReportController::class, 'project'])->name('project');
         });
+
+        // Analytics
+        Route::get('/analytics', [App\Http\Controllers\Tenant\AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('/api/analytics/data', [App\Http\Controllers\Tenant\AnalyticsController::class, 'data'])->name('api.analytics.data');
+        Route::post('/api/analytics/export', [App\Http\Controllers\Tenant\AnalyticsController::class, 'export'])->name('api.analytics.export');
 
         // User roles and permissions
         Route::get('/users', [App\Http\Controllers\Tenant\UserRoleController::class, 'index'])->name('tenant.users.index');
