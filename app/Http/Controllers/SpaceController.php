@@ -63,10 +63,14 @@ class SpaceController extends Controller
             $id = $originalId.'-'.$count++;
         }
 
+        // Generate a unique slug (could be different from ID if needed)
+        $slug = Space::generateSubdomain($request->name);
+
         // Create the tenant (space)
         $space = Space::create([
             'id' => $id,
             'name' => $request->name,
+            'slug' => $slug, // Use generated subdomain as slug
             'owner_id' => Auth::id(),
             'data' => [
                 'plan' => 'free', // Default plan

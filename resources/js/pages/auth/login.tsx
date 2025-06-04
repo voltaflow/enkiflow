@@ -31,7 +31,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('login'), {
+            preserveScroll: true,
             onFinish: () => reset('password'),
+            onSuccess: () => {
+                // La redirección debería manejarse automáticamente desde el servidor
+                // pero si no funciona, podemos forzarla aquí
+                if (window.location.hostname !== 'enkiflow.test' && window.location.hostname !== 'localhost') {
+                    // Estamos en un dominio de tenant, redirigir al dashboard
+                    window.location.href = '/dashboard';
+                }
+            },
         });
     };
 

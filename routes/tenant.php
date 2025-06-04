@@ -26,8 +26,11 @@ Route::middleware([
     'web',
     \App\Http\Middleware\CustomDomainTenancyInitializer::class, // Use our custom initializer
     \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+    \App\Http\Middleware\EnsureTenantUrl::class, // Asegurar URLs correctas para tenant
     // NO incluir EnsureValidTenant aquí - se incluirá solo en rutas autenticadas
 ])->group(function () {
+    // Include auth routes for tenant domains
+    require __DIR__.'/auth.php';
     // Ruta raíz para subdominios de tenant
     Route::get('/', function () {
         return redirect()->route('tenant.dashboard');
