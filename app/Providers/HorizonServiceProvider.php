@@ -3,18 +3,21 @@
 namespace App\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
 use Laravel\Horizon\Horizon;
-use Laravel\Horizon\HorizonApplicationServiceProvider;
 
-class HorizonServiceProvider extends HorizonApplicationServiceProvider
+class HorizonServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
      */
     public function boot(): void
     {
-        parent::boot();
+        // Register the Horizon gate
+        $this->gate();
 
+        // Horizon::night();
+        
         // Horizon::routeSmsNotificationsTo('15556667777');
         // Horizon::routeMailNotificationsTo('example@example.com');
         // Horizon::routeSlackNotificationsTo('slack-webhook-url', '#channel');
@@ -29,7 +32,8 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     {
         Gate::define('viewHorizon', function ($user = null) {
             return in_array(optional($user)->email, [
-                //
+                // Add authorized emails here
+                // 'admin@example.com',
             ]);
         });
     }

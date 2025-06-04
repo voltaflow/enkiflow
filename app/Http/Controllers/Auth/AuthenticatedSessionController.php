@@ -34,16 +34,20 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Verificar si estamos en un tenant o en la aplicación central
-        if (function_exists('tenant') && tenant()) {
-            return redirect()->intended(route('tenant.dashboard', absolute: false));
+        if (tenancy()->initialized) {
+            // Estamos en un dominio de tenant
+            // Simplemente redirigir al dashboard del tenant
+            // La verificación de acceso se hace en el middleware EnsureUserHasTenantAccess
+            return redirect()->intended('/dashboard');
         } else {
+            // Estamos en el dominio principal
             // Si el usuario tiene espacios, redirigir a la lista de espacios
             if (auth()->user()->spaces()->count() > 0) {
-                return redirect()->intended(route('spaces.index', absolute: false));
+                return redirect()->intended(route('spaces.index'));
             }
 
             // Si no tiene espacios, redirigir a la creación de espacio
-            return redirect()->intended(route('spaces.create', absolute: false));
+            return redirect()->intended(route('spaces.create'));
         }
     }
 

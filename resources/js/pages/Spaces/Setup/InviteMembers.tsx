@@ -21,54 +21,6 @@ interface InviteItem {
 export default function InviteMembers({ name, subdomain, plan }: InviteMembersProps) {
     const [loading, setLoading] = useState(false);
     const [invites, setInvites] = useState<InviteItem[]>([{ email: '', role: 'member' }]);
-<<<<<<< HEAD
-    const [errors, setErrors] = useState<Record<string, string>>({});
-
-    const getError = (field: string): string | undefined => {
-        return errors[field];
-    };
-
-    const addInvite = () => {
-        setInvites([...invites, { email: '', role: 'member' }]);
-    };
-
-    const removeInvite = (index: number) => {
-        const newInvites = [...invites];
-        newInvites.splice(index, 1);
-        setInvites(newInvites);
-    };
-
-    const updateInvite = (index: number, field: keyof InviteItem, value: string) => {
-        const newInvites = [...invites];
-        newInvites[index][field] = value;
-        setInvites(newInvites);
-    };
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Filter out empty invites and convert to plain objects
-        const filteredInvites = invites.filter((invite) => invite.email.trim() !== '').map((invite) => ({ email: invite.email, role: invite.role }));
-
-        setLoading(true);
-        router.post(
-            route('spaces.setup.confirm'),
-            {
-                invites: filteredInvites as any,
-            },
-            {
-                onSuccess: () => {
-                    setLoading(false);
-                },
-                onError: () => {
-                    setLoading(false);
-                },
-            },
-        );
-    };
-
-=======
-    // Removed unused errors state - error handling might be done through Inertia
 
     const addInvite = () => {
         setInvites([...invites, { email: '', role: 'member' }]);
@@ -109,7 +61,6 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
         );
     };
 
->>>>>>> 83fa645f796570e19e5e8ef94c03f015ebf4a8b6
     return (
         <AppLayout>
             <Head title="Invitar Miembros" />
@@ -159,12 +110,6 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                                                     onChange={(e) => updateInvite(index, 'email', e.target.value)}
                                                     placeholder="email@example.com"
                                                 />
-<<<<<<< HEAD
-                                                {getError(`invites.${index}.email`) && (
-                                                    <div className="text-sm text-red-500">{getError(`invites.${index}.email`)}</div>
-                                                )}
-=======
->>>>>>> 83fa645f796570e19e5e8ef94c03f015ebf4a8b6
                                             </div>
                                             <div className="w-32">
                                                 <Label htmlFor={`role-${index}`} className="sr-only">
@@ -181,12 +126,6 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                                                     <option value="member">Miembro</option>
                                                     <option value="guest">Invitado</option>
                                                 </select>
-<<<<<<< HEAD
-                                                {getError(`invites.${index}.role`) && (
-                                                    <div className="text-sm text-red-500">{getError(`invites.${index}.role`)}</div>
-                                                )}
-=======
->>>>>>> 83fa645f796570e19e5e8ef94c03f015ebf4a8b6
                                             </div>
                                             <Button
                                                 type="button"

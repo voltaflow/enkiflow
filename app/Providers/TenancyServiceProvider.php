@@ -42,7 +42,19 @@ class TenancyServiceProvider extends ServiceProvider
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
             Events\UpdatingTenant::class => [],
-            Events\TenantUpdated::class => [],
+            Events\TenantUpdated::class => [
+                JobPipeline::make([
+                    // Job para sincronización de datos
+                    \App\Jobs\SyncTenantData::class,
+                ])->send(function (Events\TenantUpdated $event) {
+                    return $event->tenant;
+                })->shouldBeQueued(false), // Cambiar a true en producción para procesar en background
+                
+                // Listeners adicionales
+                \App\Listeners\LogTenantUpdated::class,
+                \App\Listeners\UpdateTenantCache::class,
+                \App\Listeners\NotifyTenantChanges::class,
+            ],
             Events\DeletingTenant::class => [],
             Events\TenantDeleted::class => [
                 JobPipeline::make([

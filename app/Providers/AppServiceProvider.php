@@ -14,7 +14,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register cache bindings before anything else
+        $this->app->singleton('cache', function ($app) {
+            return new \Illuminate\Cache\CacheManager($app);
+        });
+
+        $this->app->singleton('cache.store', function ($app) {
+            return $app['cache']->driver();
+        });
+
+        // Ensure the contract is bound
+        $this->app->singleton(\Illuminate\Contracts\Cache\Factory::class, function ($app) {
+            return $app['cache'];
+        });
+        
+        $this->app->singleton(\Illuminate\Contracts\Cache\Repository::class, function ($app) {
+            return $app['cache.store'];
+        });
     }
 
     /**

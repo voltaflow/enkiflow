@@ -165,6 +165,7 @@ class SpaceSetupController extends Controller
             $space = Space::create([
                 'id' => Str::uuid()->toString(),
                 'name' => $name,
+                'slug' => $subdomain, // Add slug field
                 'owner_id' => Auth::id(),
                 'data' => [
                     'plan' => $plan,

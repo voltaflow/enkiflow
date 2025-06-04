@@ -23,6 +23,23 @@ class Space extends BaseTenant implements TenantWithDatabase
     protected $table = 'tenants';
 
     /**
+     * Define the actual database columns (not virtual columns).
+     * This prevents Stancl/Tenancy from putting these in the data column.
+     */
+    public static function getCustomColumns(): array
+    {
+        return [
+            'id',
+            'name', 
+            'slug',
+            'owner_id',
+            'status',
+            'auto_tracking_enabled',
+            'trial_ends_at',
+        ];
+    }
+
+    /**
      * Get a tenant by domain name, supporting subdomains.
      *
      * @param  string  $domain
