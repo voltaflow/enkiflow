@@ -58,16 +58,31 @@ interface Project {
     color?: string;
 }
 
+interface PaginatedTasks {
+    data: Task[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}
+
 interface Props extends PageProps {
-    tasks: Task[];
+    tasks: PaginatedTasks;
     projects: Project[];
+    users?: any[];
+    tags?: any[];
     filters: {
         search?: string;
         status?: string;
         project_id?: string;
+        assignee_id?: string;
+        priority?: string;
+        due_date_from?: string;
+        due_date_to?: string;
         sort?: string;
+        direction?: string;
     };
-    stats: {
+    stats?: {
         total: number;
         pending: number;
         in_progress: number;
@@ -77,6 +92,15 @@ interface Props extends PageProps {
 
 export default function Index({ tasks, projects, filters, stats }: Props) {
     const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
+    
+    // Calcular stats si no vienen del backend
+    const tasksList = tasks.data || [];
+    const taskStats = stats || {
+        total: tasksList.length,
+        pending: tasksList.filter(t => t.status === 'pending').length,
+        in_progress: tasksList.filter(t => t.status === 'in_progress').length,
+        completed: tasksList.filter(t => t.status === 'completed').length,
+    };
     const [localSearch, setLocalSearch] = useState(filters.search || '');
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
@@ -108,7 +132,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedTasks(tasks.map(task => task.id));
+            setSelectedTasks(tasksList.map(task => task.id));
         } else {
             setSelectedTasks([]);
         }
@@ -269,7 +293,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         <SortDesc className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.total}</div>
+                        <div className="text-2xl font-bold">{taskStats.total}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -278,7 +302,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         <Circle className="h-4 w-4 text-gray-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.pending}</div>
+                        <div className="text-2xl font-bold">{taskStats.pending}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -287,7 +311,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         <Clock className="h-4 w-4 text-blue-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.in_progress}</div>
+                        <div className="text-2xl font-bold">{taskStats.in_progress}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -296,7 +320,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         <CheckCircle2 className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.completed}</div>
+                        <div className="text-2xl font-bold">{taskStats.completed}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -410,7 +434,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         <TableRow>
                             <TableHead className="w-12">
                                 <Checkbox
-                                    checked={selectedTasks.length === tasks.length && tasks.length > 0}
+                                    checked={selectedTasks.length === tasksList.length && tasksList.length > 0}
                                     onCheckedChange={handleSelectAll}
                                 />
                             </TableHead>
@@ -424,7 +448,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {tasks.length === 0 ? (
+                        {tasksList.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="text-center py-8">
                                     <p className="text-muted-foreground">No se encontraron tareas</p>
@@ -437,7 +461,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            tasks.map((task) => (
+                            tasksList.map((task) => (
                                 <TableRow key={task.id}>
                                     <TableCell>
                                         <Checkbox

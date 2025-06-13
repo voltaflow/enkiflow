@@ -115,6 +115,11 @@ class TenancyServiceProvider extends ServiceProvider
         // Configure the package tenant model to use our custom Space model
         // This is important for working with domains() and other Stancl Tenancy features
         config(['tenancy.tenant_model' => Space::class]);
+        
+        // Registrar el middleware de sesión compartida
+        $this->app->bind('ShareSessionAcrossDomains', function ($app) {
+            return new \App\Http\Middleware\ShareSessionAcrossDomains();
+        });
     }
 
     public function boot()
@@ -142,22 +147,17 @@ class TenancyServiceProvider extends ServiceProvider
             // Always allow access from main domains, and set bypass flag for extra safety
             if (in_array($request->getHost(), $mainDomains)) {
                 $request->attributes->set('bypass_tenancy', true);
-                \Log::info('PreventAccessFromCentralDomains: Allowing access from main domain: '.$request->getHost());
 
                 return $next($request);
             }
 
             // For other central domains, check if they're defined in config
             if (in_array($request->getHost(), config('tenancy.central_domains', []))) {
-                \Log::info('PreventAccessFromCentralDomains: Allowing access from central domain: '.$request->getHost());
-
                 return $next($request);
             }
 
             // Only block access if this is not a main domain trying to access tenant routes
             if (! $request->attributes->get('bypass_tenancy', false)) {
-                \Log::warning('PreventAccessFromCentralDomains: Blocked access to tenant route from: '.$request->getHost());
-
                 return abort(404, 'This page is not accessible from this domain.');
             }
 
@@ -185,7 +185,12 @@ class TenancyServiceProvider extends ServiceProvider
     protected function mapRoutes()
     {
         $this->app->booted(function () {
-            if (file_exists(base_path('routes/tenant.php'))) {
+            // Solo cargar rutas de tenant si NO estamos en un dominio principal
+            $host = request()->getHost();
+            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            $isMainDomain = in_array($host, $mainDomains);
+            
+            if (!$isMainDomain && file_exists(base_path('routes/tenant.php'))) {
                 Route::namespace(static::$controllerNamespace)
                     // ->middleware([EnsureValidTenant::class]) // Removed - will be applied selectively in routes
                     ->group(base_path('routes/tenant.php'));

@@ -19,17 +19,33 @@ class UserRoleController extends Controller
     use HasSpacePermissions;
 
     /**
+     * Get the current space from domain.
+     */
+    protected function getCurrentSpaceFromDomain(): Space
+    {
+        $domain = \Stancl\Tenancy\Database\Models\Domain::where('domain', request()->getHost())->first();
+        if (!$domain) {
+            abort(404);
+        }
+        $space = Space::find($domain->tenant_id);
+        if (!$space) {
+            abort(404);
+        }
+        return $space;
+    }
+
+    /**
      * Display a listing of users in the current space.
      */
     public function index()
     {
-        $this->authorize('invite', tenant());
+        $space = $this->getCurrentSpaceFromDomain();
+        $this->authorize('invite', $space);
 
-        $users = tenant()->users()
-            ->with('pivot')
+        $users = $space->users()
             ->get()
-            ->map(function ($user) {
-                $spaceUser = $this->getSpaceUser($user);
+            ->map(function ($user) use ($space) {
+                $spaceUser = $this->getSpaceUser($user, $space);
 
                 return [
                     'id' => $user->id,
@@ -37,12 +53,12 @@ class UserRoleController extends Controller
                     'email' => $user->email,
                     'role' => $spaceUser ? $spaceUser->role->value : null,
                     'role_label' => $spaceUser && $spaceUser->role ? $spaceUser->role->label() : null,
-                    'is_owner' => $user->id === tenant()->owner_id,
+                    'is_owner' => $user->id === $space->owner_id,
                     'joined_at' => $user->pivot ? $user->pivot->created_at->format('Y-m-d') : null,
                 ];
             });
 
-        $currentUser = $this->getSpaceUser(Auth::user());
+        $currentUser = $this->getSpaceUser(Auth::user(), $space);
         $canManageRoles = $currentUser && $currentUser->hasPermission(SpacePermission::MANAGE_USER_ROLES);
 
         return Inertia::render('Tenant/Users/Index', [

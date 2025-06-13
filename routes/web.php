@@ -82,66 +82,47 @@ Route::get('/set-locale/{locale}', [App\Http\Controllers\LocaleController::class
 // Appearance setter route
 Route::post('/appearance/{mode}', [App\Http\Controllers\AppearanceController::class, 'update'])->name('appearance.update');
 
+// Redirect /dashboard to /spaces when accessed from the main domain
 Route::get('/dashboard', function () {
-    // Get task statistics
-    $pendingTasks = \App\Models\Task::where('status', 'pending')->count();
-    $inProgressTasks = \App\Models\Task::where('status', 'in_progress')->count();
-    $completedTasks = \App\Models\Task::where('status', 'completed')->count();
-    $totalTasks = $pendingTasks + $inProgressTasks + $completedTasks;
-
-    // Get project statistics
-    $pendingProjects = \App\Models\Project::where('status', 'active')->count();
-    $completedProjects = \App\Models\Project::where('status', 'completed')->count();
-    $totalProjects = $pendingProjects + $completedProjects;
-
-    // Get recent tasks
-    $recentTasks = \App\Models\Task::with(['project'])
-        ->orderBy('created_at', 'desc')
-        ->take(5)
-        ->get()
-        ->map(function ($task) {
-            return [
-                'id' => $task->id,
-                'title' => $task->title,
-                'status' => $task->status,
-                'due_date' => $task->due_date,
-                'priority' => $task->priority,
-            ];
-        });
-
-    // Get overdue tasks
-    $overdueTasks = \App\Models\Task::with(['project'])
-        ->where('status', '!=', 'completed')
-        ->where('due_date', '<', now())
-        ->get()
-        ->map(function ($task) {
-            return [
-                'id' => $task->id,
-                'title' => $task->title,
-                'due_date' => $task->due_date,
-                'project_id' => $task->project_id,
-                'project_name' => $task->project->name,
-            ];
-        });
-
-    return Inertia::render('dashboard', [
-        'stats' => [
-            'pending_tasks' => $pendingTasks,
-            'in_progress_tasks' => $inProgressTasks,
-            'completed_tasks' => $completedTasks,
-            'total_tasks' => $totalTasks,
-            'pending_projects' => $pendingProjects,
-            'completed_projects' => $completedProjects,
-            'total_projects' => $totalProjects,
-            'recent_tasks' => $recentTasks,
-            'overdue_tasks' => $overdueTasks,
-        ],
-    ]);
+    return redirect()->route('spaces.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Stripe Webhooks - exempt from CSRF protection
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
     ->name('cashier.webhook');
+
+// Ruta de teleport para cambiar entre espacios
+Route::get('/teleport/{space}', function ($space) {
+    // La lógica está en el middleware TeleportToSpace
+    return redirect()->route('tenant.dashboard');
+})->middleware(['auth', 'teleport'])->name('teleport');
+
+// Ruta de logout global
+Route::post('/logout/all', [App\Http\Controllers\Auth\LogoutController::class, 'logoutAll'])
+    ->middleware('auth')
+    ->name('logout.all');
+
+// API para obtener espacios del usuario actual
+Route::get('/api/my-spaces', function () {
+    try {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+        
+        $spaces = app(App\Services\SpaceSwitcherService::class)
+            ->getSpacesForUser($user);
+            
+        return response()->json($spaces);
+    } catch (\Exception $e) {
+        \Log::error('Error in /api/my-spaces', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json(['error' => 'Internal server error'], 500);
+    }
+})->middleware(['auth'])->name('api.my-spaces');
 
 Route::middleware('auth')->group(function () {
     // Profile Routes
@@ -151,6 +132,7 @@ Route::middleware('auth')->group(function () {
 
     // Space Routes
     Route::resource('spaces', SpaceController::class);
+    Route::get('/spaces/{id}/access', [SpaceController::class, 'access'])->name('spaces.access');
     Route::post('/spaces/{id}/invite', [SpaceController::class, 'invite'])->name('spaces.invite');
     Route::delete('/spaces/{spaceId}/users/{userId}', [SpaceController::class, 'removeUser'])->name('spaces.users.destroy');
 

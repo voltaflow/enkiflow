@@ -55,8 +55,6 @@ export function useBroadcastSync(channelName: string = 'enkiflow_sync') {
     }, [channelName]);
 
     const handleBroadcastMessage = useCallback((message: BroadcastMessage) => {
-        console.log('Received broadcast message:', message);
-
         switch (message.type) {
             case 'timer_started':
             case 'timer_stopped':
@@ -83,13 +81,13 @@ export function useBroadcastSync(channelName: string = 'enkiflow_sync') {
                 break;
 
             default:
-                console.log('Unknown broadcast message type:', message.type);
+                // Unknown message type - ignore
+                break;
         }
     }, []);
 
     const broadcast = useCallback((type: BroadcastMessage['type'], payload: any = {}) => {
         if (!channelRef.current) {
-            console.warn('BroadcastChannel not available');
             return;
         }
 
@@ -102,7 +100,6 @@ export function useBroadcastSync(channelName: string = 'enkiflow_sync') {
 
         try {
             channelRef.current.postMessage(message);
-            console.log('Broadcast message sent:', message);
         } catch (error) {
             console.error('Failed to broadcast message:', error);
         }

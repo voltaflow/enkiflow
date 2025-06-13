@@ -40,8 +40,8 @@ interface TimerWidgetProps {
 export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidgetProps) {
     const [timer, setTimer] = useState<Timer | null>(null);
     const [description, setDescription] = useState('');
-    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
-    const [selectedTaskId, setSelectedTaskId] = useState<string>('');
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('none');
+    const [selectedTaskId, setSelectedTaskId] = useState<string>('none');
     const [displayTime, setDisplayTime] = useState('00:00:00');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -84,8 +84,8 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
             if (response.data.timer) {
                 setTimer(response.data.timer);
                 setDescription(response.data.timer.description || '');
-                setSelectedProjectId(response.data.timer.project_id?.toString() || '');
-                setSelectedTaskId(response.data.timer.task_id?.toString() || '');
+                setSelectedProjectId(response.data.timer.project_id?.toString() || 'none');
+                setSelectedTaskId(response.data.timer.task_id?.toString() || 'none');
             }
         } catch (err) {
             console.error('Failed to fetch current timer:', err);
@@ -106,8 +106,8 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         try {
             const response = await axios.post('/api/timer/start', {
                 description,
-                project_id: selectedProjectId ? parseInt(selectedProjectId) : null,
-                task_id: selectedTaskId ? parseInt(selectedTaskId) : null,
+                project_id: selectedProjectId && selectedProjectId !== 'none' ? parseInt(selectedProjectId) : null,
+                task_id: selectedTaskId && selectedTaskId !== 'none' ? parseInt(selectedTaskId) : null,
             });
 
             setTimer(response.data.timer);
@@ -161,8 +161,8 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
             const response = await axios.post(`/api/timer/${timer.id}/stop`);
             setTimer(null);
             setDescription('');
-            setSelectedProjectId('');
-            setSelectedTaskId('');
+            setSelectedProjectId('none');
+            setSelectedTaskId('none');
 
             notifyTimerStopped(timer, response.data.time_entry);
 
@@ -182,15 +182,15 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         try {
             await axios.put(`/api/timer/${timer.id}`, {
                 description,
-                project_id: selectedProjectId ? parseInt(selectedProjectId) : null,
-                task_id: selectedTaskId ? parseInt(selectedTaskId) : null,
+                project_id: selectedProjectId && selectedProjectId !== 'none' ? parseInt(selectedProjectId) : null,
+                task_id: selectedTaskId && selectedTaskId !== 'none' ? parseInt(selectedTaskId) : null,
             });
         } catch (err) {
             console.error('Failed to update timer:', err);
         }
     };
 
-    const filteredTasks = selectedProjectId ? tasks.filter((task) => task.project_id === parseInt(selectedProjectId)) : tasks;
+    const filteredTasks = selectedProjectId && selectedProjectId !== 'none' ? tasks.filter((task) => task.project_id === parseInt(selectedProjectId)) : tasks;
 
     return (
         <Card className="w-full">
@@ -218,7 +218,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                                 <SelectValue placeholder="Select project" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">No project</SelectItem>
+                                <SelectItem value="none">No project</SelectItem>
                                 {projects.map((project) => (
                                     <SelectItem key={project.id} value={project.id.toString()}>
                                         {project.name}
@@ -227,12 +227,12 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                             </SelectContent>
                         </Select>
 
-                        <Select value={selectedTaskId} onValueChange={setSelectedTaskId} disabled={loading || !selectedProjectId}>
+                        <Select value={selectedTaskId} onValueChange={setSelectedTaskId} disabled={loading || !selectedProjectId || selectedProjectId === 'none'}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select task" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">No task</SelectItem>
+                                <SelectItem value="none">No task</SelectItem>
                                 {filteredTasks.map((task) => (
                                     <SelectItem key={task.id} value={task.id.toString()}>
                                         {task.title}

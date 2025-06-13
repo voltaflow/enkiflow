@@ -68,6 +68,27 @@ export default function Show({ space, is_owner, member_count }: ShowProps) {
         role: 'member',
     });
 
+    // Function to get space access URL
+    const getSpaceAccessUrl = () => {
+        // Get the current protocol (http or https)
+        const protocol = window.location.protocol;
+
+        // Check if space has a custom domain
+        const customDomain = space.domains && space.domains.length > 0 ? space.domains[0].domain : null;
+
+        if (customDomain) {
+            // Use custom domain if available
+            return `${protocol}//${customDomain}`;
+        }
+
+        // Otherwise, use subdomain based on space ID
+        const currentHost = window.location.hostname;
+        const baseDomain = currentHost.includes('.') ? currentHost.substring(currentHost.indexOf('.')) : '.enkiflow.test';
+
+        // Generate subdomain URL (e.g., space-id.enkiflow.test)
+        return `${protocol}//${space.id}${baseDomain}`;
+    };
+
     const deleteForm = useForm({});
 
     const handleInviteSubmit = (e: FormEvent) => {
@@ -119,7 +140,7 @@ export default function Show({ space, is_owner, member_count }: ShowProps) {
                             </>
                         )}
                         <Button asChild>
-                            <a href={primaryDomain ? `http://${primaryDomain}` : `/${space.id}`}>Acceder al Espacio</a>
+                            <a href={getSpaceAccessUrl()}>Acceder al Espacio</a>
                         </Button>
                     </div>
                 </div>

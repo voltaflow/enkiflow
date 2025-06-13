@@ -30,9 +30,10 @@ class TenantCreator
             'status' => 'active',
         ]);
 
-        // Create the domain
+        // Create the domain with full subdomain
+        $fullDomain = $subdomain . '.enkiflow.test';
         $space->domains()->create([
-            'domain' => $subdomain,
+            'domain' => $fullDomain,
         ]);
 
         // Add the owner to the space with admin role

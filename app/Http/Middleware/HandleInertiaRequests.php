@@ -39,13 +39,23 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        return [
+        $sharedData = [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                    'email' => $request->user()->email,
+                ] : null,
             ],
+            'flash' => [
+                'message' => fn () => $request->session()->get('message'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
+            'csrf_token' => csrf_token(),
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
@@ -56,5 +66,35 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+
+        // Añadir información del espacio actual si estamos en un tenant
+        if (function_exists('tenant') && tenant()) {
+            $currentSpace = tenant();
+            $sharedData['currentSpace'] = [
+                'id' => $currentSpace->id,
+                'name' => $currentSpace->name,
+                'domains' => $currentSpace->domains->map(function ($domain) {
+                    return ['domain' => $domain->domain];
+                }),
+            ];
+            
+            // Mantener la información del tenant por compatibilidad
+            $sharedData['tenant'] = [
+                'id' => tenant('id'),
+                'name' => tenant('name'),
+                'domains' => tenant()->domains()->get(['domain'])->toArray(),
+            ];
+            
+            // Si el usuario está autenticado, añadir todos sus espacios para el switcher
+            if ($request->user()) {
+                $sharedData['userSpaces'] = $request->user()
+                    ->spaces()
+                    ->with('domains')
+                    ->get(['tenants.id', 'tenants.name'])
+                    ->toArray();
+            }
+        }
+
+        return $sharedData;
     }
 }

@@ -15,7 +15,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * Typically, users are redirected here after authentication.
      */
-    public const HOME = '/dashboard';
+    public const HOME = '/spaces';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -27,21 +27,7 @@ class RouteServiceProvider extends ServiceProvider
         });
 
         $this->routes(function () {
-            // Primero verificamos si estamos en un subdominio de tenant
-            $host = request()->getHost();
-            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-            $isMainDomain = in_array($host, $mainDomains);
-
-            // Si NO estamos en un dominio principal, cargamos primero las rutas de tenant
-            if (! $isMainDomain) {
-                // Cargamos las rutas de tenant primero para subdominios
-                if (file_exists(base_path('routes/tenant.php'))) {
-                    Route::middleware('web')
-                        ->group(base_path('routes/tenant.php'));
-                }
-            }
-
-            // Luego cargamos las rutas web normales
+            // Cargar las rutas web (siempre)
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 

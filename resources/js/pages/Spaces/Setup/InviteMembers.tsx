@@ -21,6 +21,11 @@ interface InviteItem {
 export default function InviteMembers({ name, subdomain, plan }: InviteMembersProps) {
     const [loading, setLoading] = useState(false);
     const [invites, setInvites] = useState<InviteItem[]>([{ email: '', role: 'member' }]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const getError = (field: string): string | undefined => {
+        return errors[field];
+    };
 
     const addInvite = () => {
         setInvites([...invites, { email: '', role: 'member' }]);
@@ -110,6 +115,9 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                                                     onChange={(e) => updateInvite(index, 'email', e.target.value)}
                                                     placeholder="email@example.com"
                                                 />
+                                                {getError(`invites.${index}.email`) && (
+                                                    <div className="text-sm text-red-500">{getError(`invites.${index}.email`)}</div>
+                                                )}
                                             </div>
                                             <div className="w-32">
                                                 <Label htmlFor={`role-${index}`} className="sr-only">
@@ -126,6 +134,9 @@ export default function InviteMembers({ name, subdomain, plan }: InviteMembersPr
                                                     <option value="member">Miembro</option>
                                                     <option value="guest">Invitado</option>
                                                 </select>
+                                                {getError(`invites.${index}.role`) && (
+                                                    <div className="text-sm text-red-500">{getError(`invites.${index}.role`)}</div>
+                                                )}
                                             </div>
                                             <Button
                                                 type="button"

@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class CustomAuthenticate extends Middleware
 {
@@ -18,18 +17,7 @@ class CustomAuthenticate extends Middleware
      */
     protected function authenticate($request, array $guards)
     {
-        // Check if this is a main domain
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-        $isMainDomain = in_array($request->getHost(), $mainDomains);
-
-        // For main domains, just log and allow access without authentication
-        if ($isMainDomain) {
-            Log::info('CustomAuthenticate: Bypassing authentication for main domain: '.$request->getHost());
-
-            return;
-        }
-
-        // Otherwise proceed with standard authentication
+        // Always proceed with standard authentication
         parent::authenticate($request, $guards);
     }
 
@@ -38,19 +26,17 @@ class CustomAuthenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        // Check if this is a main domain
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
-        $isMainDomain = in_array($request->getHost(), $mainDomains);
-
-        // For main domains, don't redirect
-        if ($isMainDomain) {
-            Log::info('CustomAuthenticate: Not redirecting for main domain: '.$request->getHost());
-
+        if ($request->expectsJson() || $request->header('X-Inertia')) {
             return null;
         }
-
-        Log::info('CustomAuthenticate: Redirecting to login for subdomain: '.$request->getHost());
-
+        
+        // Si estamos en un subdominio, redirigir al dominio principal para login
+        $mainDomains = config('tenancy.central_domains', ['enkiflow.test']);
+        if (!in_array($request->getHost(), $mainDomains)) {
+            $mainDomain = $mainDomains[0] ?? 'enkiflow.test';
+            return "https://{$mainDomain}/login";
+        }
+        
         return route('login');
     }
 }

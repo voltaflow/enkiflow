@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class SpaceUser extends Pivot
 {
     /**
+     * The database connection that should be used by the model.
+     *
+     * @var string
+     */
+    protected $connection = 'central';
+
+    /**
      * Indicates if the IDs are auto-incrementing.
      *
      * @var bool
