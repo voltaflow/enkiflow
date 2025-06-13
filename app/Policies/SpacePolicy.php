@@ -7,9 +7,11 @@ use App\Enums\SpaceRole;
 use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\User;
+use App\Policies\Traits\ResolvesCurrentSpace;
 
 class SpacePolicy
 {
+    use ResolvesCurrentSpace;
     /**
      * Get the SpaceUser record for the given user and space.
      */

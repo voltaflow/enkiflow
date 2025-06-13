@@ -16,6 +16,13 @@ class User extends Authenticatable
     use Billable, HasFactory, Notifiable;
 
     /**
+     * The database connection that should be used by the model.
+     *
+     * @var string
+     */
+    protected $connection = 'central';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

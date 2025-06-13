@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureUserHasTenantAccess;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PublicLandingPageAccess;
+use App\Http\Middleware\RedirectToSpaceSubdomain;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Asegurar que el dominio de sesión esté configurado antes que todo
+        $middleware->prepend(\App\Http\Middleware\EnsureSessionDomain::class);
+        
         // Prioritize our public landing page access middleware above everything else
         // This ensures main domains always show the landing page without auth redirects
         $middleware->prepend(PublicLandingPageAccess::class);
@@ -57,11 +61,14 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             HandleAppearance::class,
             SetLocale::class,
+            RedirectToSpaceSubdomain::class,
+            \App\Http\Middleware\LogRequests::class,
         ]);
 
         $middleware->alias([
             'tenant.access' => EnsureUserHasTenantAccess::class,
             'auth' => CustomAuthenticate::class, // Reemplazar el middleware de autenticación por defecto
+            'teleport' => \App\Http\Middleware\TeleportToSpace::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

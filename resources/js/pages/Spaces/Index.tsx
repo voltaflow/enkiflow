@@ -47,17 +47,7 @@ interface IndexProps {
 }
 
 export default function Index({ owned_spaces, member_spaces }: IndexProps) {
-    // Function to get URL for a space
-    const getSpaceUrl = (space: Space) => {
-        const domain = space.domains && space.domains.length > 0 ? space.domains[0].domain : null;
-
-        if (domain) {
-            return `http://${domain}`;
-        }
-
-        return route('spaces.show', space.id);
-    };
-
+    
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Espacios" />
@@ -113,7 +103,7 @@ export default function Index({ owned_spaces, member_spaces }: IndexProps) {
                                             <div className="mb-1 text-sm">
                                                 <span className="font-medium">Dominio: </span>
                                                 <a
-                                                    href={`http://${space.domains[0].domain}`}
+                                                    href={`https://${space.domains[0].domain}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-blue-600 hover:underline dark:text-blue-400"
@@ -124,11 +114,16 @@ export default function Index({ owned_spaces, member_spaces }: IndexProps) {
                                         )}
                                     </CardContent>
 
-                                    <CardFooter className="grid grid-cols-2 gap-2 pt-4">
-                                        <Button variant="default" className="w-full" asChild>
-                                            <a href={getSpaceUrl(space)}>Acceder</a>
-                                        </Button>
-                                        <Button variant="outline" className="w-full" asChild>
+                                    <CardFooter className="flex flex-col gap-2 pt-4">
+                                        <div className="grid w-full grid-cols-2 gap-2">
+                                            <Button variant="default" className="w-full" asChild>
+                                                <a href={`${route('spaces.access', space.id)}?remember=1`}>Acceder y recordar</a>
+                                            </Button>
+                                            <Button variant="outline" className="w-full" asChild>
+                                                <a href={route('spaces.access', space.id)}>Solo acceder</a>
+                                            </Button>
+                                        </div>
+                                        <Button variant="secondary" className="w-full" asChild>
                                             <Link href={route('spaces.show', space.id)}>Administrar</Link>
                                         </Button>
                                     </CardFooter>
@@ -158,7 +153,7 @@ export default function Index({ owned_spaces, member_spaces }: IndexProps) {
                                             <div className="mb-1 text-sm">
                                                 <span className="font-medium">Dominio: </span>
                                                 <a
-                                                    href={`http://${space.domains[0].domain}`}
+                                                    href={`https://${space.domains[0].domain}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-blue-600 hover:underline dark:text-blue-400"
@@ -169,9 +164,13 @@ export default function Index({ owned_spaces, member_spaces }: IndexProps) {
                                         )}
                                     </CardContent>
 
-                                    <CardFooter>
+                                    <CardFooter className="grid grid-cols-1 gap-2 pt-4">
                                         <Button variant="default" className="w-full" asChild>
-                                            <a href={getSpaceUrl(space)}>Acceder</a>
+                                            <a href={`${route('spaces.access', space.id)}?remember=1`}>Acceder y recordar</a>
+                                        </Button>
+
+                                        <Button variant="outline" className="w-full" asChild>
+                                            <a href={route('spaces.access', space.id)}>Solo acceder</a>
                                         </Button>
                                     </CardFooter>
                                 </Card>

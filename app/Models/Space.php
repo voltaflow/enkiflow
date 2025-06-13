@@ -18,6 +18,13 @@ class Space extends BaseTenant implements TenantWithDatabase
     public static $domainModel = \Stancl\Tenancy\Database\Models\Domain::class;
 
     /**
+     * The database connection that should be used by the model.
+     *
+     * @var string
+     */
+    protected $connection = 'central';
+
+    /**
      * The table associated with the model.
      */
     protected $table = 'tenants';
@@ -51,8 +58,6 @@ class Space extends BaseTenant implements TenantWithDatabase
         $subdomain = $segments[0] ?? null;
 
         if ($subdomain) {
-            \Log::info("Buscando tenant para subdominio: {$subdomain}");
-
             // Buscar primero por dominio exacto
             $tenant = static::whereHas('domains', function ($query) use ($domain) {
                 $query->where('domain', $domain);

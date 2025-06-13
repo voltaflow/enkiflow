@@ -7,15 +7,25 @@ use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\Task;
 use App\Models\User;
+use App\Policies\Traits\ResolvesCurrentSpace;
 
 class TaskPolicy
 {
+    use ResolvesCurrentSpace;
     /**
      * Get the SpaceUser record for the given user and task's space.
      */
     protected function getSpaceUser(User $user, ?Task $task = null): ?SpaceUser
     {
-        $space = Space::find(tenant('id'));
+        $space = $this->getCurrentSpace();
+        
+        \Log::debug('TaskPolicy::getSpaceUser', [
+            'user_id' => $user->id,
+            'space_found' => $space ? 'yes' : 'no',
+            'space_id' => $space ? $space->id : null,
+            'space_owner_id' => $space ? $space->owner_id : null,
+            'is_owner' => $space ? ($user->id === $space->owner_id) : false,
+        ]);
 
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($space && $user->id === $space->owner_id) {
@@ -36,12 +46,15 @@ class TaskPolicy
      */
     public function viewAny(User $user): bool
     {
-        $space = Space::find(tenant('id'));
-        if (! $space) {
-            return false;
-        }
-
         $spaceUser = $this->getSpaceUser($user);
+        
+        \Log::debug('TaskPolicy::viewAny', [
+            'user_id' => $user->id,
+            'space_user_found' => $spaceUser ? 'yes' : 'no',
+            'space_user_role' => $spaceUser ? $spaceUser->role->value : null,
+            'has_permission' => $spaceUser ? $spaceUser->hasPermission(SpacePermission::VIEW_ALL_TASKS) : false,
+            'space_id' => $spaceUser ? $spaceUser->tenant_id : null,
+        ]);
 
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_ALL_TASKS);
     }
@@ -67,11 +80,6 @@ class TaskPolicy
      */
     public function create(User $user): bool
     {
-        $space = Space::find(tenant('id'));
-        if (! $space) {
-            return false;
-        }
-
         $spaceUser = $this->getSpaceUser($user);
 
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::CREATE_TASKS);

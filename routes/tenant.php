@@ -8,6 +8,7 @@ use App\Http\Controllers\Tenant\TaskController;
 use App\Http\Controllers\Tenant\TimeEntryController;
 use App\Http\Controllers\Tenant\TimerController;
 use App\Http\Controllers\Tenant\WeeklyTimesheetController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,7 +25,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware([
     'web',
-    \App\Http\Middleware\CustomDomainTenancyInitializer::class, // Use our custom initializer
+    \App\Http\Middleware\ShareSessionAcrossDomains::class, // Primero compartir sesiones
+    \App\Http\Middleware\CustomDomainTenancyInitializer::class, // Luego inicializar tenant
     \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
     \App\Http\Middleware\EnsureTenantUrl::class, // Asegurar URLs correctas para tenant
     // NO incluir EnsureValidTenant aquí - se incluirá solo en rutas autenticadas
@@ -35,6 +37,70 @@ Route::middleware([
     Route::get('/', function () {
         return redirect()->route('tenant.dashboard');
     })->name('tenant.root');
+    
+    // Nueva ruta de autologin simplificada
+    Route::get('/autologin/{token}', function ($token) {
+        // Buscar el token en Redis conexión compartida
+        $redis = \Illuminate\Support\Facades\Redis::connection('shared');
+        $redisKey = 'autologin:' . $token;
+        
+        $tokenData = $redis->get($redisKey);
+        
+        if (!$tokenData) {
+            abort(404);
+        }
+        
+        $authData = json_decode($tokenData, true);
+        
+        // Verificar expiración
+        if ($authData['expires_at'] < time()) {
+            \Illuminate\Support\Facades\Redis::connection('shared')->del('autologin:' . $token);
+            abort(404);
+        }
+        
+        // Obtener el usuario
+        $user = \App\Models\User::find($authData['user_id']);
+        if (!$user) {
+            abort(404);
+        }
+        
+        // Obtener el espacio actual desde el dominio
+        $currentDomain = request()->getHost();
+        $domain = \Stancl\Tenancy\Database\Models\Domain::where('domain', $currentDomain)->first();
+        $currentSpaceId = $domain ? $domain->tenant_id : null;
+        
+        if ($currentSpaceId !== $authData['space_id']) {
+            abort(404);
+        }
+        
+        // Verificar acceso del usuario al espacio
+        $hasAccess = $user->spaces()
+            ->where('tenant_id', $authData['space_id'])
+            ->exists();
+            
+        if (!$hasAccess) {
+            abort(403);
+        }
+        
+        // Autenticar al usuario
+        \Illuminate\Support\Facades\Auth::login($user, true);
+        
+        // Regenerar sesión por seguridad
+        request()->session()->regenerate();
+        
+        // Inicializar el tenant para la sesión actual
+        $space = \App\Models\Space::find($authData['space_id']);
+        if ($space) {
+            tenancy()->initialize($space);
+            session(['current_space_id' => $space->id]);
+        }
+        
+        // Eliminar el token usado
+        \Illuminate\Support\Facades\Redis::connection('shared')->del('autologin:' . $token);
+        
+        // Redirigir al dashboard
+        return redirect()->route('tenant.dashboard');
+    })->name('tenant.autologin');
 
     // Require authentication and tenant access for tenant routes
     Route::middleware(['auth', 'tenant.access'])->group(function () {

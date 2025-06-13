@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -19,19 +20,24 @@ class SpaceController extends Controller
      */
     public function index(): Response
     {
-        $ownedSpaces = Auth::user()->ownedSpaces()->with(['users' => function ($query) {
-            $query->select('users.id', 'name', 'email');
-        }])->get();
+        
+        $ownedSpaces = Auth::user()->ownedSpaces()->with([
+            'users' => function ($query) {
+                $query->select('users.id', 'name', 'email');
+            },
+            'domains'
+        ])->get();
 
         $memberSpaces = Auth::user()
             ->spaces()
-            ->wherePivot('role', '!=', 'admin')
-            ->with(['owner:id,name,email'])
+            ->wherePivotNotIn('role', ['admin', 'owner'])
+            ->with(['owner:id,name,email', 'domains'])
             ->get();
 
+
         return Inertia::render('Spaces/Index', [
-            'owned_spaces' => $ownedSpaces,
-            'member_spaces' => $memberSpaces,
+            'owned_spaces' => $ownedSpaces->load('domains'),
+            'member_spaces' => $memberSpaces->load('domains'),
         ]);
     }
 
@@ -161,6 +167,31 @@ class SpaceController extends Controller
 
         return redirect()->route('spaces.index')
             ->with('success', 'Space deleted successfully.');
+    }
+
+    /**
+     * Acceder a un espacio específico.
+     */
+    public function access(string $id): RedirectResponse
+    {
+        // Buscar el espacio con sus dominios
+        $space = Space::with('domains')->findOrFail($id);
+        
+        // Verificar que el usuario tenga permiso para ver este espacio
+        $this->authorize('view', $space);
+        
+        // Actualizar la fecha de último acceso
+        Auth::user()->spaces()->updateExistingPivot($space->id, [
+            'last_accessed_at' => now(),
+        ]);
+        
+        // Si el usuario quiere recordar este espacio, guardar una cookie
+        if (request()->has('remember')) {
+            Cookie::queue('auto_redirect', 'true', 43200); // 30 días
+        }
+        
+        // Usar la nueva ruta teleport
+        return redirect()->route('teleport', ['space' => $space->id]);
     }
 
     /**

@@ -28,21 +28,35 @@ trait HasSpacePermissions
         if (! $space) {
             return null;
         }
+        
+        // Ensure we have a Space model instance
+        if (is_string($space)) {
+            $space = Space::find($space);
+            if (!$space) {
+                return null;
+            }
+        }
 
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($user->id === $space->owner_id) {
-            $spaceUser = app(SpaceUser::class);
-            $spaceUser->tenant_id = $space->id;
+            $spaceUser = new SpaceUser();
+            $spaceUser->tenant_id = (string)$space->getKey();
             $spaceUser->user_id = $user->id;
             $spaceUser->role = SpaceRole::OWNER;
 
             return $spaceUser;
         }
 
-        $cacheKey = "space_user:{$space->id}:{$user->id}";
+        $spaceId = (string)$space->getKey();
+        $cacheKey = "space_user:{$spaceId}:{$user->id}";
 
-        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($space, $user) {
-            return $space->users()->where('user_id', $user->id)->first();
+        return Cache::remember($cacheKey, now()->addMinutes(30), function () use ($spaceId, $user) {
+            // Use the central database connection to check space membership
+            $spaceUser = SpaceUser::where('tenant_id', $spaceId)
+                ->where('user_id', $user->id)
+                ->first();
+            
+            return $spaceUser;
         });
     }
 

@@ -7,15 +7,17 @@ use App\Models\Project;
 use App\Models\Space;
 use App\Models\SpaceUser;
 use App\Models\User;
+use App\Policies\Traits\ResolvesCurrentSpace;
 
 class ProjectPolicy
 {
+    use ResolvesCurrentSpace;
     /**
      * Get the SpaceUser record for the given user and project's space.
      */
-    protected function getSpaceUser(User $user, Project $project): ?SpaceUser
+    protected function getSpaceUser(User $user, ?Project $project = null): ?SpaceUser
     {
-        $space = Space::find(tenant('id'));
+        $space = $this->getCurrentSpace();
 
         // If the user is the owner, create a virtual SpaceUser with the owner role
         if ($space && $user->id === $space->owner_id) {
@@ -36,12 +38,7 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        $space = Space::find(tenant('id'));
-        if (! $space) {
-            return false;
-        }
-
-        $spaceUser = $this->getSpaceUser($user, null);
+        $spaceUser = $this->getSpaceUser($user);
 
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::VIEW_ALL_PROJECTS);
     }
@@ -67,12 +64,7 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        $space = Space::find(tenant('id'));
-        if (! $space) {
-            return false;
-        }
-
-        $spaceUser = $this->getSpaceUser($user, null);
+        $spaceUser = $this->getSpaceUser($user);
 
         return $spaceUser && $spaceUser->hasPermission(SpacePermission::CREATE_PROJECTS);
     }
