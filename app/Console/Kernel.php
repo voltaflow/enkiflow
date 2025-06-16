@@ -72,6 +72,19 @@ class Kernel extends ConsoleKernel
                  ->appendOutputTo(storage_path('logs/tenant-cleanup.log'));
 
         // ===================================
+        // AGREGACIÓN DE ACTIVIDADES
+        // ===================================
+        
+        // Agregar datos de actividad cada 6 horas para optimizar reportes
+        $schedule->command('time-entries:aggregate-activities --days=1')
+                 ->everySixHours()
+                 ->name('aggregate-time-entry-activities')
+                 ->onOneServer()
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->appendOutputTo(storage_path('logs/activity-aggregation.log'));
+
+        // ===================================
         // MONITOREO Y SALUD
         // ===================================
         

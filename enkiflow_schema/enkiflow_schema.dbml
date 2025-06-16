@@ -218,13 +218,16 @@ Table comments {
 // Time entry categories
 Table time_categories {
   id int [pk, increment]
-  tenant_id varchar [ref: > tenants.id]
   name varchar
-  color varchar [default: '#3498db']
-  is_billable boolean [default: true]
+  color varchar [default: '#6366F1']
+  description text [null]
+  is_billable_default boolean [default: true]
   created_at timestamp
   updated_at timestamp
-  deleted_at timestamp [null]
+  
+  indexes {
+    name
+  }
 }
 
 // Time entries for tracking work
@@ -232,31 +235,79 @@ Table time_entries {
   id int [pk, increment]
   tenant_id varchar [ref: > tenants.id]
   user_id int [ref: > users.id]
+  weekly_timesheet_id int [ref: > weekly_timesheets.id, null]
+  parent_entry_id int [ref: > time_entries.id, null]
   project_id int [ref: > projects.id, null]
   task_id int [ref: > tasks.id, null]
-  time_category_id int [ref: > time_categories.id, null]
+  category_id int [ref: > time_categories.id, null]
   description text [null]
-  start_time timestamp
-  end_time timestamp [null] // Null if in progress
-  duration int [null] // In seconds, calculated or manual
+  started_at timestamp
+  ended_at timestamp [null] // Null if in progress
+  duration int [default: 0] // In seconds, calculated or manual
   is_billable boolean [default: true]
+  is_manual boolean [default: false]
   is_running boolean [default: false]
+  created_via varchar [default: 'manual'] // 'manual', 'timer', 'import', 'tracking'
+  created_from varchar [default: 'manual'] // 'timer', 'manual', 'import', 'template'
+  locked boolean [default: false]
+  locked_at timestamp [null]
+  locked_by int [null]
+  tags json [null]
+  metadata json [null] // activity aggregations and other metadata
+  hourly_rate decimal [null]
   created_at timestamp
   updated_at timestamp
   deleted_at timestamp [null]
+  
+  indexes {
+    (user_id, started_at)
+    (project_id, started_at)
+    (task_id, started_at)
+    (category_id, started_at)
+    (started_at, ended_at)
+    (is_billable, project_id)
+    weekly_timesheet_id
+    locked
+  }
+}
+
+// Weekly timesheets for time entries
+Table weekly_timesheets {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  week_start date
+  week_end date
+  total_hours decimal [default: 0]
+  status varchar [default: 'draft'] // 'draft', 'submitted', 'approved', 'rejected'
+  submitted_at timestamp [null]
+  approved_at timestamp [null]
+  approved_by int [null]
+  notes text [null]
+  created_at timestamp
+  updated_at timestamp
+  
+  indexes {
+    (user_id, week_start) [unique]
+  }
 }
 
 // Activity logs for time entries
 Table activity_logs {
   id int [pk, increment]
-  tenant_id varchar [ref: > tenants.id]
   user_id int [ref: > users.id]
   time_entry_id int [ref: > time_entries.id]
-  activity_type varchar // Type of detected activity
-  metadata json [null] // Additional activity data
+  activity_type varchar // 'keyboard', 'mouse', 'application_focus', 'idle'
+  metadata json [null] // Activity specific data
   timestamp timestamp
   created_at timestamp
   updated_at timestamp
+  
+  indexes {
+    (time_entry_id, timestamp)
+    (user_id, timestamp)
+    activity_type
+  }
 }
 
 // REPORTS AND DASHBOARDS
@@ -387,6 +438,48 @@ Table webhook_endpoints {
   updated_at timestamp
 }
 
+// Application sessions for automatic time tracking
+Table application_sessions {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  linked_time_entry_id int [ref: > time_entries.id, null]
+  application_name varchar
+  window_title text [null]
+  start_time timestamp
+  end_time timestamp [null]
+  duration int [default: 0]
+  idle_time int [default: 0]
+  metadata json [null]
+  created_at timestamp
+  updated_at timestamp
+  
+  indexes {
+    (user_id, start_time)
+    linked_time_entry_id
+  }
+}
+
+// Daily productivity summaries
+Table daily_summaries {
+  id int [pk, increment]
+  tenant_id varchar [ref: > tenants.id]
+  user_id int [ref: > users.id]
+  date date
+  total_tracked_time int [default: 0]
+  productive_time int [default: 0]
+  unproductive_time int [default: 0]
+  idle_time int [default: 0]
+  application_usage json [null]
+  hourly_breakdown json [null]
+  created_at timestamp
+  updated_at timestamp
+  
+  indexes {
+    (user_id, date) [unique]
+  }
+}
+
 // RELATIONSHIPS
 
 // A task can belong to a parent task (hierarchical)
@@ -395,6 +488,9 @@ Table webhook_endpoints {
 // Many-to-Many: User-Task assignments
 // Ref: task_assignees.task_id > tasks.id
 // Ref: task_assignees.user_id > users.id
+
+// Time entries can have parent entries for recurring entries
+// Ref: time_entries.parent_entry_id > time_entries.id
 
 // Polymorphic relationships (not directly represented in DBML but documented)
 // - taggables connects tags to any taggable entity

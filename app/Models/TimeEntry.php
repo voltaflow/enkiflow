@@ -196,6 +196,14 @@ class TimeEntry extends Model
     }
 
     /**
+     * Get the activity logs for this time entry.
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
      * Scope a query to only include time entries for a specific date range.
      */
     public function scopeBetween($query, $startDate, $endDate)

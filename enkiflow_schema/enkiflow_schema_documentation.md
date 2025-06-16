@@ -551,25 +551,24 @@ La implementación se basa en un enfoque de discriminador por ID, donde:
 | Columna | Tipo | Restricciones | Descripción |
 |---------|------|---------------|-------------|
 | id | int | PK, incremento automático | Identificador único de la categoría |
-| tenant_id | varchar | FK (tenants.id), NOT NULL | Tenant al que pertenece la categoría |
 | name | varchar | NOT NULL | Nombre de la categoría |
-| color | varchar | DEFAULT: '#3498db' | Color para representación visual |
-| is_billable | boolean | DEFAULT: true | Indica si el tiempo en esta categoría es facturable |
+| color | varchar | DEFAULT: '#6366F1' | Color para representación visual |
+| description | text | NULL | Descripción de la categoría |
+| is_billable_default | boolean | DEFAULT: true | Indica si el tiempo en esta categoría es facturable por defecto |
 | created_at | timestamp | NOT NULL | Momento de creación del registro |
 | updated_at | timestamp | NOT NULL | Momento de última actualización |
-| deleted_at | timestamp | NULL | Para implementar soft deletes |
 
 **Índices**:
 - Clave primaria: `id`
-- Clave foránea: `tenant_id` referencia `tenants.id`
+- Índice: `name`
 
 **Relaciones**:
-- Muchos-a-uno con `tenants`
-- Uno-a-muchos con `time_entries`
+- Uno-a-muchos con `time_entries` (a través del campo category_id)
 
 **Notas**:
-- El campo `is_billable` facilita la separación de tiempo facturable y no facturable
+- El campo `is_billable_default` establece el valor por defecto para `is_billable` en time_entries
 - Las categorías permiten análisis más detallado del tiempo dedicado
+- Esta tabla ya no incluye tenant_id ya que las categorías son específicas del contexto del tenant
 
 #### Tabla: `time_entries`
 
@@ -580,26 +579,47 @@ La implementación se basa en un enfoque de discriminador por ID, donde:
 | id | int | PK, incremento automático | Identificador único de la entrada |
 | tenant_id | varchar | FK (tenants.id), NOT NULL | Tenant al que pertenece la entrada |
 | user_id | int | FK (users.id), NOT NULL | Usuario que registró el tiempo |
+| weekly_timesheet_id | int | FK (weekly_timesheets.id), NULL | Timesheet semanal asociado (opcional) |
+| parent_entry_id | int | FK (time_entries.id), NULL | Entrada padre para entradas recurrentes |
 | project_id | int | FK (projects.id), NULL | Proyecto asociado (opcional) |
 | task_id | int | FK (tasks.id), NULL | Tarea asociada (opcional) |
-| time_category_id | int | FK (time_categories.id), NULL | Categoría asociada (opcional) |
+| category_id | int | FK (time_categories.id), NULL | Categoría asociada (opcional) |
 | description | text | NULL | Descripción de la actividad |
-| start_time | timestamp | NOT NULL | Momento de inicio |
-| end_time | timestamp | NULL | Momento de finalización (NULL si en progreso) |
-| duration | int | NULL | Duración en segundos (calculado o manual) |
+| started_at | timestamp | NOT NULL | Momento de inicio |
+| ended_at | timestamp | NULL | Momento de finalización (NULL si en progreso) |
+| duration | int | DEFAULT: 0 | Duración en segundos (calculado o manual) |
 | is_billable | boolean | DEFAULT: true | Indica si es tiempo facturable |
+| is_manual | boolean | DEFAULT: false | Indica si fue entrada manual |
 | is_running | boolean | DEFAULT: false | Indica si el temporizador está activo |
+| created_via | enum | DEFAULT: 'manual' | Origen de creación ('manual', 'timer', 'import', 'tracking') |
+| created_from | enum | DEFAULT: 'manual' | Tipo de creación ('timer', 'manual', 'import', 'template') |
+| locked | boolean | DEFAULT: false | Indica si la entrada está bloqueada para edición |
+| locked_at | timestamp | NULL | Momento del bloqueo |
+| locked_by | int | NULL | Usuario que bloqueó la entrada |
+| tags | json | NULL | Etiquetas aplicadas a la entrada |
+| metadata | json | NULL | Datos de actividad, inactividad, y otros metadatos |
+| hourly_rate | decimal | NULL | Tarifa por hora específica para esta entrada |
 | created_at | timestamp | NOT NULL | Momento de creación del registro |
 | updated_at | timestamp | NOT NULL | Momento de última actualización |
 | deleted_at | timestamp | NULL | Para implementar soft deletes |
 
 **Índices**:
 - Clave primaria: `id`
+- Índice compuesto: `(user_id, started_at)`
+- Índice compuesto: `(project_id, started_at)`
+- Índice compuesto: `(task_id, started_at)`
+- Índice compuesto: `(category_id, started_at)`
+- Índice compuesto: `(started_at, ended_at)`
+- Índice compuesto: `(is_billable, project_id)`
+- Índice: `weekly_timesheet_id`
+- Índice: `locked`
 - Clave foránea: `tenant_id` referencia `tenants.id`
 - Clave foránea: `user_id` referencia `users.id`
 - Clave foránea: `project_id` referencia `projects.id`
 - Clave foránea: `task_id` referencia `tasks.id`
-- Clave foránea: `time_category_id` referencia `time_categories.id`
+- Clave foránea: `category_id` referencia `time_categories.id`
+- Clave foránea: `weekly_timesheet_id` referencia `weekly_timesheets.id`
+- Clave foránea: `parent_entry_id` referencia `time_entries.id`
 
 **Relaciones**:
 - Muchos-a-uno con `tenants`
@@ -607,13 +627,20 @@ La implementación se basa en un enfoque de discriminador por ID, donde:
 - Muchos-a-uno con `projects` (opcional)
 - Muchos-a-uno con `tasks` (opcional)
 - Muchos-a-uno con `time_categories` (opcional)
+- Muchos-a-uno con `weekly_timesheets` (opcional)
+- Muchos-a-uno consigo misma (parent_entry_id para entradas recurrentes)
+- Uno-a-muchos consigo misma (childEntries)
 - Uno-a-muchos con `activity_logs`
+- Uno-a-muchos con `application_sessions`
 
 **Notas**:
-- Las relaciones con `project_id`, `task_id` y `time_category_id` son opcionales para máxima flexibilidad
-- Si `end_time` es NULL, la entrada se considera en progreso con `is_running = true`
-- El campo `duration` puede calcularse como la diferencia entre `end_time` y `start_time` o introducirse manualmente
-- El campo `is_billable` puede heredarse de `time_categories.is_billable` pero puede modificarse individualmente
+- Las relaciones con `project_id`, `task_id` y `category_id` son opcionales para máxima flexibilidad
+- Si `ended_at` es NULL, la entrada se considera en progreso con `is_running = true`
+- El campo `duration` puede calcularse como la diferencia entre `ended_at` y `started_at` o introducirse manualmente
+- El campo `is_billable` puede heredarse de `time_categories.is_billable_default` pero puede modificarse individualmente
+- El campo JSON `metadata` puede contener agregaciones de actividad calculadas por el ActivityAggregationService
+- Los campos de bloqueo (`locked`, `locked_at`, `locked_by`) permiten proteger entradas verificadas
+- La relación con `parent_entry_id` permite crear entradas recurrentes basadas en plantillas
 
 #### Tabla: `activity_logs`
 
@@ -622,7 +649,6 @@ La implementación se basa en un enfoque de discriminador por ID, donde:
 | Columna | Tipo | Restricciones | Descripción |
 |---------|------|---------------|-------------|
 | id | int | PK, incremento automático | Identificador único del registro |
-| tenant_id | varchar | FK (tenants.id), NOT NULL | Tenant al que pertenece el registro |
 | user_id | int | FK (users.id), NOT NULL | Usuario relacionado con la actividad |
 | time_entry_id | int | FK (time_entries.id), NOT NULL | Entrada de tiempo asociada |
 | activity_type | varchar | NOT NULL | Tipo de actividad detectada |
@@ -633,19 +659,26 @@ La implementación se basa en un enfoque de discriminador por ID, donde:
 
 **Índices**:
 - Clave primaria: `id`
-- Clave foránea: `tenant_id` referencia `tenants.id`
+- Índice compuesto: `(time_entry_id, timestamp)`
+- Índice compuesto: `(user_id, timestamp)`
+- Índice: `activity_type`
 - Clave foránea: `user_id` referencia `users.id`
-- Clave foránea: `time_entry_id` referencia `time_entries.id`
+- Clave foránea: `time_entry_id` referencia `time_entries.id` con eliminación en cascada
 
 **Relaciones**:
-- Muchos-a-uno con `tenants`
 - Muchos-a-uno con `users`
 - Muchos-a-uno con `time_entries`
 
 **Notas**:
-- El campo `activity_type` puede contener valores como 'keyboard', 'mouse', 'application_focus'
-- El campo JSON `metadata` almacena información específica del tipo de actividad (ejemplo: aplicación activa)
-- Esta tabla facilita la detección automática de actividad y ajustes inteligentes de tiempo
+- El campo `activity_type` puede contener valores como 'keyboard', 'mouse', 'application_focus', 'idle'
+- El campo JSON `metadata` almacena información específica del tipo de actividad:
+  - Para 'keyboard': keystrokes, speed_wpm
+  - Para 'mouse': clicks, movements, scrolls
+  - Para 'application_focus': app_name, window_title, url
+  - Para 'idle': duration_seconds, reason
+- Esta tabla facilita la detección automática de actividad y permite análisis detallado de productividad
+- Los índices están optimizados para consultas cronológicas y agregación por tipo de actividad
+- La eliminación en cascada asegura que al eliminar una time_entry se eliminen todos sus registros de actividad
 
 ### Reportes y Dashboards
 
