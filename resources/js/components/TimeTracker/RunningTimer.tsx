@@ -35,7 +35,7 @@ interface TimerProps {
     onStop: () => void;
 }
 
-export function Timer({ timeEntry, onStop }: TimerProps) {
+export function RunningTimer({ timeEntry, onStop }: TimerProps) {
     const [seconds, setSeconds] = useState<number>(0);
     const [isPaused, setIsPaused] = useState<boolean>(false);
 

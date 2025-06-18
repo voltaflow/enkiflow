@@ -1,7 +1,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Heading } from '@/components/heading';
-import { TimeEntryForm } from '@/components/time-tracking/time-entry-form';
-import { Timer } from '@/components/time-tracking/timer';
+import { TimeEntryForm } from '@/components/TimeTracker/time-entry-form';
+import { RunningTimer } from '@/components/TimeTracker/RunningTimer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -215,7 +215,7 @@ export default function TimeTrackingIndex({
                             <CardTitle className="text-lg">Temporizador en ejecución</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Timer timeEntry={runningEntry} onStop={() => handleStopTimer(runningEntry.id)} />
+                            <RunningTimer timeEntry={runningEntry} onStop={() => handleStopTimer(runningEntry.id)} />
                         </CardContent>
                     </Card>
                 )}
