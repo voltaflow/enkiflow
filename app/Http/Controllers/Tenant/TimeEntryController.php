@@ -448,4 +448,71 @@ class TimeEntryController extends Controller
                 return 'Y-m-d'; // Year, month, day
         }
     }
+
+    /**
+     * Duplicate time entries from one day to another.
+     */
+    public function duplicateDay(Request $request)
+    {
+        $request->validate([
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|different:from_date',
+        ]);
+
+        $userId = Auth::id();
+        $fromDate = Carbon::parse($request->from_date)->startOfDay();
+        $toDate = Carbon::parse($request->to_date)->startOfDay();
+
+        // Get entries from the source date
+        $sourceEntries = TimeEntry::where('user_id', $userId)
+            ->whereDate('started_at', $fromDate)
+            ->with(['project', 'task', 'category'])
+            ->get();
+
+        if ($sourceEntries->isEmpty()) {
+            return response()->json([
+                'message' => 'No hay entradas de tiempo para duplicar en la fecha origen',
+                'entries' => []
+            ], 404);
+        }
+
+        $duplicatedEntries = [];
+
+        foreach ($sourceEntries as $sourceEntry) {
+            // Calculate the time difference between start and end
+            $startTime = Carbon::parse($sourceEntry->started_at);
+            $endTime = Carbon::parse($sourceEntry->ended_at);
+            $timeDiff = $startTime->diffInSeconds($endTime);
+
+            // Create new entry with the target date
+            $newStartTime = $toDate->copy()
+                ->setTimeFromTimeString($startTime->format('H:i:s'));
+            
+            $newEndTime = $newStartTime->copy()->addSeconds($timeDiff);
+
+            $newEntry = TimeEntry::create([
+                'user_id' => $userId,
+                'project_id' => $sourceEntry->project_id,
+                'task_id' => $sourceEntry->task_id,
+                'category_id' => $sourceEntry->category_id,
+                'description' => $sourceEntry->description,
+                'started_at' => $newStartTime,
+                'ended_at' => $newEndTime,
+                'duration' => $sourceEntry->duration,
+                'is_billable' => $sourceEntry->is_billable,
+                'tags' => $sourceEntry->tags,
+                'created_via' => 'duplicate',
+            ]);
+
+            // Load relationships for the response
+            $newEntry->load(['project', 'task', 'category']);
+            $duplicatedEntries[] = $newEntry;
+        }
+
+        return response()->json([
+            'message' => 'Entradas duplicadas exitosamente',
+            'entries' => $duplicatedEntries,
+            'count' => count($duplicatedEntries),
+        ]);
+    }
 }

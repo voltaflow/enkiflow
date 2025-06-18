@@ -152,7 +152,7 @@ Route::middleware([
         // Time tracking
         Route::prefix('time')->name('tenant.time.')->group(function () {
             // Time tracking main views
-            Route::get('/', [TimeEntryController::class, 'index'])->name('index');
+            Route::get('/', [App\Http\Controllers\Tenant\TimeUnifiedController::class, 'index'])->name('index');
             Route::get('/report', [TimeEntryController::class, 'report'])->name('report');
 
             // Weekly Timesheet
@@ -175,6 +175,25 @@ Route::middleware([
             Route::get('/running', [TimeEntryController::class, 'running'])->name('running');
             Route::post('/{timeEntry}/field', [TimeEntryController::class, 'updateField'])->name('update-field');
             Route::get('/report-data', [TimeEntryController::class, 'reportData'])->name('report-data');
+            
+            // Duplicate day functionality
+            Route::post('/duplicate-day', [TimeEntryController::class, 'duplicateDay'])->name('duplicate-day');
+            
+            // Approval workflow
+            Route::post('/submit', [App\Http\Controllers\Tenant\TimesheetController::class, 'submit'])->name('submit');
+            Route::post('/approve', [App\Http\Controllers\Tenant\TimesheetController::class, 'approve'])->name('approve');
+            Route::post('/reject', [App\Http\Controllers\Tenant\TimesheetController::class, 'reject'])->name('reject');
+            Route::get('/approval-status', [App\Http\Controllers\Tenant\TimesheetController::class, 'status'])->name('approval-status');
+            
+            // User preferences
+            Route::get('/preferences', [App\Http\Controllers\Tenant\TimePreferenceController::class, 'show'])->name('preferences');
+            Route::put('/preferences', [App\Http\Controllers\Tenant\TimePreferenceController::class, 'update'])->name('preferences.update');
+            Route::post('/preferences/reset', [App\Http\Controllers\Tenant\TimePreferenceController::class, 'reset'])->name('preferences.reset');
+            
+            // Reminders
+            Route::post('/reminders/daily', [App\Http\Controllers\Tenant\ReminderController::class, 'sendDaily'])->name('reminders.daily');
+            Route::get('/reminders/status', [App\Http\Controllers\Tenant\ReminderController::class, 'status'])->name('reminders.status');
+            Route::post('/reminders/test', [App\Http\Controllers\Tenant\ReminderController::class, 'test'])->name('reminders.test');
         });
 
         // Timer API endpoints
