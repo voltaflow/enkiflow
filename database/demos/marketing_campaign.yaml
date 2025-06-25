@@ -1,0 +1,82 @@
+description: "Escenario de campaña de marketing con tareas y subtareas para planificación, ejecución y análisis."
+
+projects:
+  - name: "Campaña de Marketing Q2"
+    description: "Campaña de marketing para el segundo trimestre enfocada en lanzamiento de producto."
+    status: "active"
+    tasks:
+      - title: "Planificación de estrategia"
+        priority: "high"
+        estimated_hours: 16
+        tags: ["Documentación"]
+        state: "Completado"
+        subtasks:
+          - title: "Investigación de mercado"
+            priority: "medium"
+            estimated_hours: 8
+            state: "Completado"
+          - title: "Definición de público objetivo"
+            priority: "medium"
+            estimated_hours: 4
+            state: "Completado"
+          - title: "Establecer KPIs"
+            priority: "high"
+            estimated_hours: 4
+            state: "Completado"
+      
+      - title: "Creación de contenido"
+        priority: "high"
+        estimated_hours: 40
+        tags: ["UI/UX", "Documentación"]
+        state: "En progreso"
+        subtasks:
+          - title: "Diseño de piezas gráficas"
+            priority: "high"
+            estimated_hours: 16
+            state: "En progreso"
+          - title: "Redacción de copy"
+            priority: "medium"
+            estimated_hours: 8
+            state: "En progreso"
+          - title: "Producción de video promocional"
+            priority: "high"
+            estimated_hours: 24
+            state: "Pendiente"
+      
+      - title: "Implementación en canales"
+        priority: "medium"
+        estimated_hours: 24
+        tags: ["Feature"]
+        state: "Pendiente"
+        subtasks:
+          - title: "Configuración de campañas en redes sociales"
+            priority: "medium"
+            estimated_hours: 8
+            state: "Pendiente"
+          - title: "Configuración de email marketing"
+            priority: "medium"
+            estimated_hours: 8
+            state: "Pendiente"
+          - title: "Implementación de landing page"
+            priority: "high"
+            estimated_hours: 16
+            state: "Pendiente"
+      
+      - title: "Análisis y optimización"
+        priority: "low"
+        estimated_hours: 16
+        tags: ["Mejora"]
+        state: "Pendiente"
+        subtasks:
+          - title: "Seguimiento de métricas"
+            priority: "medium"
+            estimated_hours: 4
+            state: "Pendiente"
+          - title: "Ajustes de campaña"
+            priority: "low"
+            estimated_hours: 8
+            state: "Pendiente"
+          - title: "Informe de resultados"
+            priority: "medium"
+            estimated_hours: 8
+            state: "Pendiente"

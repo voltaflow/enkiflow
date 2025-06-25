@@ -57,8 +57,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'csrf_token' => csrf_token(),
             'ziggy' => fn (): array => [
-                ...(new Ziggy)->toArray(),
+                ...(new Ziggy($request->route()?->getName()))->toArray(),
                 'location' => $request->url(),
+                'query' => $request->all(),
             ],
             'locale' => [
                 'current' => app()->getLocale(),

@@ -45,6 +45,18 @@ export function TaskSelector({
     onTaskChange
 }: TaskSelectorProps) {
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Use controlled state from parent
+    const projectValue = selectedProjectId ? selectedProjectId.toString() : '';
+    
+    // Auto-select first project if none selected and projects are available
+    React.useEffect(() => {
+        if (!selectedProjectId && projects.length > 0) {
+            onProjectChange(projects[0].id);
+        }
+    }, [projects, selectedProjectId]);
+    
+    // Removed debug logs
 
     // Filter tasks based on selected project
     const availableTasks = useMemo(() => {
@@ -71,112 +83,125 @@ export function TaskSelector({
     };
 
     const handleProjectChange = (value: string) => {
-        const projectId = value === 'none' ? null : parseInt(value);
-        onProjectChange(projectId);
-        // Reset task when project changes
-        if (projectId !== selectedProjectId) {
-            onTaskChange(null);
+        if (value && value !== '') {
+            const projectId = parseInt(value);
+            onProjectChange(projectId);
+            // Reset task when project changes
+            if (projectId !== selectedProjectId) {
+                onTaskChange(null);
+            }
         }
     };
 
     const handleTaskChange = (value: string) => {
-        const taskId = value === 'none' ? null : parseInt(value);
+        const taskId = value === '' ? null : parseInt(value);
         onTaskChange(taskId);
     };
 
     return (
         <div className="space-y-4">
             {/* Project Selector */}
-            <div className="space-y-2">
-                <Label htmlFor="project-select">Proyecto</Label>
+            <div className="space-y-2 min-h-[68px]">
+                <Label htmlFor="project-select">Proyecto <span className="text-red-500">*</span></Label>
                 <Select
-                    value={selectedProjectId?.toString() || 'none'}
+                    value={projectValue}
                     onValueChange={handleProjectChange}
-                    disabled={disabled}
+                    disabled={disabled || projects.length === 0}
                 >
-                    <SelectTrigger id="project-select" className="w-full">
-                        <SelectValue placeholder="Seleccionar proyecto" />
+                    <SelectTrigger id="project-select" className="w-full h-10">
+                        <SelectValue placeholder={projects.length === 0 ? "No hay proyectos disponibles" : "Seleccionar proyecto"} />
                     </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="none">Sin proyecto</SelectItem>
-
-                        {/* Favorites Section */}
-                        {favorites.length > 0 && (
-                            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                                Favoritos
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                        {projects.length === 0 ? (
+                            <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                                No hay proyectos activos disponibles
                             </div>
-                        )}
-                        {favorites.map(fav => {
-                            const project = projects.find(p => p.id === fav.projectId);
-                            if (!project) return null;
-                            return (
-                                <SelectItem
-                                    key={`fav-${fav.projectId}`}
-                                    value={project.id.toString()}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                                        {project.color && (
-                                            <div
-                                                className="w-3 h-3 rounded-full"
-                                                style={{ backgroundColor: project.color }}
-                                            />
-                                        )}
-                                        <span>{project.name}</span>
-                                        {project.client_name && (
-                                            <span className="text-muted-foreground text-sm">
-                                                ({project.client_name})
-                                            </span>
-                                        )}
+                        ) : (
+                            <>
+                                {/* Favorites Section */}
+                                {favorites.length > 0 && (
+                                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                        Favoritos
                                     </div>
-                                </SelectItem>
-                            );
-                        })}
+                                )}
+                                {favorites.map(fav => {
+                                    const project = projects.find(p => p.id === fav.projectId);
+                                    if (!project) return null;
+                                    return (
+                                        <SelectItem
+                                            key={`fav-${fav.projectId}`}
+                                            value={project.id.toString()}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                                                {project.color && (
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
+                                                        style={{ backgroundColor: project.color }}
+                                                    />
+                                                )}
+                                                <span>{project.name}</span>
+                                                {project.client_name && (
+                                                    <span className="text-muted-foreground text-sm">
+                                                        ({project.client_name})
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </SelectItem>
+                                    );
+                                })}
 
-                        {/* All Projects Section */}
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                            Todos los proyectos
-                        </div>
-                        {filteredProjects.map(project => (
-                            <SelectItem
-                                key={project.id}
-                                value={project.id.toString()}
-                            >
-                                <div className="flex items-center gap-2">
-                                    {project.color && (
-                                        <div
-                                            className="w-3 h-3 rounded-full"
-                                            style={{ backgroundColor: project.color }}
-                                        />
-                                    )}
-                                    <span>{project.name}</span>
-                                    {project.client_name && (
-                                        <span className="text-muted-foreground text-sm">
-                                            ({project.client_name})
-                                        </span>
-                                    )}
+                                {/* All Projects Section */}
+                                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                    Todos los proyectos
                                 </div>
-                            </SelectItem>
-                        ))}
+                                {filteredProjects.map(project => (
+                                    <SelectItem
+                                        key={project.id}
+                                        value={project.id.toString()}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {project.color && (
+                                                <div
+                                                    className="w-3 h-3 rounded-full"
+                                                    style={{ backgroundColor: project.color }}
+                                                />
+                                            )}
+                                            <span>{project.name}</span>
+                                            {project.client_name && (
+                                                <span className="text-muted-foreground text-sm">
+                                                    ({project.client_name})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </>
+                        )}
                     </SelectContent>
                 </Select>
             </div>
 
-            {/* Task Selector */}
-            {selectedProjectId && (
-                <div className="space-y-2">
-                    <Label htmlFor="task-select">Tarea (opcional)</Label>
+            {/* Task Selector - Always rendered to maintain layout stability */}
+            <div className={`space-y-2 min-h-[68px] transition-opacity duration-200 ${selectedProjectId ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <Label htmlFor="task-select">Tarea {selectedProjectId && availableTasks.length > 0 && <span className="text-red-500">*</span>}</Label>
+                {!selectedProjectId ? (
+                    <div className="h-10" /> 
+                ) : availableTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic h-10 flex items-center">
+                        No hay tareas disponibles para este proyecto
+                    </p>
+                ) : (
                     <Select
-                        value={selectedTaskId?.toString() || 'none'}
+                        value={selectedTaskId ? selectedTaskId.toString() : ''}
                         onValueChange={handleTaskChange}
-                        disabled={disabled || availableTasks.length === 0}
+                        disabled={disabled}
                     >
-                        <SelectTrigger id="task-select" className="w-full">
+                        <SelectTrigger id="task-select" className="w-full h-10">
                             <SelectValue placeholder="Seleccionar tarea" />
                         </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="none">Sin tarea específica</SelectItem>
-                            {availableTasks.map(task => (
+                        <SelectContent className="max-h-[300px] overflow-y-auto">
+                                {availableTasks.map(task => (
                                 <SelectItem
                                     key={task.id}
                                     value={task.id.toString()}
@@ -188,11 +213,11 @@ export function TaskSelector({
                                         <span>{task.title}</span>
                                     </div>
                                 </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
                 </div>
-            )}
         </div>
     );
 }

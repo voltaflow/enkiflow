@@ -41,8 +41,7 @@ return new class extends Migration
             $table->unique('user_id');
             $table->index('enable_reminders');
             
-            // Foreign key
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // No foreign key in tenant database as users table is in central database
         });
     }
 

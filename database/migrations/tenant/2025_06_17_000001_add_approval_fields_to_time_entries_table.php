@@ -11,6 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // This migration may have been partially applied, so we skip if already done
+        if (Schema::hasColumn('time_entries', 'locked_at')) {
+            return;
+        }
+        
         Schema::table('time_entries', function (Blueprint $table) {
             // Approval fields
             $table->timestamp('submitted_at')->nullable()->after('stopped_at');

@@ -10,6 +10,8 @@ interface TimerProps {
     showControls?: boolean;
     hasActiveTimer: boolean;
     formattedTime: string;
+    canStartTimer?: boolean;
+    startDisabledReason?: string;
     onStart: () => void;
     onPause: () => void;
     onResume: () => void;
@@ -22,6 +24,8 @@ export function Timer({
     showControls = true,
     hasActiveTimer,
     formattedTime,
+    canStartTimer = true,
+    startDisabledReason,
     onStart,
     onPause,
     onResume,
@@ -49,9 +53,9 @@ export function Timer({
                                 <Button
                                     size="lg"
                                     onClick={onStart}
-                                    disabled={hasActiveTimer}
+                                    disabled={hasActiveTimer || !canStartTimer}
                                     className="start-button"
-                                    title={hasActiveTimer ? 'Ya hay otro temporizador activo' : 'Iniciar temporizador'}
+                                    title={hasActiveTimer ? 'Ya hay otro temporizador activo' : (startDisabledReason || 'Iniciar temporizador')}
                                 >
                                     <Play className="h-5 w-5 mr-2" />
                                     {hasActiveTimer ? 'Otro timer activo' : 'Iniciar'}
@@ -103,6 +107,13 @@ export function Timer({
                         <p className="text-sm text-muted-foreground text-center">
                             Solo se permite un temporizador activo a la vez.
                             Detén el temporizador actual para iniciar uno nuevo.
+                        </p>
+                    )}
+                    
+                    {/* Warning for missing task selection */}
+                    {!hasActiveTimer && showStart && !canStartTimer && startDisabledReason && (
+                        <p className="text-sm text-amber-600 dark:text-amber-500 text-center">
+                            {startDisabledReason}
                         </p>
                     )}
                 </div>

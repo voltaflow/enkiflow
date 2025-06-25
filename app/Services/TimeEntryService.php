@@ -56,7 +56,54 @@ class TimeEntryService
         if (! empty($data['started_at']) && ! empty($data['ended_at'])) {
             $startTime = Carbon::parse($data['started_at']);
             $endTime = Carbon::parse($data['ended_at']);
-            $data['duration'] = $endTime->diffInSeconds($startTime);
+            
+            // Log the parsed times for debugging
+            \Log::info('Creating time entry with times:', [
+                'started_at_raw' => $data['started_at'],
+                'ended_at_raw' => $data['ended_at'],
+                'started_at_parsed' => $startTime->format('Y-m-d H:i:s'),
+                'ended_at_parsed' => $endTime->format('Y-m-d H:i:s'),
+                'start_timestamp' => $startTime->timestamp,
+                'end_timestamp' => $endTime->timestamp,
+            ]);
+            
+            // Calculate duration - ensure it's always positive and an integer
+            $data['duration'] = (int) $endTime->diffInSeconds($startTime);
+            
+            // Log the calculated duration
+            \Log::info('Calculated duration:', [
+                'duration_seconds' => $data['duration'],
+                'duration_hours' => $data['duration'] / 3600,
+            ]);
+            
+            // Ensure duration is not negative
+            if ($data['duration'] < 0) {
+                \Log::error('Negative duration detected!', [
+                    'duration' => $data['duration'],
+                    'started_at' => $startTime->format('Y-m-d H:i:s'),
+                    'ended_at' => $endTime->format('Y-m-d H:i:s'),
+                    'timezone' => $startTime->timezone->getName(),
+                ]);
+                
+                // Check if this is a case where end time wrapped to next day
+                if ($endTime->hour < $startTime->hour) {
+                    // Add one day to end time
+                    $endTime->addDay();
+                    $data['duration'] = (int) $endTime->diffInSeconds($startTime);
+                    $data['ended_at'] = $endTime->format('Y-m-d H:i:s');
+                    
+                    \Log::info('Fixed negative duration by assuming end time is next day', [
+                        'new_duration' => $data['duration'],
+                        'new_ended_at' => $data['ended_at'],
+                    ]);
+                } else {
+                    // Just make it positive as a fallback
+                    $data['duration'] = (int) abs($data['duration']);
+                    \Log::warning('Made negative duration positive as fallback', [
+                        'new_duration' => $data['duration'],
+                    ]);
+                }
+            }
         }
 
         return $this->timeEntryRepository->create($data);
@@ -75,7 +122,8 @@ class TimeEntryService
             $endTime = isset($data['ended_at']) ? Carbon::parse($data['ended_at']) : $timeEntry->ended_at;
 
             if ($startTime && $endTime) {
-                $data['duration'] = $endTime->diffInSeconds($startTime);
+                // Calculate duration as the difference from start to end
+                $data['duration'] = $startTime->diffInSeconds($endTime);
             }
         }
 

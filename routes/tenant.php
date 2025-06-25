@@ -153,14 +153,10 @@ Route::middleware([
         Route::prefix('time')->name('tenant.time.')->group(function () {
             // Time tracking main views
             Route::get('/', [App\Http\Controllers\Tenant\TimeUnifiedController::class, 'index'])->name('index');
+            Route::get('/week-data', [App\Http\Controllers\Tenant\TimeUnifiedController::class, 'weekData'])->name('week-data');
+            Route::get('/day-entries', [App\Http\Controllers\Tenant\TimeUnifiedController::class, 'dayEntries'])->name('day-entries');
             Route::get('/report', [TimeEntryController::class, 'report'])->name('report');
 
-            // Weekly Timesheet
-            Route::get('/timesheet', [WeeklyTimesheetController::class, 'index'])->name('timesheet');
-            Route::post('/timesheet/{timesheet}/update', [WeeklyTimesheetController::class, 'update'])->name('timesheet.update');
-            Route::post('/timesheet/{timesheet}/submit', [WeeklyTimesheetController::class, 'submit'])->name('timesheet.submit');
-            Route::post('/timesheet/quick-add', [WeeklyTimesheetController::class, 'quickAdd'])->name('timesheet.quick-add');
-            Route::get('/timesheet/week-data', [WeeklyTimesheetController::class, 'weekData'])->name('timesheet.week-data');
 
             // Time entry CRUD
             Route::post('/', [TimeEntryController::class, 'store'])->name('store');
@@ -178,6 +174,12 @@ Route::middleware([
             
             // Duplicate day functionality
             Route::post('/duplicate-day', [TimeEntryController::class, 'duplicateDay'])->name('duplicate-day');
+            
+            // Copy rows from previous week (Harvest-style)
+            Route::post('/copy-previous-week-rows', [TimeEntryController::class, 'copyRowsFromPreviousWeek'])->name('copy-previous-week-rows');
+            
+            // Add project/task row to weekly timesheet
+            Route::post('/add-week-row', [TimeEntryController::class, 'addWeekRow'])->name('add-week-row');
             
             // Approval workflow
             Route::post('/submit', [App\Http\Controllers\Tenant\TimesheetController::class, 'submit'])->name('submit');
@@ -198,6 +200,17 @@ Route::middleware([
 
         // Timer API endpoints
         Route::prefix('api/timer')->name('api.timer.')->group(function () {
+            // Active timer endpoints with persistence (MUST be before parameterized routes)
+            Route::get('/active', [TimerController::class, 'active'])->name('active');
+            Route::post('/active/start', [TimerController::class, 'startActive'])->name('active.start');
+            Route::post('/active/stop', [TimerController::class, 'stopActive'])->name('active.stop');
+            Route::post('/active/pause', [TimerController::class, 'pauseActive'])->name('active.pause');
+            Route::post('/active/resume', [TimerController::class, 'resumeActive'])->name('active.resume');
+            Route::post('/active/sync', [TimerController::class, 'sync'])->name('active.sync');
+            Route::put('/active', [TimerController::class, 'updateActive'])->name('active.update');
+            Route::delete('/active', [TimerController::class, 'discardActive'])->name('active.discard');
+            
+            // Regular timer endpoints (with parameters)
             Route::get('/current', [TimerController::class, 'current'])->name('current');
             Route::post('/start', [TimerController::class, 'start'])->name('start');
             Route::post('/{timer}/stop', [TimerController::class, 'stop'])->name('stop');
@@ -244,5 +257,14 @@ Route::middleware([
         Route::post('/users/invite', [App\Http\Controllers\Tenant\UserRoleController::class, 'store'])->name('tenant.users.store');
         Route::put('/users/{user}/role', [App\Http\Controllers\Tenant\UserRoleController::class, 'update'])->name('tenant.users.update');
         Route::delete('/users/{user}', [App\Http\Controllers\Tenant\UserRoleController::class, 'destroy'])->name('tenant.users.destroy');
+        
+        // Demo data management
+        Route::prefix('settings/developer')->name('settings.')->group(function () {
+            Route::get('/demo-data', [App\Http\Controllers\DemoDataController::class, 'index'])->name('demo-data');
+            Route::post('/demo-data/generate', [App\Http\Controllers\DemoDataController::class, 'generate'])->name('demo-data.generate');
+            Route::post('/demo-data/reset', [App\Http\Controllers\DemoDataController::class, 'reset'])->name('demo-data.reset');
+            Route::get('/demo-data/snapshot', [App\Http\Controllers\DemoDataController::class, 'snapshot'])->name('demo-data.snapshot');
+            Route::post('/demo-data/clone', [App\Http\Controllers\DemoDataController::class, 'clone'])->name('demo-data.clone');
+        });
     });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasDemoFlag;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TimeEntry extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasDemoFlag;
 
     /**
      * Los atributos que son asignables en masa.
@@ -147,7 +148,37 @@ class TimeEntry extends Model
     public function calculateDuration(): void
     {
         if ($this->started_at && $this->ended_at) {
-            $this->duration = $this->ended_at->diffInSeconds($this->started_at);
+            // Calculate duration as the difference from start to end
+            $this->duration = $this->started_at->diffInSeconds($this->ended_at);
+            
+            // Ensure duration is never negative
+            if ($this->duration < 0) {
+                \Log::error('TimeEntry::calculateDuration - Negative duration detected', [
+                    'id' => $this->id,
+                    'started_at' => $this->started_at,
+                    'ended_at' => $this->ended_at,
+                    'duration' => $this->duration,
+                ]);
+                $this->duration = abs($this->duration);
+            }
+        }
+    }
+    
+    /**
+     * Set the duration attribute - ensure it's never negative.
+     */
+    public function setDurationAttribute($value)
+    {
+        if ($value < 0) {
+            \Log::warning('TimeEntry::setDurationAttribute - Attempting to set negative duration', [
+                'id' => $this->id,
+                'value' => $value,
+                'started_at' => $this->started_at,
+                'ended_at' => $this->ended_at,
+            ]);
+            $this->attributes['duration'] = abs($value);
+        } else {
+            $this->attributes['duration'] = $value;
         }
     }
 

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('color')->default('#6366F1');
+            $table->boolean('is_demo')->default(false);
             $table->timestamps();
             $table->softDeletes();
             $table->unique('name');

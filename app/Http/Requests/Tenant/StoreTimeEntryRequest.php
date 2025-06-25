@@ -33,8 +33,10 @@ class StoreTimeEntryRequest extends FormRequest
             'end_time' => 'required_with:date|date_format:H:i|after:start_time',
             // Para entradas de tiempo directas (sin date/start_time/end_time)
             'started_at' => 'required_without:date|date',
-            'ended_at' => 'nullable|date|after:started_at',
+            'ended_at' => 'nullable|date|after_or_equal:started_at',
             'duration' => 'nullable|integer|min:0',
+            'is_manual' => 'nullable|boolean',
+            'created_from' => 'nullable|in:timer,manual,import,template',
         ];
     }
 }

@@ -30,14 +30,16 @@ export function useLocalStorageBackup() {
             };
             localStorage.setItem(CURRENT_ENTRY_KEY, JSON.stringify(toStore));
         } catch (error) {
-            console.error('Error al guardar en localStorage:', error);
+            // Silently fail
         }
     };
 
     const getSavedEntry = (): any | null => {
         try {
             const savedEntry = localStorage.getItem(CURRENT_ENTRY_KEY);
-            if (!savedEntry) return null;
+            if (!savedEntry) {
+                return null;
+            }
 
             const entry = JSON.parse(savedEntry);
 
@@ -46,7 +48,6 @@ export function useLocalStorageBackup() {
 
             return entry;
         } catch (error) {
-            console.error('Error al leer de localStorage:', error);
             return null;
         }
     };
@@ -55,7 +56,7 @@ export function useLocalStorageBackup() {
         try {
             localStorage.removeItem(CURRENT_ENTRY_KEY);
         } catch (error) {
-            console.error('Error al limpiar localStorage:', error);
+            // Silently fail
         }
     };
 
@@ -72,7 +73,7 @@ export function useLocalStorageBackup() {
 
             localStorage.setItem(FAILED_ENTRIES_KEY, JSON.stringify(failedEntries));
         } catch (error) {
-            console.error('Error al guardar entrada fallida:', error);
+            // Silently fail
         }
     };
 
@@ -81,7 +82,6 @@ export function useLocalStorageBackup() {
             const entries = localStorage.getItem(FAILED_ENTRIES_KEY);
             return entries ? JSON.parse(entries) : [];
         } catch (error) {
-            console.error('Error al leer entradas fallidas:', error);
             return [];
         }
     };
@@ -96,7 +96,7 @@ export function useLocalStorageBackup() {
 
             localStorage.setItem(FAILED_ENTRIES_KEY, JSON.stringify(updatedEntries));
         } catch (error) {
-            console.error('Error al eliminar entrada fallida:', error);
+            // Silently fail
         }
     };
 
@@ -104,7 +104,7 @@ export function useLocalStorageBackup() {
         try {
             localStorage.setItem(PREFERENCES_KEY, JSON.stringify(prefs));
         } catch (error) {
-            console.error('Error al guardar preferencias:', error);
+            // Silently fail
         }
     };
 
@@ -113,7 +113,6 @@ export function useLocalStorageBackup() {
             const prefs = localStorage.getItem(PREFERENCES_KEY);
             return prefs ? JSON.parse(prefs) : null;
         } catch (error) {
-            console.error('Error al leer preferencias:', error);
             return null;
         }
     };
@@ -125,7 +124,7 @@ export function useLocalStorageBackup() {
                 timestamp: new Date().toISOString()
             }));
         } catch (error) {
-            console.error('Error al guardar estado idle:', error);
+            // Silently fail
         }
     };
 
@@ -134,7 +133,6 @@ export function useLocalStorageBackup() {
             const state = localStorage.getItem(IDLE_STATE_KEY);
             return state ? JSON.parse(state) : null;
         } catch (error) {
-            console.error('Error al leer estado idle:', error);
             return null;
         }
     };

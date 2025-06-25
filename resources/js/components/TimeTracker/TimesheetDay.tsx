@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Plus, Copy, MoreVertical, Trash2, Edit } from 'lucide-react';
+import { Plus, Copy, MoreVertical, Trash2, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { formatDurationHHMM } from '@/lib/time-utils';
 
 interface TimeEntry {
     id: number;
@@ -44,6 +45,8 @@ interface TimesheetDayProps {
     onEditEntry: (entry: TimeEntry) => void;
     onDeleteEntry: (entryId: number) => void;
     onDuplicateDay: () => void;
+    isDuplicating?: boolean;
+    onDateChange: (date: Date) => void;
 }
 
 export function TimesheetDay({
@@ -55,19 +58,20 @@ export function TimesheetDay({
     onAddTime,
     onEditEntry,
     onDeleteEntry,
-    onDuplicateDay
+    onDuplicateDay,
+    isDuplicating = false,
+    onDateChange
 }: TimesheetDayProps) {
     const formatDuration = (seconds: number) => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        return `${hours}h ${minutes}m`;
+        return formatDurationHHMM(seconds);
     };
 
     const formatTime = (dateString: string) => {
         return format(new Date(dateString), 'HH:mm');
     };
 
-    const totalHours = entries.reduce((sum, entry) => sum + (entry.duration || 0), 0) / 3600;
+    const totalSeconds = entries.reduce((sum, entry) => sum + (entry.duration || 0), 0);
+    const totalHours = totalSeconds / 3600;
 
     // Group entries by project
     const entriesByProject = entries.reduce((acc, entry) => {
@@ -88,18 +92,46 @@ export function TimesheetDay({
         <Card className="w-full">
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl">
-                        {format(date, 'EEEE, d \'de\' MMMM, yyyy', { locale: es })}
-                    </CardTitle>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-r-none"
+                                onClick={() => onDateChange(addDays(date, -1))}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-l-none border-l-0"
+                                onClick={() => onDateChange(addDays(date, 1))}
+                                disabled={date.toDateString() === new Date().toDateString()}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <CardTitle className="text-lg">
+                            {format(date, 'EEEE, d \'de\' MMMM, yyyy', { locale: es })}
+                        </CardTitle>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className="text-sm text-muted-foreground">
-                            Total: <span className="font-semibold">{totalHours.toFixed(1)}/{dailyGoal}h</span>
+                            Total: <span className="font-semibold">{formatDurationHHMM(totalSeconds)} / {dailyGoal}h</span>
                         </div>
                         {totalHours >= dailyGoal && (
                             <Badge variant="default" className="bg-green-500">
                                 Meta alcanzada
                             </Badge>
                         )}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onDateChange(new Date())}
+                        >
+                            Hoy
+                        </Button>
                     </div>
                 </div>
             </CardHeader>
@@ -119,38 +151,42 @@ export function TimesheetDay({
 
                 {/* Entries Table */}
                 {entries.length > 0 ? (
-                    <Table>
+                    <Table className="table-fixed">
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Proyecto</TableHead>
-                                <TableHead>Tarea</TableHead>
-                                <TableHead>Descripción</TableHead>
-                                <TableHead>Tiempo</TableHead>
-                                <TableHead className="w-[100px]">Acciones</TableHead>
+                                <TableHead className="w-[180px]">Proyecto</TableHead>
+                                <TableHead className="w-[180px]">Tarea</TableHead>
+                                <TableHead className="w-[400px]">Descripción</TableHead>
+                                <TableHead className="w-[120px]">Tiempo</TableHead>
+                                <TableHead className="w-[80px] text-center">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {entries.map((entry) => (
                                 <TableRow key={entry.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
+                                    <TableCell className="w-[180px]">
+                                        <div className="flex items-center gap-2 max-w-[180px]">
                                             {entry.project?.color && (
                                                 <div
-                                                    className="w-3 h-3 rounded-full"
+                                                    className="w-3 h-3 rounded-full flex-shrink-0"
                                                     style={{ backgroundColor: entry.project.color }}
                                                 />
                                             )}
-                                            <span className="font-medium">
+                                            <span className="font-medium truncate">
                                                 {entry.project?.name || 'Sin proyecto'}
                                             </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
-                                        {entry.task?.title || '-'}
+                                    <TableCell className="w-[180px]">
+                                        <div className="truncate">
+                                            {entry.task?.title || '-'}
+                                        </div>
                                     </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span>{entry.description}</span>
+                                    <TableCell className="w-[400px]">
+                                        <div className="space-y-1 max-w-[400px]">
+                                            <p className="text-sm break-words whitespace-pre-wrap line-clamp-3">
+                                                {entry.description}
+                                            </p>
                                             {entry.is_billable && (
                                                 <Badge variant="outline" className="text-xs">
                                                     Facturable
@@ -158,15 +194,15 @@ export function TimesheetDay({
                                             )}
                                         </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="w-[120px]">
                                         <div className="text-sm">
-                                            <div>{formatDuration(entry.duration || 0)}</div>
+                                            <div className="font-medium">{formatDuration(entry.duration || 0)}</div>
                                             <div className="text-muted-foreground text-xs">
                                                 {formatTime(entry.started_at)} - {entry.stopped_at ? formatTime(entry.stopped_at) : 'En curso'}
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="w-[80px]">
                                         {!isLocked && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -180,7 +216,9 @@ export function TimesheetDay({
                                                         Editar
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
-                                                        onClick={() => onDeleteEntry(entry.id)}
+                                                        onClick={() => {
+                                                            onDeleteEntry(entry.id);
+                                                        }}
                                                         className="text-destructive"
                                                     >
                                                         <Trash2 className="h-4 w-4 mr-2" />
@@ -224,14 +262,19 @@ export function TimesheetDay({
                 )}
 
                 {/* Duplicate Day Button */}
-                {!isLocked && (
+                {!isLocked && entries.length === 0 && (
                     <Button
-                        onClick={onDuplicateDay}
+                        onClick={() => {
+                            if (!isDuplicating) {
+                                onDuplicateDay();
+                            }
+                        }}
                         variant="outline"
                         className="w-full"
+                        disabled={isDuplicating}
                     >
                         <Copy className="h-4 w-4 mr-2" />
-                        Duplicar día anterior
+                        {isDuplicating ? 'Duplicando...' : 'Duplicar día más reciente'}
                     </Button>
                 )}
             </CardContent>

@@ -12,6 +12,7 @@ use App\Services\TimeEntryService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class TimeEntryController extends Controller
@@ -55,8 +56,12 @@ class TimeEntryController extends Controller
      */
     public function store(StoreTimeEntryRequest $request)
     {
+        \Log::info('TimeEntryController::store - Request data:', $request->all());
+        
         $data = $request->validated();
         $data['user_id'] = Auth::id();
+        
+        \Log::info('TimeEntryController::store - Validated data:', $data);
 
         // Parse date and times to create start and end datetime
         if (isset($data['date']) && isset($data['start_time']) && isset($data['end_time'])) {
@@ -66,8 +71,21 @@ class TimeEntryController extends Controller
             // Remove temporary fields
             unset($data['date'], $data['start_time'], $data['end_time']);
         }
+        
+        \Log::info('TimeEntryController::store - Data before creating entry:', $data);
 
-        $this->timeEntryService->createTimeEntry($data);
+        $entry = $this->timeEntryService->createTimeEntry($data);
+        
+        \Log::info('TimeEntryController::store - Created entry:', [
+            'id' => $entry->id,
+            'duration' => $entry->duration,
+            'started_at' => $entry->started_at,
+            'ended_at' => $entry->ended_at,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['time_entry' => $entry]);
+        }
 
         return redirect()->route('tenant.time.index')
             ->with('success', 'Time entry created successfully.');
@@ -194,6 +212,13 @@ class TimeEntryController extends Controller
         $this->authorize('delete', $timeEntry);
 
         $this->timeEntryService->deleteTimeEntry($timeEntry->id);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Time entry deleted successfully.'
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Time entry deleted successfully.');
@@ -450,69 +475,311 @@ class TimeEntryController extends Controller
     }
 
     /**
-     * Duplicate time entries from one day to another.
+     * Copy rows (project/task combinations) from the most recent week with entries.
+     * This replicates Harvest's "Copy rows from most recent timesheet" functionality.
      */
-    public function duplicateDay(Request $request)
+    public function copyRowsFromPreviousWeek(Request $request)
     {
         $request->validate([
-            'from_date' => 'required|date',
-            'to_date' => 'required|date|different:from_date',
+            'target_week_start' => 'required|date',
+            'create_entries' => 'boolean', // Option to create entries directly
         ]);
 
         $userId = Auth::id();
-        $fromDate = Carbon::parse($request->from_date)->startOfDay();
-        $toDate = Carbon::parse($request->to_date)->startOfDay();
+        $targetWeekStart = Carbon::parse($request->target_week_start)->startOfWeek();
+        $targetWeekEnd = $targetWeekStart->copy()->endOfWeek();
+        $createEntries = $request->input('create_entries', false);
 
-        // Get entries from the source date
-        $sourceEntries = TimeEntry::where('user_id', $userId)
-            ->whereDate('started_at', $fromDate)
-            ->with(['project', 'task', 'category'])
+        // Check if the target week already has entries
+        $existingEntries = TimeEntry::where('user_id', $userId)
+            ->whereBetween('started_at', [$targetWeekStart, $targetWeekEnd])
+            ->exists();
+
+        if ($existingEntries) {
+            return response()->json([
+                'message' => 'La semana actual ya tiene entradas de tiempo',
+                'rows' => []
+            ], 400);
+        }
+
+        // Find the most recent week with entries before the target week
+        $mostRecentEntry = TimeEntry::where('user_id', $userId)
+            ->where('started_at', '<', $targetWeekStart)
+            ->orderBy('started_at', 'desc')
+            ->first();
+
+        if (!$mostRecentEntry) {
+            return response()->json([
+                'message' => 'No hay hojas previas con datos para copiar',
+                'rows' => []
+            ], 404);
+        }
+
+        // Get the week start of the most recent entry
+        $recentWeekStart = Carbon::parse($mostRecentEntry->started_at)->startOfWeek();
+        $recentWeekEnd = $recentWeekStart->copy()->endOfWeek();
+
+        // Get unique project/task combinations from that week
+        // Only get entries with valid project_id (not null)
+        $uniqueRows = TimeEntry::where('user_id', $userId)
+            ->whereBetween('started_at', [$recentWeekStart, $recentWeekEnd])
+            ->whereNotNull('project_id')
+            ->select('project_id', 'task_id')
+            ->distinct()
+            ->with(['project', 'task'])
             ->get();
 
-        if ($sourceEntries->isEmpty()) {
+        \Log::info('Found unique rows from previous week', [
+            'count' => $uniqueRows->count(),
+            'week' => $recentWeekStart->format('Y-m-d'),
+            'rows' => $uniqueRows->toArray()
+        ]);
+
+        // If create_entries is true, create the entries directly
+        if ($createEntries) {
+            $createdEntries = [];
+            $weekDates = [];
+            
+            // Generate dates for the target week
+            for ($i = 0; $i < 7; $i++) {
+                $weekDates[] = $targetWeekStart->copy()->addDays($i);
+            }
+            
+            DB::transaction(function () use ($uniqueRows, $weekDates, $userId, &$createdEntries) {
+                foreach ($uniqueRows as $row) {
+                    foreach ($weekDates as $date) {
+                        $entry = TimeEntry::create([
+                            'user_id' => $userId,
+                            'project_id' => $row->project_id,
+                            'task_id' => $row->task_id,
+                            'started_at' => $date->copy()->setTime(9, 0),
+                            'ended_at' => $date->copy()->setTime(9, 0),
+                            'duration' => 0,
+                            'description' => '',
+                            'is_billable' => true,
+                            'created_from' => 'manual',
+                        ]);
+                        $createdEntries[] = $entry;
+                    }
+                }
+            });
+            
             return response()->json([
-                'message' => 'No hay entradas de tiempo para duplicar en la fecha origen',
+                'message' => 'Filas copiadas exitosamente',
+                'created_count' => count($createdEntries),
+                'rows_count' => $uniqueRows->count(),
+                'from_week' => $recentWeekStart->format('Y-m-d'),
+            ]);
+        }
+        
+        // Otherwise, return the rows that would be created (frontend will handle the actual creation)
+        $rows = $uniqueRows->map(function ($row) {
+            return [
+                'project_id' => $row->project_id,
+                'task_id' => $row->task_id,
+                'project' => $row->project,
+                'task' => $row->task,
+            ];
+        });
+
+        return response()->json([
+            'message' => 'Filas encontradas exitosamente',
+            'rows' => $rows,
+            'from_week' => $recentWeekStart->format('Y-m-d'),
+            'count' => $rows->count(),
+        ]);
+    }
+
+    /**
+     * Duplicate time entries from the most recent day with entries to the target date.
+     * Only copies project/task combinations, not the actual time.
+     */
+    public function duplicateDay(Request $request)
+    {
+        \Log::info('DuplicateDay called', [
+            'user_id' => Auth::id(),
+            'to_date' => $request->to_date,
+            'all_params' => $request->all()
+        ]);
+        
+        $request->validate([
+            'to_date' => 'required|date',
+        ]);
+
+        $userId = Auth::id();
+        $toDate = Carbon::parse($request->to_date)->startOfDay();
+
+        // Check if target date already has entries
+        $existingEntries = TimeEntry::where('user_id', $userId)
+            ->whereDate('started_at', $toDate)
+            ->exists();
+
+        if ($existingEntries) {
+            return response()->json([
+                'message' => 'El día seleccionado ya tiene entradas de tiempo',
+                'entries' => []
+            ], 400);
+        }
+
+        // Find the most recent day with entries before the target date
+        $mostRecentDate = TimeEntry::where('user_id', $userId)
+            ->where('started_at', '<', $toDate)
+            ->whereNotNull('project_id')
+            ->orderBy('started_at', 'desc')
+            ->value('started_at');
+
+        if (!$mostRecentDate) {
+            return response()->json([
+                'message' => 'No se encontraron días anteriores con entradas de tiempo',
                 'entries' => []
             ], 404);
         }
 
+        $fromDate = Carbon::parse($mostRecentDate)->startOfDay();
+        
+        // Get unique project/task combinations from the most recent day
+        $sourceEntries = TimeEntry::where('user_id', $userId)
+            ->whereDate('started_at', $fromDate)
+            ->whereNotNull('project_id')
+            ->with(['project', 'task'])
+            ->get();
+            
+        \Log::info('Source entries found', [
+            'count' => $sourceEntries->count(),
+            'from_date' => $fromDate->format('Y-m-d'),
+            'user_id' => $userId,
+            'entries' => $sourceEntries->map(function($e) {
+                return [
+                    'id' => $e->id,
+                    'project_id' => $e->project_id,
+                    'task_id' => $e->task_id,
+                    'started_at' => $e->started_at,
+                    'is_billable' => $e->is_billable
+                ];
+            })
+        ]);
+
+        // Get unique project/task combinations
+        $seenCombinations = [];
         $duplicatedEntries = [];
 
         foreach ($sourceEntries as $sourceEntry) {
-            // Calculate the time difference between start and end
-            $startTime = Carbon::parse($sourceEntry->started_at);
-            $endTime = Carbon::parse($sourceEntry->ended_at);
-            $timeDiff = $startTime->diffInSeconds($endTime);
+            try {
+                $key = $sourceEntry->project_id . '-' . ($sourceEntry->task_id ?? '0');
+                
+                // Skip if we've already created this combination
+                if (in_array($key, $seenCombinations)) {
+                    continue;
+                }
+                
+                $seenCombinations[] = $key;
 
-            // Create new entry with the target date
-            $newStartTime = $toDate->copy()
-                ->setTimeFromTimeString($startTime->format('H:i:s'));
-            
-            $newEndTime = $newStartTime->copy()->addSeconds($timeDiff);
+                // Create new entry with just project/task (no duration)
+                $newStartTime = $toDate->copy()->setTime(9, 0, 0);
+                $newEndTime = $toDate->copy()->setTime(9, 0, 0);
+                
+                $entryData = [
+                    'user_id' => $userId,
+                    'project_id' => $sourceEntry->project_id,
+                    'task_id' => $sourceEntry->task_id,
+                    'description' => '',
+                    'started_at' => $newStartTime,
+                    'ended_at' => $newEndTime,
+                    'duration' => 0,
+                    'is_billable' => $sourceEntry->is_billable ?? true,
+                    'is_manual' => true,
+                    'created_from' => 'manual',
+                ];
+                
+                \Log::info('Creating duplicate entry', $entryData);
 
-            $newEntry = TimeEntry::create([
-                'user_id' => $userId,
-                'project_id' => $sourceEntry->project_id,
-                'task_id' => $sourceEntry->task_id,
-                'category_id' => $sourceEntry->category_id,
-                'description' => $sourceEntry->description,
-                'started_at' => $newStartTime,
-                'ended_at' => $newEndTime,
-                'duration' => $sourceEntry->duration,
-                'is_billable' => $sourceEntry->is_billable,
-                'tags' => $sourceEntry->tags,
-                'created_via' => 'duplicate',
-            ]);
-
-            // Load relationships for the response
-            $newEntry->load(['project', 'task', 'category']);
-            $duplicatedEntries[] = $newEntry;
+                $newEntry = TimeEntry::create($entryData);
+                
+                // Load relationships for the response
+                $newEntry->load(['project', 'task']);
+                $duplicatedEntries[] = $newEntry;
+                
+            } catch (\Exception $e) {
+                \Log::error('Error duplicating entry', [
+                    'source_entry_id' => $sourceEntry->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'entry_data' => $entryData
+                ]);
+                continue;
+            }
         }
 
+        if (count($duplicatedEntries) === 0) {
+            return response()->json([
+                'message' => 'No se pudieron duplicar las entradas. Revisa los logs para más detalles.',
+                'entries' => [],
+                'count' => 0
+            ], 422);
+        }
+        
         return response()->json([
             'message' => 'Entradas duplicadas exitosamente',
             'entries' => $duplicatedEntries,
             'count' => count($duplicatedEntries),
+        ]);
+    }
+    
+    /**
+     * Add a new project/task row to the weekly timesheet.
+     * Stores in session to display virtual rows until user adds time.
+     */
+    public function addWeekRow(Request $request)
+    {
+        $request->validate([
+            'week_start' => 'required|date',
+            'project_id' => 'required|exists:projects,id',
+            'task_id' => 'nullable|exists:tasks,id',
+        ]);
+        
+        $userId = Auth::id();
+        $weekStart = Carbon::parse($request->week_start)->startOfWeek();
+        $weekKey = $weekStart->format('Y-m-d');
+        
+        // Check if this project/task combination already exists for this week
+        $existingEntry = TimeEntry::where('user_id', $userId)
+            ->where('project_id', $request->project_id)
+            ->where('task_id', $request->task_id)
+            ->whereBetween('started_at', [$weekStart, $weekStart->copy()->endOfWeek()])
+            ->exists();
+            
+        if ($existingEntry) {
+            return response()->json([
+                'message' => 'Esta combinación de proyecto/tarea ya existe en la semana',
+            ], 400);
+        }
+        
+        // Store virtual rows in session
+        $sessionKey = "timesheet_virtual_rows_{$userId}_{$weekKey}";
+        $virtualRows = session($sessionKey, []);
+        
+        // Check if already in virtual rows
+        $rowKey = $request->project_id . '-' . ($request->task_id ?? '0');
+        if (in_array($rowKey, $virtualRows)) {
+            return response()->json([
+                'message' => 'Esta combinación de proyecto/tarea ya existe en la semana',
+            ], 400);
+        }
+        
+        // Add to virtual rows
+        $virtualRows[] = $rowKey;
+        session([$sessionKey => $virtualRows]);
+        
+        // Load project and task for response
+        $project = Project::find($request->project_id);
+        $task = $request->task_id ? Task::find($request->task_id) : null;
+        
+        return response()->json([
+            'message' => 'Fila agregada exitosamente',
+            'project_id' => $request->project_id,
+            'task_id' => $request->task_id,
+            'project' => $project,
+            'task' => $task,
         ]);
     }
 }

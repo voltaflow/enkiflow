@@ -1,0 +1,101 @@
+description: "Escenario de planificación de sprint ágil con tareas técnicas y funcionales para un ciclo de desarrollo de software."
+
+projects:
+  - name: "Sprint 23 - Sistema de Notificaciones"
+    description: "Sprint enfocado en implementar el sistema de notificaciones en tiempo real para la plataforma."
+    status: "active"
+    tasks:
+      - title: "Diseño de arquitectura de notificaciones"
+        priority: "high"
+        estimated_hours: 12
+        tags: ["Documentación", "Feature"]
+        state: "Completado"
+        comments_count: 3
+        time_entries_count: 2
+      
+      - title: "Implementar servicio de WebSockets"
+        priority: "high"
+        estimated_hours: 20
+        tags: ["Feature"]
+        state: "En progreso"
+        subtasks:
+          - title: "Configurar servidor Socket.io"
+            priority: "high"
+            estimated_hours: 8
+            state: "Completado"
+          - title: "Implementar autenticación de sockets"
+            priority: "high"
+            estimated_hours: 6
+            state: "En progreso"
+          - title: "Crear middleware de autorización"
+            priority: "medium"
+            estimated_hours: 6
+            state: "Pendiente"
+      
+      - title: "API REST para notificaciones"
+        priority: "medium"
+        estimated_hours: 16
+        tags: ["Feature"]
+        state: "En progreso"
+        subtasks:
+          - title: "Endpoints CRUD básicos"
+            priority: "medium"
+            estimated_hours: 8
+            state: "Completado"
+          - title: "Sistema de preferencias de usuario"
+            priority: "medium"
+            estimated_hours: 4
+            state: "En progreso"
+          - title: "Webhooks para integraciones"
+            priority: "low"
+            estimated_hours: 4
+            state: "Pendiente"
+      
+      - title: "Componentes UI de notificaciones"
+        priority: "medium"
+        estimated_hours: 24
+        tags: ["UI/UX", "Feature"]
+        state: "Pendiente"
+        subtasks:
+          - title: "Toast notifications"
+            priority: "high"
+            estimated_hours: 6
+            state: "Pendiente"
+          - title: "Centro de notificaciones"
+            priority: "medium"
+            estimated_hours: 10
+            state: "Pendiente"
+          - title: "Badge contador en navbar"
+            priority: "medium"
+            estimated_hours: 4
+            state: "Pendiente"
+          - title: "Animaciones y transiciones"
+            priority: "low"
+            estimated_hours: 4
+            state: "Pendiente"
+      
+      - title: "Testing y QA"
+        priority: "high"
+        estimated_hours: 16
+        tags: ["Bug", "Documentación"]
+        state: "Pendiente"
+        subtasks:
+          - title: "Unit tests para servicios"
+            priority: "high"
+            estimated_hours: 6
+            state: "Pendiente"
+          - title: "Tests de integración API"
+            priority: "high"
+            estimated_hours: 6
+            state: "Pendiente"
+          - title: "Tests E2E con Cypress"
+            priority: "medium"
+            estimated_hours: 4
+            state: "Pendiente"
+      
+      - title: "Documentación técnica"
+        priority: "low"
+        estimated_hours: 8
+        tags: ["Documentación"]
+        state: "Pendiente"
+        comments_count: 1
