@@ -144,11 +144,6 @@ export function AppSidebar() {
                 icon: Clock,
             },
             {
-                title: 'Timesheet',
-                href: '/time/timesheet',
-                icon: TimesheetIcon,
-            },
-            {
                 title: 'Usuarios',
                 href: '/users',
                 icon: Users,

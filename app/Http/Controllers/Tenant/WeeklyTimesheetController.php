@@ -33,7 +33,7 @@ class WeeklyTimesheetController extends Controller
 
         // Get all projects with tasks for the user
         $projects = Project::with(['tasks' => function ($query) {
-            $query->active();
+            $query->where('status', '!=', 'completed');
         }])
             ->whereHas('timeEntries', function ($query) use ($weekStartDate, $weekEndDate) {
                 $query->where('user_id', auth()->id())
@@ -167,9 +167,10 @@ class WeeklyTimesheetController extends Controller
             'project_id' => 'required|exists:projects,id',
             'task_id' => 'nullable|exists:tasks,id',
             'date' => 'required|date',
-            'hours' => 'required|numeric|min:0.25|max:24',
+            'hours' => 'required|numeric|min:0|max:24',
             'description' => 'nullable|string|max:255',
             'is_billable' => 'boolean',
+            'is_placeholder' => 'boolean', // Flag to indicate this is just a placeholder
         ]);
 
         $date = Carbon::parse($validated['date']);
@@ -183,22 +184,69 @@ class WeeklyTimesheetController extends Controller
             return response()->json(['message' => 'Timesheet is locked'], 403);
         }
 
-        // Create entry
-        $entry = TimeEntry::create([
-            'user_id' => auth()->id(),
-            'weekly_timesheet_id' => $timesheet->id,
-            'project_id' => $validated['project_id'],
-            'task_id' => $validated['task_id'],
-            'started_at' => $date->setTime(9, 0),
-            'ended_at' => $date->copy()->setTime(9, 0)->addHours($validated['hours']),
-            'duration' => $validated['hours'] * 3600,
-            'description' => $validated['description'] ?? '',
-            'is_billable' => $validated['is_billable'] ?? true,
-            'created_from' => 'manual',
-        ]);
+        // If hours is 0 and not a placeholder, delete the entry
+        if ($validated['hours'] == 0 && !($validated['is_placeholder'] ?? false)) {
+            $deletedCount = TimeEntry::where('user_id', auth()->id())
+                ->where('project_id', $validated['project_id'])
+                ->where('task_id', $validated['task_id'])
+                ->whereDate('started_at', $date)
+                ->delete();
+            
+            // Update timesheet totals
+            $timesheet->calculateTotals()->save();
+            
+            return response()->json([
+                'message' => $deletedCount > 0 ? 'Entry deleted successfully' : 'No entry found to delete',
+                'deleted' => $deletedCount > 0,
+                'timesheet' => $timesheet,
+            ]);
+        }
+
+        // Check if an entry already exists for this project/task/date combination
+        $existingEntry = TimeEntry::where('user_id', auth()->id())
+            ->where('project_id', $validated['project_id'])
+            ->where('task_id', $validated['task_id'])
+            ->whereDate('started_at', $date)
+            ->first();
+
+        if ($existingEntry) {
+            // Update existing entry
+            $existingEntry->update([
+                'duration' => $validated['hours'] * 3600,
+                'ended_at' => Carbon::parse($existingEntry->started_at)->addHours($validated['hours']),
+                'description' => $validated['description'] ?? '',
+                'is_billable' => $validated['is_billable'] ?? true,
+            ]);
+            $entry = $existingEntry;
+        } else {
+            // Create new entry
+            $entry = TimeEntry::create([
+                'user_id' => auth()->id(),
+                'weekly_timesheet_id' => $timesheet->id,
+                'project_id' => $validated['project_id'],
+                'task_id' => $validated['task_id'],
+                'started_at' => $date->setTime(9, 0),
+                'ended_at' => $date->copy()->setTime(9, 0)->addHours($validated['hours']),
+                'duration' => $validated['hours'] * 3600,
+                'description' => $validated['description'] ?? '',
+                'is_billable' => $validated['is_billable'] ?? true,
+                'created_from' => 'manual',
+            ]);
+        }
 
         // Update timesheet totals
         $timesheet->calculateTotals()->save();
+        
+        // Remove from virtual rows if it was there
+        $weekKey = $weekStart->format('Y-m-d');
+        $sessionKey = "timesheet_virtual_rows_" . auth()->id() . "_" . $weekKey;
+        $virtualRows = session($sessionKey, []);
+        $rowKey = $validated['project_id'] . '-' . ($validated['task_id'] ?? '0');
+        
+        if (($key = array_search($rowKey, $virtualRows)) !== false) {
+            unset($virtualRows[$key]);
+            session([$sessionKey => array_values($virtualRows)]);
+        }
 
         return response()->json([
             'message' => 'Entry added successfully',
@@ -265,10 +313,12 @@ class WeeklyTimesheetController extends Controller
 
             $organized[$projectId]['tasks'][$taskId]['entries'][$date] = [
                 'id' => $entry->id,
+                'duration' => $entry->duration, // Keep in seconds
                 'hours' => round($entry->duration / 3600, 2),
                 'description' => $entry->description,
                 'is_billable' => $entry->is_billable,
-                'locked' => $entry->locked,
+                'locked' => $entry->locked ?? false,
+                'user_id' => $entry->user_id,
             ];
         }
 

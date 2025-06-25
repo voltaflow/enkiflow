@@ -36,7 +36,8 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         // Get tasks with eager loading of relationships
-        $query = Task::with(['project', 'user', 'assignees', 'tags', 'parentTask'])
+        // Note: 'assignees' removed temporarily due to cross-database join issue
+        $query = Task::with(['project', 'user', 'tags', 'parentTask'])
             ->withCount('subtasks')
             ->rootTasks(); // Only get root tasks, not subtasks
 
@@ -49,11 +50,12 @@ class TaskController extends Controller
             $query->where('project_id', $request->project_id);
         }
 
-        if ($request->filled('assignee_id')) {
-            $query->whereHas('assignees', function ($q) use ($request) {
-                $q->where('user_id', $request->assignee_id);
-            });
-        }
+        // Temporarily disabled due to cross-database join issue
+        // if ($request->filled('assignee_id')) {
+        //     $query->whereHas('assignees', function ($q) use ($request) {
+        //         $q->where('user_id', $request->assignee_id);
+        //     });
+        // }
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
@@ -90,7 +92,11 @@ class TaskController extends Controller
 
         // Get data for filters
         $projects = Project::select('id', 'name')->orderBy('name')->get();
-        $users = User::select('id', 'name')->orderBy('name')->get();
+        
+        // Get users that belong to the current tenant
+        $currentTenant = tenant();
+        $users = $currentTenant ? $currentTenant->users()->select('users.id', 'users.name')->orderBy('name')->get() : collect();
+        
         $tags = Tag::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Tasks/Index', [
@@ -151,7 +157,11 @@ class TaskController extends Controller
 
         // Get data for filters
         $projects = Project::select('id', 'name')->orderBy('name')->get();
-        $users = User::select('id', 'name')->orderBy('name')->get();
+        
+        // Get users that belong to the current tenant
+        $currentTenant = tenant();
+        $users = $currentTenant ? $currentTenant->users()->select('users.id', 'users.name')->orderBy('name')->get() : collect();
+        
         $tags = Tag::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Tasks/Kanban', [

@@ -1,4 +1,4 @@
-import TimerWidget from '@/components/time-tracking/timer-widget';
+import TimerWidget from '@/components/TimeTracker/timer-widget';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';

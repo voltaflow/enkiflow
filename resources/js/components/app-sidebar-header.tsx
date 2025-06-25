@@ -51,10 +51,12 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
-            {/* Mostrar SpaceSwitcher cuando hay un espacio activo y más de un espacio disponible */}
-            {activeSpace && availableSpaces.length > 0 && !loading && (
-                <SpaceSwitcher currentSpace={activeSpace} spaces={availableSpaces} />
-            )}
+            <div className="flex items-center gap-4">
+                {/* Mostrar SpaceSwitcher cuando hay un espacio activo y más de un espacio disponible */}
+                {activeSpace && availableSpaces.length > 0 && !loading && (
+                    <SpaceSwitcher currentSpace={activeSpace} spaces={availableSpaces} />
+                )}
+            </div>
         </header>
     );
 }

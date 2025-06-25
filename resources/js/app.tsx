@@ -7,6 +7,8 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
+import './lib/route-helper'; // Import our custom route helper
+import { GlobalProviders } from './components/GlobalProviders';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -19,7 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Verificar que el elemento exista antes de crear el root
             if (el) {
                 const root = createRoot(el);
-                root.render(<App {...props} />);
+                root.render(
+                    <GlobalProviders>
+                        <App {...props} />
+                    </GlobalProviders>
+                );
             } else {
                 console.error('El elemento para montar la aplicación no existe');
             }

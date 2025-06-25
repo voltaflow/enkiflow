@@ -110,6 +110,19 @@ class Kernel extends ConsoleKernel
         }
 
         // ===================================
+        // TIMER CLEANUP
+        // ===================================
+        
+        // Clean up idle timers every hour
+        $schedule->command('timers:cleanup-idle --minutes=480')
+                 ->hourly()
+                 ->name('cleanup-idle-timers')
+                 ->onOneServer()
+                 ->withoutOverlapping()
+                 ->runInBackground()
+                 ->appendOutputTo(storage_path('logs/timer-cleanup.log'));
+
+        // ===================================
         // HORIZON (si está instalado)
         // ===================================
         
