@@ -31,8 +31,7 @@ return new class extends Migration
             $table->index('approved_by_id');
             $table->index('locked_at');
             
-            // Foreign key
-            $table->foreign('approved_by_id')->references('id')->on('users')->onDelete('set null');
+            // Note: approved_by_id is not a foreign key because users table is in the central database
         });
     }
 
@@ -42,9 +41,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('time_entries', function (Blueprint $table) {
-            // Drop foreign key first
-            $table->dropForeign(['approved_by_id']);
-            
             // Drop indexes
             $table->dropIndex('idx_time_entries_approval');
             $table->dropIndex(['approved_by_id']);

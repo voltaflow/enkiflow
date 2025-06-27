@@ -29,7 +29,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request, TenantCreator $tenantCreator): RedirectResponse
+    public function store(Request $request, TenantCreator $tenantCreator): RedirectResponse|Response
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -55,14 +55,18 @@ class RegisteredUserController extends Controller
                 'seed_data' => true,
             ]);
 
-            // Generate the tenant URL
+            // Generate the tenant URL with proper protocol
             $domain = config('app.domain', 'enkiflow.test');
-            $tenantUrl = "http://{$space->slug}.{$domain}";
+            $protocol = request()->secure() ? 'https' : 'http';
+            $tenantUrl = "{$protocol}://{$space->slug}.{$domain}";
 
             Auth::login($user);
 
-            // Redirect to the tenant subdomain
-            return redirect($tenantUrl)->with('success', 'Your workspace has been created successfully!');
+            // Return a page that will handle the redirect client-side
+            // This avoids CORS issues with cross-subdomain AJAX requests
+            return Inertia::render('auth/register-redirect', [
+                'url' => $tenantUrl
+            ]);
         }
 
         Auth::login($user);

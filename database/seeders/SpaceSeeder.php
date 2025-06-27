@@ -28,6 +28,7 @@ class SpaceSeeder extends Seeder
             ['id' => 'demo-space'],
             [
                 'name' => 'Espacio de Demostración',
+                'slug' => 'demo-space',
                 'owner_id' => $user->id,
                 'data' => [
                     'plan' => 'free',

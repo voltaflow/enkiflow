@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\Space;
 use App\Models\User;
 use Stancl\Tenancy\Database\Models\Domain;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Event;
 
 class TenantCreator
 {
@@ -42,6 +45,36 @@ class TenantCreator
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Wait for database creation with retry logic
+        $maxRetries = 10;
+        $retryDelay = 1; // seconds
+        $dbCreated = false;
+        
+        for ($i = 0; $i < $maxRetries; $i++) {
+            try {
+                // Check if database exists
+                $dbName = 'tenant' . $space->id;
+                $result = DB::connection('pgsql')->select(
+                    "SELECT 1 FROM pg_database WHERE datname = ?",
+                    [$dbName]
+                );
+                
+                if (count($result) > 0) {
+                    $dbCreated = true;
+                    Log::info('Database ready for tenant', ['database' => $dbName, 'attempts' => $i + 1]);
+                    break;
+                }
+            } catch (\Exception $e) {
+                Log::warning('Database not ready yet', ['attempt' => $i + 1, 'error' => $e->getMessage()]);
+            }
+            
+            sleep($retryDelay);
+        }
+        
+        if (!$dbCreated) {
+            throw new \RuntimeException('Database creation timed out for tenant: ' . $space->id);
+        }
 
         // Run tenant migrations
         $space->run(function () {

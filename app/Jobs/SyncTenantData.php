@@ -85,15 +85,35 @@ class SyncTenantData implements ShouldQueue
         if ($this->tenant->wasChanged('subscription_plan')) {
             $limits = $this->getPlanLimits($this->tenant->subscription_plan);
             
-            // Guardar límites en la base de datos del tenant
-            tenancy()->initialize($this->tenant);
-            
-            // Aquí podrías actualizar configuraciones específicas del tenant
-            // Por ejemplo, actualizar una tabla de configuración
-            
-            tenancy()->end();
-            
-            Log::info("Límites actualizados para tenant {$this->tenant->id} con plan {$this->tenant->subscription_plan}");
+            // Solo intentar actualizar si la base de datos del tenant existe
+            try {
+                $dbName = 'tenant' . $this->tenant->id;
+                $dbExists = \DB::connection('pgsql')->select(
+                    "SELECT 1 FROM pg_database WHERE datname = ?",
+                    [$dbName]
+                );
+                
+                if (count($dbExists) > 0) {
+                    // Guardar límites en la base de datos del tenant
+                    tenancy()->initialize($this->tenant);
+                    
+                    // Aquí podrías actualizar configuraciones específicas del tenant
+                    // Por ejemplo, actualizar una tabla de configuración
+                    
+                    tenancy()->end();
+                    
+                    Log::info("Límites actualizados para tenant {$this->tenant->id} con plan {$this->tenant->subscription_plan}");
+                } else {
+                    Log::info("Saltando actualización de configuración - base de datos del tenant aún no existe", [
+                        'tenant_id' => $this->tenant->id
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning("Error verificando existencia de base de datos del tenant", [
+                    'tenant_id' => $this->tenant->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
     
