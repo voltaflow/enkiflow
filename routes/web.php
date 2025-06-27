@@ -29,6 +29,15 @@ Route::middleware(['throttle:60,1'])->group(function () {
     Route::get('/health/full', [HealthCheckController::class, 'full'])->name('health.full');
 });
 
+// Test CSRF route
+Route::get('/test-csrf', function () {
+    return response()->json([
+        'token' => csrf_token(),
+        'session_id' => session()->getId(),
+        'cookies' => request()->cookies->all(),
+    ]);
+});
+
 // Check if we're on a main domain
 $host = request()->getHost();
 $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];

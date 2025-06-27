@@ -36,7 +36,7 @@ return new class extends Migration
             $table->index('last_synced_at');
 
             // Foreign keys
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Note: user_id is not a foreign key because users table is in the central database
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
             $table->foreign('task_id')->references('id')->on('tasks')->onDelete('set null');
 

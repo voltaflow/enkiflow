@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Stancl\Tenancy\Events\TenantCreated;
 
 class SpaceSetupController extends Controller
 {
@@ -201,8 +200,8 @@ class SpaceSetupController extends Controller
                 }
             }
 
-            // Create database for tenant (trigger TenantCreated event)
-            event(new TenantCreated($space));
+            // Database creation is handled automatically by the TenantCreated event
+            // which is fired when the Space model is created
 
             // Update subscription quantity
             $space->syncMemberCount();
