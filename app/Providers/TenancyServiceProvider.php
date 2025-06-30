@@ -26,19 +26,18 @@ class TenancyServiceProvider extends ServiceProvider
             // Tenant events
             Events\CreatingTenant::class => [],
             Events\TenantCreated::class => [
-                \App\Listeners\CreateTenantDatabase::class,
-                // JobPipeline::make([
-                //     Jobs\CreateDatabase::class,
-                //     // Reemplazar el job original con nuestra versión extendida
-                //     \App\Jobs\ExtendedMigrateDatabase::class,
-                //     // Jobs\SeedDatabase::class,
+                JobPipeline::make([
+                    Jobs\CreateDatabase::class,
+                    // Reemplazar el job original con nuestra versión extendida
+                    \App\Jobs\ExtendedMigrateDatabase::class,
+                    // Jobs\SeedDatabase::class,
 
-                //     // Your own jobs to prepare the tenant.
-                //     // Provision API keys, create S3 buckets, anything you want!
+                    // Your own jobs to prepare the tenant.
+                    // Provision API keys, create S3 buckets, anything you want!
 
-                // ])->send(function (Events\TenantCreated $event) {
-                //     return $event->tenant;
-                // })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
+                ])->send(function (Events\TenantCreated $event) {
+                    return $event->tenant;
+                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
             ],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
@@ -143,7 +142,7 @@ class TenancyServiceProvider extends ServiceProvider
 
         // Customize the behavior of PreventAccessFromCentralDomains
         \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::$abortRequest = function ($request, $next) {
-            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            $mainDomains = get_main_domains();
 
             // Always allow access from main domains, and set bypass flag for extra safety
             if (in_array($request->getHost(), $mainDomains)) {
@@ -188,7 +187,7 @@ class TenancyServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             // Solo cargar rutas de tenant si NO estamos en un dominio principal
             $host = request()->getHost();
-            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            $mainDomains = get_main_domains();
             $isMainDomain = in_array($host, $mainDomains);
             
             if (!$isMainDomain && file_exists(base_path('routes/tenant.php'))) {

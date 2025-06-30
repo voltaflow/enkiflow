@@ -16,7 +16,7 @@ class CheckMainDomains
     public function handle(Request $request, Closure $next): Response
     {
         $host = $request->getHost();
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        $mainDomains = get_main_domains();
 
         // Set attribute to identify main domains
         $isMainDomain = in_array($host, $mainDomains);

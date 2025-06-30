@@ -24,7 +24,7 @@ class EnsureValidTenant
     public function handle(Request $request, Closure $next): Response
     {
         // Skip for central domains and main domains
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        $mainDomains = get_main_domains();
         if (in_array($request->getHost(), config('tenancy.central_domains')) ||
             in_array($request->getHost(), $mainDomains)) {
             \Log::info('EnsureValidTenant: Skipping tenant validation for main domain: '.$request->getHost());

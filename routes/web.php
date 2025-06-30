@@ -40,7 +40,7 @@ Route::get('/test-csrf', function () {
 
 // Check if we're on a main domain
 $host = request()->getHost();
-$mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+$mainDomains = get_main_domains();
 $isMainDomain = in_array($host, $mainDomains);
 
 // Set the bypass_tenancy attribute to ensure middleware knows this is a main domain
