@@ -14,7 +14,7 @@ class EnsureLandingForMainDomains
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        $mainDomains = get_main_domains();
         $isMainDomain = in_array($request->getHost(), $mainDomains);
 
         // Mark main domains for bypass_tenancy and debugging

@@ -21,7 +21,7 @@ class SetLocale
     {
         // Configuración de dominios principales (siempre los mismos)
         $bypassTenancy = $request->attributes->get('bypass_tenancy', false);
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        $mainDomains = get_main_domains();
         $isMainDomain = in_array($request->getHost(), $mainDomains);
 
         // Si estamos en un dominio principal, asegúrate de que bypass_tenancy está configurado

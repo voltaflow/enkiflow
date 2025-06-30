@@ -15,7 +15,7 @@ class PublicLandingPageAccess
      */
     public function handle(Request $request, Closure $next)
     {
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        $mainDomains = get_main_domains();
         $isMainDomain = in_array($request->getHost(), $mainDomains);
 
         // Log the request information for debugging

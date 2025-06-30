@@ -13,7 +13,7 @@ class BypassTenancyForMainDomains
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+        $mainDomains = get_main_domains();
 
         if (in_array($request->getHost(), $mainDomains)) {
             // This is a main domain, bypass tenancy initialization

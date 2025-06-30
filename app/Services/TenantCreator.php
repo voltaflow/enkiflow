@@ -34,7 +34,8 @@ class TenantCreator
         ]);
 
         // Create the domain with full subdomain
-        $fullDomain = $subdomain . '.enkiflow.test';
+        $baseDomain = get_base_domain();
+        $fullDomain = $subdomain . '.' . $baseDomain;
         $space->domains()->create([
             'domain' => $fullDomain,
         ]);

@@ -268,6 +268,27 @@ interface TimeEntry {
 - Una feature por PR
 - Code review obligatorio
 
+## Configuración de Dominios Dinámica
+
+La aplicación detecta automáticamente el dominio base desde `APP_URL`:
+
+### Helper Functions
+- `get_base_domain()` - Extrae el dominio base de `APP_URL`
+- `get_main_domains()` - Retorna array con dominios principales
+
+### Comportamiento por Ambiente
+```bash
+# Local
+APP_URL=https://enkiflow.test
+# Resultado: tenant.enkiflow.test
+
+# Producción
+APP_URL=https://enkiflow.com
+# Resultado: tenant.enkiflow.com
+```
+
+No se requiere configuración adicional. Los dominios se detectan automáticamente desde `APP_URL`.
+
 ## Problemas Conocidos
 
 1. **Coverage de tests bajo (~20%)** - Priorizar tests para features críticas

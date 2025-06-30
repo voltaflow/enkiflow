@@ -35,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // to allow public routes to be accessible
         $middleware->redirectGuestsTo(function ($request) {
             // Explicitly check if this is a main domain - using multiple checks for reliability
-            $mainDomains = ['enkiflow.test', 'enkiflow.com', 'www.enkiflow.com'];
+            $mainDomains = get_main_domains();
             $isMainDomain = in_array($request->getHost(), $mainDomains) ||
                           $request->attributes->get('is_main_domain', false) ||
                           $request->attributes->get('bypass_tenancy', false) ||
