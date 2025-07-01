@@ -23,6 +23,7 @@ class Project extends Model
         'name',
         'description',
         'user_id',
+        'client_id',
         'status',
         'due_date',
         'completed_at',
@@ -46,6 +47,14 @@ class Project extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the client that owns the project.
+     */
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Tenant\ClientController;
 use App\Http\Controllers\Tenant\ProjectController;
 use App\Http\Controllers\Tenant\ReportController;
 use App\Http\Controllers\Tenant\TaskController;
@@ -106,6 +107,22 @@ Route::middleware([
     Route::middleware(['auth', 'tenant.access'])->group(function () {
         // Dashboard
         Route::get('/dashboard', [App\Http\Controllers\Tenant\DashboardController::class, 'index'])->name('tenant.dashboard');
+
+        // Clients
+        Route::resource('clients', ClientController::class)->names([
+            'index' => 'tenant.clients.index',
+            'create' => 'tenant.clients.create',
+            'store' => 'tenant.clients.store',
+            'show' => 'tenant.clients.show',
+            'edit' => 'tenant.clients.edit',
+            'update' => 'tenant.clients.update',
+            'destroy' => 'tenant.clients.destroy',
+        ]);
+        
+        // Client actions
+        Route::post('/clients/{client}/restore', [ClientController::class, 'restore'])->name('tenant.clients.restore');
+        Route::post('/clients/{client}/toggle-status', [ClientController::class, 'toggleStatus'])->name('tenant.clients.toggle-status');
+        Route::get('/api/clients/select', [ClientController::class, 'select'])->name('api.clients.select');
 
         // Projects
         Route::resource('projects', ProjectController::class)->names([

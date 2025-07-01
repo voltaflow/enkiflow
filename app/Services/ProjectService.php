@@ -123,4 +123,48 @@ class ProjectService
 
         return $project;
     }
+
+    /**
+     * Search and filter projects.
+     */
+    public function search(array $filters, int $perPage = 15): LengthAwarePaginator
+    {
+        $query = Project::query()
+            ->with(['client:id,name', 'tags', 'user:id,name']);
+
+        // Search by term
+        if (!empty($filters['term'])) {
+            $term = $filters['term'];
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'LIKE', "%{$term}%")
+                  ->orWhere('description', 'LIKE', "%{$term}%");
+            });
+        }
+
+        // Filter by status
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            if ($filters['status'] === 'active') {
+                $query->where('status', 'active');
+            } elseif ($filters['status'] === 'completed') {
+                $query->where('status', 'completed');
+            }
+        }
+
+        // Filter by client
+        if (!empty($filters['client_id'])) {
+            $query->where('client_id', $filters['client_id']);
+        }
+
+        // Include trashed if requested
+        if (!empty($filters['include_archived'])) {
+            $query->withTrashed();
+        }
+
+        // Add task counts
+        $query->withCount(['tasks', 'tasks as completed_tasks_count' => function ($query) {
+            $query->where('status', 'completed');
+        }]);
+
+        return $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+    }
 }

@@ -99,7 +99,7 @@ export default function Show({ task }: PageProps<ShowProps>) {
             <Head title={`Tarea: ${task.title}`} />
 
             <div className="py-12">
-                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     {/* Task header with actions */}
                     <div className="mb-6 flex items-start justify-between">
                         <div>

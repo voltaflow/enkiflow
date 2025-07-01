@@ -72,7 +72,7 @@ export default function Edit({ task, projects, users, availableTags }: PageProps
             <Head title="Editar Tarea" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-3xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <Card>
                         <CardHeader>
                             <CardTitle>Editar Tarea</CardTitle>

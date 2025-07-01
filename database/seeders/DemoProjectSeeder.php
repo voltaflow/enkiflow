@@ -47,10 +47,10 @@ class DemoProjectSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run(?string $tenantId = null): void
+    public function run(?string $tenantId = null, ?string $userId = null): void
     {
-        // Establecer fecha de anclaje para fechas relativas
-        RelativeDate::setAnchor();
+        // No sobrescribir la fecha de anclaje - se mantiene la que se estableció previamente
+        // RelativeDate::setAnchor(); // Comentado para respetar la fecha seleccionada por el usuario
         
         // Obtener tenant_id si no se proporciona
         if (!$tenantId) {
@@ -87,8 +87,14 @@ class DemoProjectSeeder extends Seeder
             $allTags[] = $tagModel;
         }
         
-        // Obtener usuario actual o crear uno de demostración
-        $user = User::first() ?? User::factory()->create([
+        // Obtener usuario según el ID proporcionado o usar fallbacks
+        $user = null;
+        if ($userId) {
+            $user = User::find($userId);
+        }
+        
+        // Fallback al primer usuario o crear uno demo si es necesario
+        $user = $user ?? User::first() ?? User::factory()->create([
             'name' => 'Usuario Demo',
             'email' => 'demo@example.com',
         ]);

@@ -101,6 +101,7 @@ class DemoDataController extends Controller
             'only_structure' => $request->boolean('only_structure'),
             'start_date' => $request->input('start_date'),
             'tenant_id' => $tenantId, // Pasar el tenant explícitamente
+            'user_id' => auth()->id(), // Agregar el ID del usuario autenticado
         ];
         
         $result = $this->demoDataService->generateDemoData($scenario, $options);

@@ -214,7 +214,9 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Tareas" />
                 
-                <div className="flex items-center justify-between mb-6">
+                <div className="py-12">
+                    <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between mb-6">
                     <h1 className="text-3xl font-semibold">Tareas</h1>
                     <div className="flex items-center gap-2">
                         <div className="flex rounded-md shadow-sm">
@@ -242,10 +244,12 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                             </Button>
                         </Link>
                     </div>
-                </div>
+                        </div>
 
-                <div className="text-center py-12">
-                    <p className="text-muted-foreground">Vista Kanban próximamente...</p>
+                        <div className="text-center py-12">
+                            <p className="text-muted-foreground">Vista Kanban próximamente...</p>
+                        </div>
+                    </div>
                 </div>
             </AppLayout>
         );
@@ -255,7 +259,9 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Tareas" />
             
-            <div className="flex items-center justify-between mb-6">
+            <div className="py-12">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between mb-6">
                 <h1 className="text-3xl font-semibold">Tareas</h1>
                 <div className="flex items-center gap-2">
                     <div className="flex rounded-md shadow-sm">
@@ -583,6 +589,8 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                     </TableBody>
                 </Table>
             </Card>
+                </div>
+            </div>
         </AppLayout>
     );
 }
