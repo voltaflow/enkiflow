@@ -48,7 +48,7 @@ export default function Create({ auth, projects, users }: PageProps<CreateProps>
             <Head title="Crear Tarea" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-3xl sm:px-6 lg:px-8">
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <Card>
                         <CardHeader>
                             <CardTitle>Crear Nueva Tarea</CardTitle>

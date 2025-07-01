@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Clock, Folder, LayoutGrid, Users, type LucideIcon } from 'lucide-react';
+import { BookOpen, Building2, Clock, Folder, LayoutGrid, Users, type LucideIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import AppLogo from './app-logo';
 
@@ -132,6 +132,11 @@ export function AppSidebar() {
                 title: 'Tareas',
                 href: '/tasks',
                 icon: TaskIcon,
+            },
+            {
+                title: 'Clientes',
+                href: '/clients',
+                icon: Building2,
             },
             {
                 title: 'Proyectos',

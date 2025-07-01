@@ -135,6 +135,10 @@ class DemoDataService
             $command .= " --start-date=\"{$options['start_date']}\"";
         }
         
+        if (!empty($options['user_id'])) {
+            $command .= " --user={$options['user_id']}";
+        }
+        
         try {
             \Log::info('DemoDataService: Ejecutando comando', [
                 'command' => $command,

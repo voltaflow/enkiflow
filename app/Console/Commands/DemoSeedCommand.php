@@ -20,7 +20,8 @@ class DemoSeedCommand extends Command
                             {--scenario= : Escenario a utilizar (opcional)}
                             {--start-date= : Fecha de inicio para fechas relativas (opcional)}
                             {--skip-time-entries : No generar entradas de tiempo}
-                            {--only-structure : Solo generar estructura básica sin datos}';
+                            {--only-structure : Solo generar estructura básica sin datos}
+                            {--user= : ID del usuario para el que generar datos (opcional)}';
 
     /**
      * La descripción del comando.
@@ -121,7 +122,7 @@ class DemoSeedCommand extends Command
                 // Crear seeder con opciones
                 $seeder = new DemoProjectSeeder($scenario);
                 $seeder->setCommand($this);
-                $seeder->run($tenantId);
+                $seeder->run($tenantId, $this->option('user'));
                 
                 $this->info("✓ Datos de demostración generados correctamente para tenant: {$tenantId}");
             }

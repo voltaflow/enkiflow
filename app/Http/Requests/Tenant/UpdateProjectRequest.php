@@ -27,6 +27,7 @@ class UpdateProjectRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'client_id' => 'nullable|exists:clients,id',
             'due_date' => 'nullable|date',
             'status' => 'nullable|string|in:active,completed,paused',
             'settings' => 'nullable|array',

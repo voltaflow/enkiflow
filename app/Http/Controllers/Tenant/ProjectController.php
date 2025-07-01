@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tenant\StoreProjectRequest;
 use App\Http\Requests\Tenant\UpdateProjectRequest;
+use App\Models\Client;
 use App\Models\Project;
+use App\Models\Tag;
 use App\Services\ProjectService;
 use App\Traits\HasSpacePermissions;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,12 +37,24 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $projects = $this->projectService->getAllProjects();
+        $filters = [
+            'term' => $request->get('search'),
+            'status' => $request->get('status'),
+            'client_id' => $request->get('client_id'),
+            'include_archived' => $request->boolean('archived'),
+        ];
+
+        $projects = $this->projectService->search($filters, 15);
+        
+        // Get active clients for filter dropdown
+        $clients = Client::active()->orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('Tenant/Projects/Index', [
             'projects' => $projects,
+            'filters' => $filters,
+            'clients' => $clients,
         ]);
     }
 
@@ -48,7 +63,13 @@ class ProjectController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Tenant/Projects/Create');
+        $clients = Client::active()->orderBy('name')->get(['id', 'name']);
+        $tags = Tag::orderBy('name')->get(['id', 'name', 'color']);
+
+        return Inertia::render('Tenant/Projects/Create', [
+            'clients' => $clients,
+            'tags' => $tags,
+        ]);
     }
 
     /**
@@ -78,9 +99,25 @@ class ProjectController extends Controller
      */
     public function show(Project $project): Response
     {
-        $project->load('user:id,name,email', 'tags', 'tasks');
+        $project->load([
+            'user:id,name,email', 
+            'client:id,name', 
+            'tags', 
+            'tasks' => function($query) {
+                $query->with('user:id,name')
+                      ->orderBy('created_at', 'desc');
+            }
+        ]);
 
         $currentUser = Auth::user();
+        
+        // Calcular estadísticas
+        $stats = [
+            'total_tasks' => $project->tasks->count(),
+            'completed_tasks' => $project->tasks->where('status', 'completed')->count(),
+            'total_hours' => $project->timeEntries->sum('duration'),
+            'billable_hours' => $project->timeEntries->where('is_billable', true)->sum('duration'),
+        ];
 
         return Inertia::render('Tenant/Projects/Show', [
             'project' => $project,
@@ -88,6 +125,7 @@ class ProjectController extends Controller
             'can_edit' => $currentUser->can('update', $project),
             'can_delete' => $currentUser->can('delete', $project),
             'can_complete' => $currentUser->can('complete', $project),
+            'stats' => $stats,
         ]);
     }
 
@@ -97,9 +135,13 @@ class ProjectController extends Controller
     public function edit(Project $project): Response
     {
         $project->load('tags');
+        $clients = Client::active()->orderBy('name')->get(['id', 'name']);
+        $tags = Tag::orderBy('name')->get(['id', 'name', 'color']);
 
         return Inertia::render('Tenant/Projects/Edit', [
             'project' => $project,
+            'clients' => $clients,
+            'tags' => $tags,
         ]);
     }
 
