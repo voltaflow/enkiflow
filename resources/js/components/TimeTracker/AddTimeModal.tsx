@@ -117,15 +117,6 @@ export function AddTimeModal({
             const startDateTime = startDate.toISOString();
             const endDateTime = endDate.toISOString();
             
-            console.log('[AddTimeModal] Submitting time entry:', {
-                project_id: selectedProjectId,
-                task_id: selectedTaskId,
-                description,
-                duration,
-                started_at: startDateTime,
-                ended_at: endDateTime
-            });
-            
             await onSubmit({
                 project_id: selectedProjectId,
                 task_id: selectedTaskId,

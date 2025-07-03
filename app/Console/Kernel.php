@@ -123,6 +123,34 @@ class Kernel extends ConsoleKernel
                  ->appendOutputTo(storage_path('logs/timer-cleanup.log'));
 
         // ===================================
+        // INVITACIONES
+        // ===================================
+        
+        // Ejecutar diariamente para expirar invitaciones antiguas
+        $schedule->command('invitations:expire')
+                 ->daily()
+                 ->name('expire-old-invitations')
+                 ->onOneServer()
+                 ->runInBackground()
+                 ->appendOutputTo(storage_path('logs/invitations.log'));
+        
+        // Ejecutar semanalmente para purgar invitaciones antiguas (GDPR)
+        $schedule->command('invitations:prune')
+                 ->weekly()
+                 ->name('prune-old-invitations')
+                 ->onOneServer()
+                 ->runInBackground()
+                 ->appendOutputTo(storage_path('logs/invitations.log'));
+        
+        // Enviar recordatorios de invitaciones próximas a expirar
+        $schedule->command('invitations:send-reminders')
+                 ->dailyAt('09:00')
+                 ->name('send-invitation-reminders')
+                 ->onOneServer()
+                 ->runInBackground()
+                 ->appendOutputTo(storage_path('logs/invitations.log'));
+
+        // ===================================
         // HORIZON (si está instalado)
         // ===================================
         

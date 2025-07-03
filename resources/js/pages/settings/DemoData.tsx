@@ -62,8 +62,6 @@ export default function DemoData({ scenarios, demoStats, hasDemoData }: Props) {
     const generateDemoData = (e: React.FormEvent) => {
         e.preventDefault();
         
-        console.log('Generating demo data with:', form.data);
-        console.log('Route:', route('settings.demo-data.generate'));
         
         // Preparar los datos
         const originalScenario = form.data.scenario;
@@ -76,7 +74,6 @@ export default function DemoData({ scenarios, demoStats, hasDemoData }: Props) {
         form.post(route('settings.demo-data.generate'), {
             preserveScroll: true,
             onSuccess: () => {
-                console.log('Demo data generated successfully!');
                 // Resetear el form con scenario en "default"
                 form.reset();
                 form.setData('scenario', 'default');
@@ -87,26 +84,22 @@ export default function DemoData({ scenarios, demoStats, hasDemoData }: Props) {
                 form.setData('scenario', originalScenario);
             },
             onProgress: () => {
-                console.log('Request in progress...');
             },
         });
     };
 
     const resetDemoData = () => {
         setConfirmReset(false);
-        console.log('Resetting demo data...');
         
         // Usar router de Inertia directamente para POST simple
         router.post(route('settings.demo-data.reset'), {}, {
             preserveScroll: true,
             onSuccess: () => {
-                console.log('Demo data reset successfully!');
             },
             onError: (errors) => {
                 console.error('Error resetting demo data:', errors);
             },
             onProgress: () => {
-                console.log('Reset in progress...');
             },
         });
     };

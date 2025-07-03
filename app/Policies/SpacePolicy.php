@@ -111,6 +111,16 @@ class SpacePolicy
     }
 
     /**
+     * Determine whether the user can view invitations for the space.
+     */
+    public function viewInvitations(User $user, Space $space): bool
+    {
+        $spaceUser = $this->getSpaceUser($user, $space);
+
+        return $spaceUser !== null && $spaceUser->hasPermission(SpacePermission::INVITE_USERS);
+    }
+
+    /**
      * Determine whether the user can remove others from the space.
      */
     public function removeUser(User $user, Space $space, User $targetUser): bool

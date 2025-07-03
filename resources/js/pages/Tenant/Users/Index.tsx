@@ -102,9 +102,14 @@ export default function Index({ users, canManageRoles, canInviteUsers, available
                     <div className="mb-6 flex items-center justify-between">
                         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Usuarios del Espacio</h1>
                         {canInviteUsers && (
-                            <Button asChild>
-                                <Link href={route('tenant.users.invite')}>Invitar Usuario</Link>
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button asChild variant="outline">
+                                    <Link href={route('tenant.invitations.index')}>Ver Invitaciones</Link>
+                                </Button>
+                                <Button asChild>
+                                    <Link href={route('tenant.invitations.create')}>Invitar Usuario</Link>
+                                </Button>
+                            </div>
                         )}
                     </div>
 
