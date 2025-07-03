@@ -9,8 +9,6 @@ interface Props {
 }
 
 export default function DemoDataSimple({ scenarios = [], demoStats = {}, hasDemoData = false }: Props) {
-    console.log('DemoDataSimple component loaded with props:', { scenarios, demoStats, hasDemoData });
-    
     return (
         <SettingsLayout>
             <Head title="Datos Demo" />

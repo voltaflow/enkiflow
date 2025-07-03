@@ -49,8 +49,6 @@ export default function DemoDataDebug({ scenarios, demoStats, hasDemoData }: Pro
         only_structure: false,
     });
 
-    console.log('DemoDataDebug loaded with props:', { scenarios, demoStats, hasDemoData });
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Datos Demo" />
@@ -112,12 +110,10 @@ export default function DemoDataDebug({ scenarios, demoStats, hasDemoData }: Pro
                     <CardContent>
                         <form onSubmit={(e) => {
                             e.preventDefault();
-                            console.log('Form submitted with data:', form.data);
-                            form.post('/settings/developer/demo-data/generate', {
+                                                form.post('/settings/developer/demo-data/generate', {
                                 preserveScroll: true,
                                 onSuccess: () => {
-                                    console.log('Demo data generated successfully!');
-                                    form.reset();
+                                                form.reset();
                                 },
                                 onError: (errors) => {
                                     console.error('Error generating demo data:', errors);

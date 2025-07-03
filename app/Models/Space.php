@@ -214,4 +214,39 @@ class Space extends BaseTenant implements TenantWithDatabase
     {
         return $this->auto_tracking_enabled === true;
     }
+
+    /**
+     * Get the invitations for the space.
+     */
+    public function invitations()
+    {
+        return $this->hasMany(Invitation::class, 'tenant_id', 'id');
+    }
+
+    /**
+     * Check if a user with the given email is already a member of this space.
+     */
+    public function hasMemberWithEmail(string $email): bool
+    {
+        $user = User::where('email', $email)->first();
+        
+        if (!$user) {
+            return false;
+        }
+        
+        return $this->users()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Check if there's a pending invitation for the given email.
+     */
+    public function hasPendingInvitationForEmail(string $email): bool
+    {
+        return $this->invitations()
+            ->where('email', $email)
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
+
 }

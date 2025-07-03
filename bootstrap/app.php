@@ -69,6 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.access' => EnsureUserHasTenantAccess::class,
             'auth' => CustomAuthenticate::class, // Reemplazar el middleware de autenticación por defecto
             'teleport' => \App\Http\Middleware\TeleportToSpace::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

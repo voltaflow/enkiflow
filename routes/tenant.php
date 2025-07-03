@@ -275,6 +275,26 @@ Route::middleware([
         Route::put('/users/{user}/role', [App\Http\Controllers\Tenant\UserRoleController::class, 'update'])->name('tenant.users.update');
         Route::delete('/users/{user}', [App\Http\Controllers\Tenant\UserRoleController::class, 'destroy'])->name('tenant.users.destroy');
         
+        // Invitations
+        Route::get('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'index'])
+            ->name('tenant.invitations.index');
+        Route::get('/invitations/create', [App\Http\Controllers\Tenant\InvitationController::class, 'create'])
+            ->name('tenant.invitations.create');
+        Route::post('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'store'])
+            ->name('tenant.invitations.store');
+        Route::post('/invitations/{invitation}/resend', [App\Http\Controllers\Tenant\InvitationController::class, 'resend'])
+            ->name('tenant.invitations.resend');
+        Route::delete('/invitations/{invitation}', [App\Http\Controllers\Tenant\InvitationController::class, 'destroy'])
+            ->name('tenant.invitations.destroy');
+        
+        // Invitation statistics API
+        Route::prefix('api/invitations')->name('api.invitations.')->group(function () {
+            Route::get('/stats', [App\Http\Controllers\Api\InvitationStatsController::class, 'index'])
+                ->name('stats');
+            Route::get('/logs', [App\Http\Controllers\Api\InvitationStatsController::class, 'logs'])
+                ->name('logs');
+        });
+        
         // Demo data management
         Route::prefix('settings/developer')->name('settings.')->group(function () {
             Route::get('/demo-data', [App\Http\Controllers\DemoDataController::class, 'index'])->name('demo-data');

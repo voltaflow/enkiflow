@@ -16,7 +16,8 @@ trait HasSpacePermissions
      */
     protected function getCurrentSpace(): ?Space
     {
-        return tenant();
+        $tenantId = tenant('id');
+        return $tenantId ? Space::find($tenantId) : null;
     }
 
     /**

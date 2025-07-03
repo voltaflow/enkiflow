@@ -31,6 +31,27 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\MigrationFailed::class => [
             \App\Listeners\RegisterMigrationFail::class,
         ],
+
+        // Eventos de invitaciones
+        \App\Events\InvitationSent::class => [
+            \App\Listeners\SendInvitationEmail::class,
+            \App\Listeners\LogInvitationActivity::class,
+        ],
+        \App\Events\InvitationViewed::class => [
+            \App\Listeners\LogInvitationActivity::class,
+        ],
+        \App\Events\InvitationAccepted::class => [
+            \App\Listeners\LogInvitationActivity::class,
+            \App\Listeners\SendInvitationAcceptedNotification::class,
+            \App\Listeners\BroadcastInvitationAccepted::class,
+        ],
+        \App\Events\InvitationRevoked::class => [
+            \App\Listeners\LogInvitationActivity::class,
+        ],
+        \App\Events\InvitationExpired::class => [
+            \App\Listeners\LogInvitationActivity::class,
+            \App\Listeners\SendReminderNotification::class,
+        ],
     ];
 
     /**

@@ -38,6 +38,9 @@ class CustomDomainTenancyInitializer extends InitializeTenancyByDomain
                     // Initialize tenancy with the loaded tenant
                     tenancy()->initialize($tenant);
                     
+                    // Ensure the tenant is properly bound to the container
+                    app()->instance(\Stancl\Tenancy\Contracts\Tenant::class, $tenant);
+                    
                     // Almacenar el espacio actual en la sesión para el selector de espacios
                     if (auth()->check()) {
                         session(['current_space_id' => $tenant->id]);

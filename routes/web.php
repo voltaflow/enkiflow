@@ -165,6 +165,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/spaces/{spaceId}/billing-portal', [SpaceSubscriptionController::class, 'billingPortal'])->name('spaces.billing-portal');
 });
 
+// Rutas públicas para invitaciones con limitación de tasa
+Route::middleware(['throttle:invitations'])->group(function () {
+    Route::get('/invitation/{token}', [App\Http\Controllers\PublicInvitationController::class, 'show'])
+        ->name('invitation.show')
+        ->middleware('signed');
+    Route::post('/invitation/{token}/accept', [App\Http\Controllers\PublicInvitationController::class, 'accept'])
+        ->name('invitation.accept');
+});
+
+// Rutas para el registro simplificado desde invitaciones
+Route::middleware(['throttle:invitations'])->group(function () {
+    Route::get('/invitation/{token}/register', [App\Http\Controllers\InvitationRegisterController::class, 'showForm'])
+        ->name('invitation.register.form');
+    Route::post('/invitation/{token}/register', [App\Http\Controllers\InvitationRegisterController::class, 'register'])
+        ->name('invitation.register');
+});
+
 require __DIR__.'/auth.php';
 require __DIR__.'/settings.php';
 
