@@ -13,20 +13,12 @@ class ShareSessionAcrossDomains
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Obtener el dominio base dinámicamente
+        $baseDomain = '.' . get_base_domain();
+        
         // Configurar el dominio de la sesión antes de procesarla
-        config(['session.domain' => '.enkiflow.test']);
+        config(['session.domain' => $baseDomain]);
         
-        $response = $next($request);
-        
-        // Log para depuración
-        \Log::debug('ShareSessionAcrossDomains', [
-            'host' => $request->getHost(),
-            'session_domain' => config('session.domain'),
-            'session_cookie' => config('session.cookie'),
-            'auth_check' => auth()->check(),
-            'user_id' => auth()->id(),
-        ]);
-        
-        return $response;
+        return $next($request);
     }
 }

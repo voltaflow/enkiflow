@@ -21,14 +21,25 @@ interface Props {
 }
 
 export default function Create({ availableRoles, canManageRoles }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         role: 'member',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('tenant.invitations.store'));
+        post(route('tenant.invitations.store'), {
+            preserveScroll: true,
+            onError: (errors) => {
+                // Si hay un error 419, recargar la página para obtener un nuevo token CSRF
+                if (errors.hasOwnProperty('message') && errors.message?.includes('419')) {
+                    window.location.reload();
+                }
+            },
+            onSuccess: () => {
+                reset();
+            },
+        });
     };
 
     return (

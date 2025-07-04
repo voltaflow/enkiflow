@@ -13,12 +13,16 @@ class EnsureSessionDomain
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Obtener el dominio base dinámicamente
+        $baseDomain = '.' . get_base_domain();
+        $isSecure = $request->secure();
+        
         // Asegurar que el dominio de la sesión esté configurado correctamente
         // antes de que Laravel inicie la sesión
         config([
-            'session.domain' => '.enkiflow.test',
+            'session.domain' => $baseDomain,
             'session.cookie' => 'enkiflow_session',
-            'session.secure' => false, // Para desarrollo local
+            'session.secure' => $isSecure,
             'session.same_site' => 'lax',
         ]);
         
