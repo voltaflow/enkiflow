@@ -32,6 +32,13 @@ class SpaceUser extends Pivot
         'tenant_id',
         'user_id',
         'role',
+        'custom_permissions',
+        'additional_permissions',
+        'revoked_permissions',
+        'capacity_hours',
+        'cost_rate',
+        'billable_rate',
+        'status',
     ];
 
     /**
@@ -41,6 +48,12 @@ class SpaceUser extends Pivot
      */
     protected $casts = [
         'role' => SpaceRole::class,
+        'custom_permissions' => 'array',
+        'additional_permissions' => 'array',
+        'revoked_permissions' => 'array',
+        'capacity_hours' => 'integer',
+        'cost_rate' => 'decimal:2',
+        'billable_rate' => 'decimal:2',
     ];
 
     /**
@@ -135,6 +148,22 @@ class SpaceUser extends Pivot
      */
     public function hasPermission(SpacePermission $permission): bool
     {
+        // Si el usuario tiene permisos personalizados, verificar solo esos
+        if (!empty($this->custom_permissions)) {
+            return in_array($permission->value, $this->custom_permissions);
+        }
+        
+        // Verificar si el permiso está revocado para este usuario
+        if (!empty($this->revoked_permissions) && in_array($permission->value, $this->revoked_permissions)) {
+            return false;
+        }
+        
+        // Verificar si el permiso está en los permisos adicionales
+        if (!empty($this->additional_permissions) && in_array($permission->value, $this->additional_permissions)) {
+            return true;
+        }
+        
+        // Verificar si el rol tiene el permiso
         return SpacePermission::roleHasPermission($this->role, $permission);
     }
 
@@ -143,6 +172,33 @@ class SpaceUser extends Pivot
      */
     public function getPermissions(): array
     {
-        return SpacePermission::permissionsForRole($this->role);
+        // Si hay permisos personalizados, devolver solo esos
+        if (!empty($this->custom_permissions)) {
+            return array_map(function($permissionValue) {
+                return SpacePermission::from($permissionValue);
+            }, $this->custom_permissions);
+        }
+        
+        // Obtener permisos del rol
+        $rolePermissions = SpacePermission::permissionsForRole($this->role);
+        
+        // Añadir permisos adicionales
+        if (!empty($this->additional_permissions)) {
+            foreach ($this->additional_permissions as $permissionValue) {
+                $permission = SpacePermission::from($permissionValue);
+                if (!in_array($permission, $rolePermissions)) {
+                    $rolePermissions[] = $permission;
+                }
+            }
+        }
+        
+        // Eliminar permisos revocados
+        if (!empty($this->revoked_permissions)) {
+            $rolePermissions = array_filter($rolePermissions, function($permission) {
+                return !in_array($permission->value, $this->revoked_permissions);
+            });
+        }
+        
+        return $rolePermissions;
     }
 }

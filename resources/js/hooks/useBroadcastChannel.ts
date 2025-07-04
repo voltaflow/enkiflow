@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface BroadcastMessage {
     type: string;
@@ -13,11 +13,7 @@ interface UseBroadcastChannelOptions {
     enabled?: boolean;
 }
 
-export function useBroadcastChannel({
-    channelName,
-    onMessage,
-    enabled = true,
-}: UseBroadcastChannelOptions) {
+export function useBroadcastChannel({ channelName, onMessage, enabled = true }: UseBroadcastChannelOptions) {
     const channelRef = useRef<BroadcastChannel | null>(null);
     const tabIdRef = useRef<string>(generateTabId());
 
@@ -27,22 +23,25 @@ export function useBroadcastChannel({
     }
 
     // Send message to other tabs
-    const sendMessage = useCallback((type: string, payload: any) => {
-        if (!channelRef.current || !enabled) return;
+    const sendMessage = useCallback(
+        (type: string, payload: any) => {
+            if (!channelRef.current || !enabled) return;
 
-        const message: BroadcastMessage = {
-            type,
-            payload,
-            timestamp: Date.now(),
-            tabId: tabIdRef.current,
-        };
+            const message: BroadcastMessage = {
+                type,
+                payload,
+                timestamp: Date.now(),
+                tabId: tabIdRef.current,
+            };
 
-        try {
-            channelRef.current.postMessage(message);
-        } catch (error) {
-            console.error('Error sending broadcast message:', error);
-        }
-    }, [enabled]);
+            try {
+                channelRef.current.postMessage(message);
+            } catch (error) {
+                console.error('Error sending broadcast message:', error);
+            }
+        },
+        [enabled],
+    );
 
     // Close channel
     const close = useCallback(() => {
@@ -79,7 +78,6 @@ export function useBroadcastChannel({
 
             // Announce tab opened
             sendMessage('TAB_OPENED', { tabId: tabIdRef.current });
-
         } catch (error) {
             console.error('Error creating BroadcastChannel:', error);
         }
@@ -102,18 +100,21 @@ export function useBroadcastChannel({
 
 // Timer-specific broadcast channel hook
 export function useTimerBroadcast(onTimerUpdate?: (data: any) => void) {
-    const handleMessage = useCallback((message: BroadcastMessage) => {
-        switch (message.type) {
-            case 'TIMER_STARTED':
-            case 'TIMER_STOPPED':
-            case 'TIMER_PAUSED':
-            case 'TIMER_RESUMED':
-            case 'TIMER_UPDATED':
-            case 'TIMER_SYNCED':
-                onTimerUpdate?.(message.payload);
-                break;
-        }
-    }, [onTimerUpdate]);
+    const handleMessage = useCallback(
+        (message: BroadcastMessage) => {
+            switch (message.type) {
+                case 'TIMER_STARTED':
+                case 'TIMER_STOPPED':
+                case 'TIMER_PAUSED':
+                case 'TIMER_RESUMED':
+                case 'TIMER_UPDATED':
+                case 'TIMER_SYNCED':
+                    onTimerUpdate?.(message.payload);
+                    break;
+            }
+        },
+        [onTimerUpdate],
+    );
 
     const channel = useBroadcastChannel({
         channelName: 'enkiflow_timer_sync',
@@ -123,17 +124,11 @@ export function useTimerBroadcast(onTimerUpdate?: (data: any) => void) {
     return {
         ...channel,
         // Timer-specific methods
-        broadcastTimerStart: (timerData: any) => 
-            channel.sendMessage('TIMER_STARTED', timerData),
-        broadcastTimerStop: (timerData: any) => 
-            channel.sendMessage('TIMER_STOPPED', timerData),
-        broadcastTimerPause: (timerData: any) => 
-            channel.sendMessage('TIMER_PAUSED', timerData),
-        broadcastTimerResume: (timerData: any) => 
-            channel.sendMessage('TIMER_RESUMED', timerData),
-        broadcastTimerUpdate: (timerData: any) => 
-            channel.sendMessage('TIMER_UPDATED', timerData),
-        broadcastTimerSync: (timerData: any) => 
-            channel.sendMessage('TIMER_SYNCED', timerData),
+        broadcastTimerStart: (timerData: any) => channel.sendMessage('TIMER_STARTED', timerData),
+        broadcastTimerStop: (timerData: any) => channel.sendMessage('TIMER_STOPPED', timerData),
+        broadcastTimerPause: (timerData: any) => channel.sendMessage('TIMER_PAUSED', timerData),
+        broadcastTimerResume: (timerData: any) => channel.sendMessage('TIMER_RESUMED', timerData),
+        broadcastTimerUpdate: (timerData: any) => channel.sendMessage('TIMER_UPDATED', timerData),
+        broadcastTimerSync: (timerData: any) => channel.sendMessage('TIMER_SYNCED', timerData),
     };
 }

@@ -1,13 +1,12 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { format, addDays } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Plus, Copy, MoreVertical, Trash2, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDurationHHMM } from '@/lib/time-utils';
+import { addDays, format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, Copy, Edit, MoreVertical, Plus, Trash2 } from 'lucide-react';
 
 interface TimeEntry {
     id: number;
@@ -60,7 +59,7 @@ export function TimesheetDay({
     onDeleteEntry,
     onDuplicateDay,
     isDuplicating = false,
-    onDateChange
+    onDateChange,
 }: TimesheetDayProps) {
     const formatDuration = (seconds: number) => {
         return formatDurationHHMM(seconds);
@@ -74,19 +73,22 @@ export function TimesheetDay({
     const totalHours = totalSeconds / 3600;
 
     // Group entries by project
-    const entriesByProject = entries.reduce((acc, entry) => {
-        const projectId = entry.project_id || 0;
-        if (!acc[projectId]) {
-            acc[projectId] = {
-                project: entry.project || null,
-                entries: [],
-                totalDuration: 0
-            };
-        }
-        acc[projectId].entries.push(entry);
-        acc[projectId].totalDuration += entry.duration || 0;
-        return acc;
-    }, {} as Record<number, { project: any; entries: TimeEntry[]; totalDuration: number }>);
+    const entriesByProject = entries.reduce(
+        (acc, entry) => {
+            const projectId = entry.project_id || 0;
+            if (!acc[projectId]) {
+                acc[projectId] = {
+                    project: entry.project || null,
+                    entries: [],
+                    totalDuration: 0,
+                };
+            }
+            acc[projectId].entries.push(entry);
+            acc[projectId].totalDuration += entry.duration || 0;
+            return acc;
+        },
+        {} as Record<number, { project: any; entries: TimeEntry[]; totalDuration: number }>,
+    );
 
     return (
         <Card className="w-full">
@@ -94,12 +96,7 @@ export function TimesheetDay({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="flex items-center">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-r-none"
-                                onClick={() => onDateChange(addDays(date, -1))}
-                            >
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-r-none" onClick={() => onDateChange(addDays(date, -1))}>
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
                             <Button
@@ -112,24 +109,21 @@ export function TimesheetDay({
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
-                        <CardTitle className="text-lg">
-                            {format(date, 'EEEE, d \'de\' MMMM, yyyy', { locale: es })}
-                        </CardTitle>
+                        <CardTitle className="text-lg">{format(date, "EEEE, d 'de' MMMM, yyyy", { locale: es })}</CardTitle>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="text-sm text-muted-foreground">
-                            Total: <span className="font-semibold">{formatDurationHHMM(totalSeconds)} / {dailyGoal}h</span>
+                        <div className="text-muted-foreground text-sm">
+                            Total:{' '}
+                            <span className="font-semibold">
+                                {formatDurationHHMM(totalSeconds)} / {dailyGoal}h
+                            </span>
                         </div>
                         {totalHours >= dailyGoal && (
                             <Badge variant="default" className="bg-green-500">
                                 Meta alcanzada
                             </Badge>
                         )}
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onDateChange(new Date())}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => onDateChange(new Date())}>
                             Hoy
                         </Button>
                     </div>
@@ -139,12 +133,8 @@ export function TimesheetDay({
             <CardContent className="space-y-4">
                 {/* Add Time Button */}
                 {!isLocked && (
-                    <Button
-                        onClick={onAddTime}
-                        className="w-full"
-                        variant="outline"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
+                    <Button onClick={onAddTime} className="w-full" variant="outline">
+                        <Plus className="mr-2 h-4 w-4" />
                         Añadir tiempo
                     </Button>
                 )}
@@ -165,28 +155,22 @@ export function TimesheetDay({
                             {entries.map((entry) => (
                                 <TableRow key={entry.id}>
                                     <TableCell className="w-[180px]">
-                                        <div className="flex items-center gap-2 max-w-[180px]">
+                                        <div className="flex max-w-[180px] items-center gap-2">
                                             {entry.project?.color && (
                                                 <div
-                                                    className="w-3 h-3 rounded-full flex-shrink-0"
+                                                    className="h-3 w-3 flex-shrink-0 rounded-full"
                                                     style={{ backgroundColor: entry.project.color }}
                                                 />
                                             )}
-                                            <span className="font-medium truncate">
-                                                {entry.project?.name || 'Sin proyecto'}
-                                            </span>
+                                            <span className="truncate font-medium">{entry.project?.name || 'Sin proyecto'}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell className="w-[180px]">
-                                        <div className="truncate">
-                                            {entry.task?.title || '-'}
-                                        </div>
+                                        <div className="truncate">{entry.task?.title || '-'}</div>
                                     </TableCell>
                                     <TableCell className="w-[400px]">
-                                        <div className="space-y-1 max-w-[400px]">
-                                            <p className="text-sm break-words whitespace-pre-wrap line-clamp-3">
-                                                {entry.description}
-                                            </p>
+                                        <div className="max-w-[400px] space-y-1">
+                                            <p className="line-clamp-3 text-sm break-words whitespace-pre-wrap">{entry.description}</p>
                                             {entry.is_billable && (
                                                 <Badge variant="outline" className="text-xs">
                                                     Facturable
@@ -212,7 +196,7 @@ export function TimesheetDay({
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => onEditEntry(entry)}>
-                                                        <Edit className="h-4 w-4 mr-2" />
+                                                        <Edit className="mr-2 h-4 w-4" />
                                                         Editar
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
@@ -221,7 +205,7 @@ export function TimesheetDay({
                                                         }}
                                                         className="text-destructive"
                                                     >
-                                                        <Trash2 className="h-4 w-4 mr-2" />
+                                                        <Trash2 className="mr-2 h-4 w-4" />
                                                         Eliminar
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -233,29 +217,20 @@ export function TimesheetDay({
                         </TableBody>
                     </Table>
                 ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                        No hay entradas de tiempo para este día
-                    </div>
+                    <div className="text-muted-foreground py-8 text-center">No hay entradas de tiempo para este día</div>
                 )}
 
                 {/* Project Summary */}
                 {entries.length > 0 && (
-                    <div className="border-t pt-4 space-y-2">
-                        <h4 className="text-sm font-semibold text-muted-foreground">Resumen por proyecto</h4>
+                    <div className="space-y-2 border-t pt-4">
+                        <h4 className="text-muted-foreground text-sm font-semibold">Resumen por proyecto</h4>
                         {Object.entries(entriesByProject).map(([projectId, data]) => (
                             <div key={projectId} className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-2">
-                                    {data.project?.color && (
-                                        <div
-                                            className="w-3 h-3 rounded-full"
-                                            style={{ backgroundColor: data.project.color }}
-                                        />
-                                    )}
+                                    {data.project?.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: data.project.color }} />}
                                     <span>{data.project?.name || 'Sin proyecto'}</span>
                                 </div>
-                                <span className="font-medium">
-                                    {formatDuration(data.totalDuration)}
-                                </span>
+                                <span className="font-medium">{formatDuration(data.totalDuration)}</span>
                             </div>
                         ))}
                     </div>
@@ -273,7 +248,7 @@ export function TimesheetDay({
                         className="w-full"
                         disabled={isDuplicating}
                     >
-                        <Copy className="h-4 w-4 mr-2" />
+                        <Copy className="mr-2 h-4 w-4" />
                         {isDuplicating ? 'Duplicando...' : 'Duplicar día más reciente'}
                     </Button>
                 )}

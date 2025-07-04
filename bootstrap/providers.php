@@ -8,4 +8,5 @@ return [
     App\Providers\RouteServiceProvider::class,
     App\Providers\TenancyServiceProvider::class,
     App\Providers\EventServiceProvider::class,
+    App\Providers\PasswordResetServiceProvider::class,
 ];

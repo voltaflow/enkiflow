@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef, useState, useMemo, ReactNode } from 'react';
-import { useLocalStorageBackup } from '@/hooks/useLocalStorageBackup';
 import { useTimerBroadcast } from '@/hooks/useBroadcastChannel';
+import { useLocalStorageBackup } from '@/hooks/useLocalStorageBackup';
 import { useTimerOfflineQueue } from '@/hooks/useOfflineQueue';
 import axios from '@/lib/axios-config';
-import { toast } from 'sonner';
+import { route } from '@/lib/route-helper';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { route } from '@/lib/route-helper';
+import { createContext, ReactNode, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 // Types
 interface TimeEntry {
@@ -264,7 +264,7 @@ function timeEntryReducer(state: TimeEntryState, action: TimeEntryAction): TimeE
         case 'REMOVE_ACTIVE_TIMER':
             return {
                 ...state,
-                activeTimers: state.activeTimers.filter(timer => timer.id !== action.payload),
+                activeTimers: state.activeTimers.filter((timer) => timer.id !== action.payload),
             };
 
         case 'RESET_APPROVAL_STATUS':
@@ -291,14 +291,23 @@ interface TimeEntryContextType {
     handleIdleExceeded: (keepTime: boolean, discardMinutes?: number) => void;
     sendDailyReminder: () => Promise<void>;
     duplicatePreviousDay: (fromDate: string, toDate: string) => Promise<TimeEntry[]>;
-    copyRowsFromPreviousWeek: (targetWeekStart: string) => Promise<{ project_id: number | null; task_id: number | null; project?: any; task?: any }[]>;
+    copyRowsFromPreviousWeek: (
+        targetWeekStart: string,
+    ) => Promise<{ project_id: number | null; task_id: number | null; project?: any; task?: any }[]>;
     submitTimesheet: (weekStart: Date, weekEnd: Date) => Promise<any>;
     approveTimesheet: (userId: number, weekStart: Date) => Promise<any>;
     lockTimesheet: () => void;
     loadUserPreferences: () => Promise<void>;
     loadSavedEntry: () => void;
     syncFailedEntries: () => Promise<void>;
-    updateTimeEntry: (projectId: number | null, taskId: number | null, date: string, hours: number, description?: string, isPlaceholder?: boolean) => Promise<void>;
+    updateTimeEntry: (
+        projectId: number | null,
+        taskId: number | null,
+        date: string,
+        hours: number,
+        description?: string,
+        isPlaceholder?: boolean,
+    ) => Promise<void>;
     // Getters
     hasActiveTimer: boolean;
     canStartNewTimer: boolean;
@@ -322,22 +331,20 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
     const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const lastSyncRef = useRef<Date | null>(null);
     const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    
+
     // Use ref to always have access to the latest state
     const stateRef = useRef(state);
     stateRef.current = state;
-    
+
     // Offline queue for timer sync
     const { queueTimerSync, queueTimerStop, isOnline } = useTimerOfflineQueue();
-    
+
     // Broadcast channel for cross-tab sync
-    const { broadcastTimerStart, broadcastTimerStop, broadcastTimerPause, broadcastTimerResume, broadcastTimerUpdate } = useTimerBroadcast(
-        (data) => {
-            // Handle timer updates from other tabs
-            // Reload the timer state from server
-            loadSavedEntry();
-        }
-    );
+    const { broadcastTimerStart, broadcastTimerStop, broadcastTimerPause, broadcastTimerResume, broadcastTimerUpdate } = useTimerBroadcast((data) => {
+        // Handle timer updates from other tabs
+        // Reload the timer state from server
+        loadSavedEntry();
+    });
 
     // Update current time every second for timer display
     useEffect(() => {
@@ -351,7 +358,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 timerIntervalRef.current = null;
             }
         }
-        
+
         return () => {
             if (timerIntervalRef.current) {
                 clearInterval(timerIntervalRef.current);
@@ -360,16 +367,17 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
     }, [state.currentEntry.is_running]);
 
     // Derived state (getters)
-    const hasActiveTimer = state.activeTimers.some(timer => timer.is_running);
+    const hasActiveTimer = state.activeTimers.some((timer) => timer.is_running);
     const canStartNewTimer = !hasActiveTimer;
 
-    const todaysTotalHours = state.recentEntries
-        .filter(entry => {
-            const entryDate = new Date(entry.started_at || '');
-            const today = new Date();
-            return entryDate.toDateString() === today.toDateString();
-        })
-        .reduce((sum, entry) => sum + (entry.duration || 0), 0) / 3600;
+    const todaysTotalHours =
+        state.recentEntries
+            .filter((entry) => {
+                const entryDate = new Date(entry.started_at || '');
+                const today = new Date();
+                return entryDate.toDateString() === today.toDateString();
+            })
+            .reduce((sum, entry) => sum + (entry.duration || 0), 0) / 3600;
 
     const needsReminder = useMemo(() => {
         if (!state.preferences.enableReminders) return false;
@@ -381,7 +389,13 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         reminderTime.setHours(hours, minutes, 0);
 
         return now >= reminderTime && todaysTotalHours < state.preferences.dailyHoursGoal;
-    }, [state.preferences.enableReminders, state.reminders.dailySent, state.preferences.reminderTime, todaysTotalHours, state.preferences.dailyHoursGoal]);
+    }, [
+        state.preferences.enableReminders,
+        state.reminders.dailySent,
+        state.preferences.reminderTime,
+        todaysTotalHours,
+        state.preferences.dailyHoursGoal,
+    ]);
 
     const canEditTimesheet = !state.approval.isLocked;
 
@@ -406,10 +420,10 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         // Calculate elapsed time since start
         const startTime = new Date(state.currentEntry.started_at);
         const elapsed = Math.floor((currentTime.getTime() - startTime.getTime()) / 1000);
-        
+
         // Subtract any paused time
         const actualDuration = elapsed - (state.currentEntry.total_paused_time || 0);
-        
+
         // Ensure duration is never negative
         return Math.max(0, actualDuration);
     }, [state.currentEntry.started_at, state.currentEntry.is_running, state.currentEntry.total_paused_time, currentTime]);
@@ -429,7 +443,6 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         if (state.currentEntry.is_paused) return 'paused';
         return 'stopped';
     }, [state.currentEntry.is_running, state.currentEntry.is_paused]);
-
 
     // Sync timer state with server
     const syncTimerWithServer = async () => {
@@ -455,7 +468,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
             if (isOnline) {
                 const response = await axios.post(route('api.timer.active.sync'), syncData);
                 lastSyncRef.current = new Date();
-                
+
                 // Update localStorage with current duration
                 const updatedEntry = {
                     ...state.currentEntry,
@@ -477,14 +490,14 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
     const startTimer = async () => {
         if (!canStartNewTimer) {
             // Stop active timer first
-            const activeTimer = state.activeTimers.find(t => t.is_running);
+            const activeTimer = state.activeTimers.find((t) => t.is_running);
             if (activeTimer) {
                 await stopTimer();
             }
         }
 
         const startTime = new Date();
-        
+
         // Update state immediately
         dispatch({
             type: 'SET_TIMER_STATE',
@@ -511,7 +524,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
 
         // Save to localStorage
         localStorage.saveCurrentEntry(updatedEntry);
-        
+
         // Sync with server
         try {
             const response = await axios.post(route('api.timer.active.start'), {
@@ -519,7 +532,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 project_id: state.currentEntry.project_id,
                 task_id: state.currentEntry.task_id,
             });
-            
+
             // Update with server response
             if (response.data.timer) {
                 dispatch({
@@ -529,7 +542,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                     },
                 });
             }
-            
+
             // Broadcast to other tabs
             broadcastTimerStart(updatedEntry);
         } catch (error) {
@@ -558,7 +571,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         });
 
         localStorage.saveCurrentEntry(updatedEntry);
-        
+
         // Sync with server
         try {
             await axios.post(route('api.timer.active.pause'));
@@ -592,7 +605,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         });
 
         localStorage.saveCurrentEntry(updatedEntry);
-        
+
         // Sync with server
         try {
             await axios.post(route('api.timer.active.resume'));
@@ -607,7 +620,6 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
 
         const endTime = new Date();
         const duration = currentDuration;
-        
 
         dispatch({
             type: 'SET_TIMER_STATE',
@@ -621,17 +633,17 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
 
         try {
             dispatch({ type: 'SET_LOADING', payload: true });
-            
+
             // Stop timer on server first
             if (isOnline) {
                 // First try to stop the active timer
                 try {
                     const response = await axios.post(route('api.timer.active.stop'));
-                    
+
                     if (response.data.time_entry) {
                         dispatch({ type: 'ADD_RECENT_ENTRY', payload: response.data.time_entry });
                         toast.success('Tiempo registrado exitosamente');
-                        
+
                         // Broadcast to other tabs
                         broadcastTimerStop(response.data.time_entry);
                     }
@@ -649,9 +661,9 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                             is_manual: false,
                             created_via: 'timer',
                         };
-                        
+
                         const response = await axios.post(route('tenant.time.store'), timeEntryData);
-                        
+
                         if (response.data.time_entry) {
                             dispatch({ type: 'ADD_RECENT_ENTRY', payload: response.data.time_entry });
                             toast.success('Tiempo registrado exitosamente');
@@ -671,30 +683,29 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                     ended_at: endTime.toISOString(),
                     duration: Math.floor(duration),
                 };
-                
+
                 queueTimerStop(stopData);
                 toast.warning('Timer guardado localmente. Se sincronizará cuando vuelvas a estar online.');
             }
-            
+
             dispatch({ type: 'RESET_CURRENT_ENTRY' });
             localStorage.clearCurrentEntry();
-            
         } catch (error: any) {
             const errorMessage = error.response?.data?.message || 'Error al guardar la entrada de tiempo';
-            
+
             dispatch({ type: 'SET_ERROR', payload: errorMessage });
-            
+
             // Save the current entry as failed for later sync
             localStorage.saveFailedEntry({
                 ...state.currentEntry,
                 stopped_at: endTime.toISOString(),
                 duration: Math.floor(duration),
             });
-            
+
             // Reset the timer even if there was an error
             dispatch({ type: 'RESET_CURRENT_ENTRY' });
             localStorage.clearCurrentEntry();
-            
+
             toast.error(errorMessage);
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
@@ -706,7 +717,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         // Use the latest state from ref
         const latestState = stateRef.current.currentEntry;
         localStorage.saveCurrentEntry({ ...latestState, description });
-        
+
         // Sync with server if timer is active
         if (latestState.is_running || latestState.is_paused) {
             syncTimerWithServer();
@@ -719,7 +730,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         // Use the latest state from ref
         const latestState = stateRef.current.currentEntry;
         localStorage.saveCurrentEntry({ ...latestState, project_id: projectId, task_id: taskId });
-        
+
         // Sync with server if timer is active
         if (latestState.is_running || latestState.is_paused) {
             syncTimerWithServer();
@@ -763,10 +774,12 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const copyRowsFromPreviousWeek = async (targetWeekStart: string): Promise<{ project_id: number | null; task_id: number | null; project?: any; task?: any }[]> => {
+    const copyRowsFromPreviousWeek = async (
+        targetWeekStart: string,
+    ): Promise<{ project_id: number | null; task_id: number | null; project?: any; task?: any }[]> => {
         try {
             dispatch({ type: 'SET_LOADING', payload: true });
-            
+
             const response = await axios.post(route('tenant.time.copy-previous-week-rows'), {
                 target_week_start: targetWeekStart,
                 create_entries: true, // Create entries directly in backend
@@ -777,26 +790,27 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 return []; // Return empty array since entries were created in backend
             } else if (response.data.rows && response.data.rows.length > 0) {
                 // Legacy response format
-                toast.success(`Se encontraron ${response.data.rows.length} fila${response.data.rows.length > 1 ? 's' : ''} de la hoja más reciente (semana del ${format(new Date(response.data.from_week), 'dd/MM', { locale: es })})`);
+                toast.success(
+                    `Se encontraron ${response.data.rows.length} fila${response.data.rows.length > 1 ? 's' : ''} de la hoja más reciente (semana del ${format(new Date(response.data.from_week), 'dd/MM', { locale: es })})`,
+                );
                 return response.data.rows;
             }
 
             return [];
         } catch (error: any) {
-            
             const errorMessage = error.response?.data?.message || 'Error al copiar filas de la hoja más reciente';
             dispatch({ type: 'SET_ERROR', payload: errorMessage });
-            
+
             if (error.response?.status === 404) {
                 toast.info('No hay hojas previas con datos para copiar');
                 return [];
             }
-            
+
             if (error.response?.status === 400) {
                 toast.warning('La semana actual ya tiene entradas de tiempo');
                 return [];
             }
-            
+
             toast.error(errorMessage);
             throw error; // Re-throw to see it in the component
         } finally {
@@ -807,13 +821,13 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
     const duplicatePreviousDay = async (fromDate: string, toDate: string): Promise<TimeEntry[]> => {
         try {
             dispatch({ type: 'SET_LOADING', payload: true });
-            
+
             const response = await axios.post('/time/duplicate-day', {
                 to_date: toDate,
             });
 
             // Response received
-            
+
             if (response.data.entries && response.data.entries.length > 0) {
                 response.data.entries.forEach((entry: TimeEntry) => {
                     dispatch({ type: 'ADD_RECENT_ENTRY', payload: entry });
@@ -827,19 +841,19 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
             console.error('Error duplicating day:', error.response?.data);
             const errorMessage = error.response?.data?.message || 'Error al duplicar día';
             dispatch({ type: 'SET_ERROR', payload: errorMessage });
-            
+
             // Si es 404, significa que no hay entradas para duplicar
             if (error.response?.status === 404) {
                 toast.info('No se encontraron días anteriores con entradas de tiempo');
                 return [];
             }
-            
+
             // Si es 400, el día ya tiene entradas
             if (error.response?.status === 400) {
                 toast.warning(errorMessage);
                 return [];
             }
-            
+
             // Si es 422, hubo un problema de validación
             if (error.response?.status === 422) {
                 const validationErrors = error.response?.data?.errors;
@@ -851,13 +865,13 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 }
                 return [];
             }
-            
+
             // Si es 500, error del servidor
             if (error.response?.status === 500) {
                 toast.error('Error del servidor al duplicar entradas. Por favor revisa que los datos sean válidos.');
                 return [];
             }
-            
+
             // Otros errores
             toast.error(errorMessage);
             throw error;
@@ -969,15 +983,22 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
 
         dispatch({ type: 'SET_LOADING', payload: false });
     };
-    
-    const updateTimeEntry = async (projectId: number | null, taskId: number | null, date: string, hours: number, description?: string, isPlaceholder: boolean = false) => {
+
+    const updateTimeEntry = async (
+        projectId: number | null,
+        taskId: number | null,
+        date: string,
+        hours: number,
+        description?: string,
+        isPlaceholder: boolean = false,
+    ) => {
         try {
             // Skip if no project_id (required field)
             if (!projectId) {
                 toast.error('Por favor selecciona un proyecto');
                 return;
             }
-            
+
             const response = await axios.post(route('tenant.time.timesheet.quick-add'), {
                 project_id: projectId,
                 task_id: taskId,
@@ -985,9 +1006,9 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 hours: hours,
                 description: description || '',
                 is_billable: true,
-                is_placeholder: isPlaceholder
+                is_placeholder: isPlaceholder,
             });
-            
+
             // Show success message only if not a placeholder
             if (!isPlaceholder) {
                 if (hours === 0) {
@@ -996,7 +1017,7 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                     toast.success('Entrada actualizada correctamente');
                 }
             }
-            
+
             return response.data;
         } catch (error: any) {
             console.error('Error updating time entry:', error);
@@ -1023,10 +1044,10 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
             // Temporarily disable sync to avoid errors
             // syncFailedEntries();
         }, 100);
-        
+
         return () => clearTimeout(timer);
     }, []);
-    
+
     // Save state ONLY when timer is actively running or paused
     useEffect(() => {
         if (state.currentEntry.is_running || state.currentEntry.is_paused) {
@@ -1035,18 +1056,15 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
             // Timer is stopped, clear localStorage
             localStorage.clearCurrentEntry();
         }
-    }, [
-        state.currentEntry.is_running, 
-        state.currentEntry.is_paused
-    ]);
-    
+    }, [state.currentEntry.is_running, state.currentEntry.is_paused]);
+
     // Sync with server periodically while timer is running
     useEffect(() => {
         if (state.currentEntry.is_running || state.currentEntry.is_paused) {
             // Save immediately
             localStorage.saveCurrentEntry(state.currentEntry);
             syncTimerWithServer();
-            
+
             // Set up periodic sync
             syncIntervalRef.current = setInterval(() => {
                 // Sync with server every 30 seconds
@@ -1062,14 +1080,13 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 syncIntervalRef.current = null;
             }
         }
-        
+
         return () => {
             if (syncIntervalRef.current) {
                 clearInterval(syncIntervalRef.current);
             }
         };
     }, [state.currentEntry.is_running, state.currentEntry.is_paused]);
-
 
     const value: TimeEntryContextType = {
         state,
@@ -1112,14 +1129,14 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 syncTimerWithServer();
             }
         };
-        
+
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        
+
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, [state.currentEntry.is_running, state.currentEntry.is_paused]);
-    
+
     // Sync on window focus
     useEffect(() => {
         const handleFocus = () => {
@@ -1127,9 +1144,9 @@ export function TimeEntryProvider({ children }: { children: ReactNode }) {
                 loadSavedEntry();
             }
         };
-        
+
         window.addEventListener('focus', handleFocus);
-        
+
         return () => {
             window.removeEventListener('focus', handleFocus);
         };

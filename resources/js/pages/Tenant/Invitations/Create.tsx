@@ -1,13 +1,13 @@
-import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import AppLayout from '@/layouts/app-layout';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
+import React from 'react';
 
 interface Role {
     value: string;
@@ -33,10 +33,10 @@ export default function Create({ availableRoles, canManageRoles }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Nueva Invitación" />
+            <Head title="Nueva Invitaciï¿½n" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
+                <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-4">
                         <Link href={route('tenant.invitations.index')}>
                             <Button variant="ghost" size="icon">
@@ -44,24 +44,20 @@ export default function Create({ availableRoles, canManageRoles }: Props) {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight">Nueva Invitación</h1>
-                            <p className="text-muted-foreground mt-1">
-                                Invita a un nuevo miembro a tu espacio de trabajo
-                            </p>
+                            <h1 className="text-3xl font-bold tracking-tight">Nueva Invitaciï¿½n</h1>
+                            <p className="text-muted-foreground mt-1">Invita a un nuevo miembro a tu espacio de trabajo</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Detalles de la Invitación</CardTitle>
-                                <CardDescription>
-                                    El usuario recibirá un correo electrónico con un enlace para unirse
-                                </CardDescription>
+                                <CardTitle>Detalles de la Invitaciï¿½n</CardTitle>
+                                <CardDescription>El usuario recibirï¿½ un correo electrï¿½nico con un enlace para unirse</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Correo Electrónico *</Label>
+                                    <Label htmlFor="email">Correo Electrï¿½nico *</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -70,19 +66,14 @@ export default function Create({ availableRoles, canManageRoles }: Props) {
                                         placeholder="usuario@ejemplo.com"
                                         required
                                     />
-                                    {errors.email && (
-                                        <p className="text-sm text-destructive">{errors.email}</p>
-                                    )}
+                                    {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="role">Rol *</Label>
                                     {canManageRoles ? (
                                         <>
-                                            <Select
-                                                value={data.role}
-                                                onValueChange={(value) => setData('role', value)}
-                                            >
+                                            <Select value={data.role} onValueChange={(value) => setData('role', value)}>
                                                 <SelectTrigger id="role">
                                                     <SelectValue />
                                                 </SelectTrigger>
@@ -94,30 +85,25 @@ export default function Create({ availableRoles, canManageRoles }: Props) {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                            <p className="text-sm text-muted-foreground">
-                                                {availableRoles.find(r => r.value === data.role)?.description}
+                                            <p className="text-muted-foreground text-sm">
+                                                {availableRoles.find((r) => r.value === data.role)?.description}
                                             </p>
                                         </>
                                     ) : (
                                         <div>
-                                            <Input
-                                                value={availableRoles.find(r => r.value === data.role)?.label || 'Miembro'}
-                                                disabled
-                                            />
-                                            <p className="text-sm text-muted-foreground mt-1">
+                                            <Input value={availableRoles.find((r) => r.value === data.role)?.label || 'Miembro'} disabled />
+                                            <p className="text-muted-foreground mt-1 text-sm">
                                                 Solo los administradores pueden asignar roles diferentes
                                             </p>
                                         </div>
                                     )}
-                                    {errors.role && (
-                                        <p className="text-sm text-destructive">{errors.role}</p>
-                                    )}
+                                    {errors.role && <p className="text-destructive text-sm">{errors.role}</p>}
                                 </div>
 
                                 <Alert>
                                     <AlertDescription>
-                                        La invitación será válida por 7 días. Si el usuario no la acepta en ese tiempo,
-                                        deberás enviar una nueva invitación.
+                                        La invitaciï¿½n serï¿½ vï¿½lida por 7 dï¿½as. Si el usuario no la acepta en ese tiempo, deberï¿½s enviar una nueva
+                                        invitaciï¿½n.
                                     </AlertDescription>
                                 </Alert>
                             </CardContent>
@@ -125,7 +111,7 @@ export default function Create({ availableRoles, canManageRoles }: Props) {
 
                         <div className="flex gap-4">
                             <Button type="submit" disabled={processing}>
-                                {processing ? 'Enviando...' : 'Enviar Invitación'}
+                                {processing ? 'Enviando...' : 'Enviar Invitaciï¿½n'}
                             </Button>
                             <Link href={route('tenant.invitations.index')}>
                                 <Button variant="outline" type="button">

@@ -118,7 +118,7 @@ export function AppSidebar() {
                 title: 'Espacios',
                 href: '/spaces',
                 icon: SpaceIcon,
-            }
+            },
         );
     } else {
         // Tenant domain navigation - safely build routes
@@ -157,7 +157,7 @@ export function AppSidebar() {
                 title: 'Invitaciones',
                 href: '/invitations',
                 icon: Mail,
-            }
+            },
         ];
 
         // Add tenant navigation items

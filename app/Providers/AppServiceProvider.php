@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Policies\SpaceUserPolicy;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
             App::setLocale($locale);
             \Log::info("AppServiceProvider: Setting application locale to {$locale}");
         }
+
+        // Registrar políticas
+        Gate::policy(User::class, SpaceUserPolicy::class);
 
         // Registrar comandos personalizados
         if ($this->app->runningInConsole()) {

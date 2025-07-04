@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface Project {
     id: number;
@@ -25,51 +24,38 @@ interface AddProjectTaskModalProps {
     projects: Project[];
     tasks: Task[];
     existingProjectTaskCombinations: Set<string>;
-    onSubmit: (data: {
-        project_id: number;
-        task_id: number | null;
-        description: string;
-    }) => Promise<void>;
+    onSubmit: (data: { project_id: number; task_id: number | null; description: string }) => Promise<void>;
 }
 
-export function AddProjectTaskModal({
-    isOpen,
-    onClose,
-    projects,
-    tasks,
-    existingProjectTaskCombinations,
-    onSubmit
-}: AddProjectTaskModalProps) {
+export function AddProjectTaskModal({ isOpen, onClose, projects, tasks, existingProjectTaskCombinations, onSubmit }: AddProjectTaskModalProps) {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const availableProjects = projects.filter(project => {
+    const availableProjects = projects.filter((project) => {
         // Show all projects initially
         if (!selectedProjectId) return true;
         return project.id === selectedProjectId;
     });
 
-    const availableTasks = selectedProjectId
-        ? tasks.filter(task => task.project_id === selectedProjectId)
-        : [];
+    const availableTasks = selectedProjectId ? tasks.filter((task) => task.project_id === selectedProjectId) : [];
 
     const handleSubmit = async () => {
         // Clear previous errors
         setValidationError(null);
-        
+
         // Validate required fields
         if (!selectedProjectId) {
             setValidationError('Por favor selecciona un proyecto');
             return;
         }
-        
+
         if (!selectedTaskId && availableTasks.length > 0) {
             setValidationError('Por favor selecciona una tarea');
             return;
         }
-        
+
         // Check if this combination already exists
         const combinationKey = `${selectedProjectId}-${selectedTaskId || 0}`;
         if (existingProjectTaskCombinations.has(combinationKey)) {
@@ -82,9 +68,9 @@ export function AddProjectTaskModal({
             await onSubmit({
                 project_id: selectedProjectId,
                 task_id: selectedTaskId,
-                description: ''
+                description: '',
             });
-            
+
             // Reset form
             setSelectedProjectId(null);
             setSelectedTaskId(null);
@@ -112,11 +98,9 @@ export function AddProjectTaskModal({
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>
-                        Agregar proyecto/tarea a la semana
-                    </DialogTitle>
+                    <DialogTitle>Agregar proyecto/tarea a la semana</DialogTitle>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                     {/* Validation Error Alert */}
                     {validationError && (
@@ -125,10 +109,12 @@ export function AddProjectTaskModal({
                             <AlertDescription>{validationError}</AlertDescription>
                         </Alert>
                     )}
-                    
+
                     {/* Project Selector */}
                     <div className="space-y-2">
-                        <Label htmlFor="project">Proyecto <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="project">
+                            Proyecto <span className="text-red-500">*</span>
+                        </Label>
                         <Select
                             value={selectedProjectId?.toString() || ''}
                             onValueChange={(value) => {
@@ -140,15 +126,10 @@ export function AddProjectTaskModal({
                                 <SelectValue placeholder="Seleccionar proyecto" />
                             </SelectTrigger>
                             <SelectContent>
-                                {projects.map(project => (
+                                {projects.map((project) => (
                                     <SelectItem key={project.id} value={project.id.toString()}>
                                         <div className="flex items-center gap-2">
-                                            {project.color && (
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: project.color }}
-                                                />
-                                            )}
+                                            {project.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />}
                                             <span>{project.name}</span>
                                         </div>
                                     </SelectItem>
@@ -161,7 +142,7 @@ export function AddProjectTaskModal({
                     {selectedProjectId && (
                         <div className="space-y-2">
                             <Label htmlFor="task">
-                                Tarea 
+                                Tarea
                                 {availableTasks.length > 0 && <span className="text-red-500"> *</span>}
                             </Label>
                             <Select
@@ -170,14 +151,10 @@ export function AddProjectTaskModal({
                                 disabled={availableTasks.length === 0}
                             >
                                 <SelectTrigger id="task">
-                                    <SelectValue placeholder={
-                                        availableTasks.length === 0 
-                                            ? "No hay tareas disponibles" 
-                                            : "Seleccionar tarea"
-                                    } />
+                                    <SelectValue placeholder={availableTasks.length === 0 ? 'No hay tareas disponibles' : 'Seleccionar tarea'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableTasks.map(task => (
+                                    {availableTasks.map((task) => (
                                         <SelectItem key={task.id} value={task.id.toString()}>
                                             {task.title}
                                         </SelectItem>
@@ -191,17 +168,10 @@ export function AddProjectTaskModal({
                 </div>
 
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={isSubmitting}
-                    >
+                    <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
                         Cancelar
                     </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={isSubmitting || !selectedProjectId || (availableTasks.length > 0 && !selectedTaskId)}
-                    >
+                    <Button onClick={handleSubmit} disabled={isSubmitting || !selectedProjectId || (availableTasks.length > 0 && !selectedTaskId)}>
                         {isSubmitting ? 'Agregando...' : 'Agregar'}
                     </Button>
                 </DialogFooter>

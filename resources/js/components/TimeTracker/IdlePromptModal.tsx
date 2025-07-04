@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Clock } from 'lucide-react';
+import { useState } from 'react';
 
 interface IdlePromptModalProps {
     idleMinutes: number;
@@ -12,12 +12,7 @@ interface IdlePromptModalProps {
     isOpen?: boolean;
 }
 
-export function IdlePromptModal({
-    idleMinutes,
-    onKeepTime,
-    onDiscardTime,
-    isOpen = true
-}: IdlePromptModalProps) {
+export function IdlePromptModal({ idleMinutes, onKeepTime, onDiscardTime, isOpen = true }: IdlePromptModalProps) {
     const [customMinutes, setCustomMinutes] = useState(idleMinutes);
     const [useCustom, setUseCustom] = useState(false);
 
@@ -29,7 +24,7 @@ export function IdlePromptModal({
     const formatDuration = (minutes: number) => {
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
-        
+
         if (hours > 0) {
             return `${hours} hora${hours > 1 ? 's' : ''} y ${mins} minuto${mins !== 1 ? 's' : ''}`;
         }
@@ -38,29 +33,24 @@ export function IdlePromptModal({
 
     return (
         <Dialog open={isOpen} modal>
-            <DialogContent 
-                className="sm:max-w-[500px]" 
-                onPointerDownOutside={(e) => e.preventDefault()}
-                onEscapeKeyDown={(e) => e.preventDefault()}
-            >
+            <DialogContent className="sm:max-w-[500px]" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <AlertCircle className="h-5 w-5 text-yellow-500" />
                         Inactividad Detectada
                     </DialogTitle>
                     <DialogDescription>
-                        Hemos detectado que has estado inactivo durante{' '}
-                        <strong>{formatDuration(idleMinutes)}</strong>.
+                        Hemos detectado que has estado inactivo durante <strong>{formatDuration(idleMinutes)}</strong>.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 space-y-4">
-                    <div className="bg-muted p-4 rounded-lg">
+                <div className="space-y-4 py-4">
+                    <div className="bg-muted rounded-lg p-4">
                         <div className="flex items-center gap-3">
-                            <Clock className="h-8 w-8 text-muted-foreground" />
+                            <Clock className="text-muted-foreground h-8 w-8" />
                             <div>
                                 <p className="text-sm font-medium">¿Qué deseas hacer con este tiempo?</p>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-muted-foreground mt-1 text-sm">
                                     Puedes mantener todo el tiempo registrado o descartar el período de inactividad.
                                 </p>
                             </div>
@@ -79,37 +69,24 @@ export function IdlePromptModal({
                                 onChange={(e) => setCustomMinutes(parseInt(e.target.value) || 0)}
                                 className="w-full"
                             />
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-muted-foreground text-xs">
                                 Puedes ajustar la cantidad de tiempo inactivo a descartar (máximo {idleMinutes} minutos).
                             </p>
                         </div>
                     )}
 
                     {!useCustom && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setUseCustom(true)}
-                            className="text-sm"
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setUseCustom(true)} className="text-sm">
                             Ajustar tiempo manualmente
                         </Button>
                     )}
                 </div>
 
                 <DialogFooter className="flex gap-2 sm:gap-0">
-                    <Button
-                        variant="secondary"
-                        onClick={onKeepTime}
-                        className="flex-1 sm:flex-none"
-                    >
+                    <Button variant="secondary" onClick={onKeepTime} className="flex-1 sm:flex-none">
                         Mantener tiempo
                     </Button>
-                    <Button
-                        variant="destructive"
-                        onClick={handleDiscardTime}
-                        className="flex-1 sm:flex-none"
-                    >
+                    <Button variant="destructive" onClick={handleDiscardTime} className="flex-1 sm:flex-none">
                         Descartar {useCustom ? `${customMinutes} min` : 'tiempo inactivo'}
                     </Button>
                 </DialogFooter>

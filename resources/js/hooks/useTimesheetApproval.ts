@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from 'react';
 import { useTimeEntryStore } from '@/stores/timeEntryStore';
 import axios from 'axios';
+import { useCallback, useMemo, useState } from 'react';
 
 export function useTimesheetApproval() {
     const {
@@ -9,63 +9,65 @@ export function useTimesheetApproval() {
         approveTimesheet: storeApproveTimesheet,
         lockTimesheet,
         todaysTotalHours,
-        timesheetStatus
+        timesheetStatus,
     } = useTimeEntryStore();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isApproving, setIsApproving] = useState(false);
 
-    const canSubmit = useMemo(() =>
-        !state.approval.isSubmitted &&
-        !state.approval.isLocked &&
-        todaysTotalHours > 0
-    , [state.approval.isSubmitted, state.approval.isLocked, todaysTotalHours]);
+    const canSubmit = useMemo(
+        () => !state.approval.isSubmitted && !state.approval.isLocked && todaysTotalHours > 0,
+        [state.approval.isSubmitted, state.approval.isLocked, todaysTotalHours],
+    );
 
-    const canApprove = useMemo(() =>
-        state.approval.isSubmitted &&
-        !state.approval.isApproved &&
-        !state.approval.isLocked
-    , [state.approval.isSubmitted, state.approval.isApproved, state.approval.isLocked]);
+    const canApprove = useMemo(
+        () => state.approval.isSubmitted && !state.approval.isApproved && !state.approval.isLocked,
+        [state.approval.isSubmitted, state.approval.isApproved, state.approval.isLocked],
+    );
 
-    const canEdit = useMemo(() =>
-        !state.approval.isLocked
-    , [state.approval.isLocked]);
+    const canEdit = useMemo(() => !state.approval.isLocked, [state.approval.isLocked]);
 
-    const submitTimesheet = useCallback(async (weekStart: Date, weekEnd: Date) => {
-        if (!canSubmit) return { success: false, error: 'Cannot submit timesheet' };
+    const submitTimesheet = useCallback(
+        async (weekStart: Date, weekEnd: Date) => {
+            if (!canSubmit) return { success: false, error: 'Cannot submit timesheet' };
 
-        setIsSubmitting(true);
-        try {
-            await storeSubmitTimesheet(weekStart, weekEnd);
-            return { success: true };
-        } catch (error) {
-            return { success: false, error };
-        } finally {
-            setIsSubmitting(false);
-        }
-    }, [canSubmit, storeSubmitTimesheet]);
+            setIsSubmitting(true);
+            try {
+                await storeSubmitTimesheet(weekStart, weekEnd);
+                return { success: true };
+            } catch (error) {
+                return { success: false, error };
+            } finally {
+                setIsSubmitting(false);
+            }
+        },
+        [canSubmit, storeSubmitTimesheet],
+    );
 
-    const approveTimesheet = useCallback(async (userId: number, weekStart: Date) => {
-        if (!canApprove) return { success: false, error: 'Cannot approve timesheet' };
+    const approveTimesheet = useCallback(
+        async (userId: number, weekStart: Date) => {
+            if (!canApprove) return { success: false, error: 'Cannot approve timesheet' };
 
-        setIsApproving(true);
-        try {
-            await storeApproveTimesheet(userId, weekStart);
-            await lockTimesheet();
-            return { success: true };
-        } catch (error) {
-            return { success: false, error };
-        } finally {
-            setIsApproving(false);
-        }
-    }, [canApprove, storeApproveTimesheet, lockTimesheet]);
+            setIsApproving(true);
+            try {
+                await storeApproveTimesheet(userId, weekStart);
+                await lockTimesheet();
+                return { success: true };
+            } catch (error) {
+                return { success: false, error };
+            } finally {
+                setIsApproving(false);
+            }
+        },
+        [canApprove, storeApproveTimesheet, lockTimesheet],
+    );
 
     const rejectTimesheet = useCallback(async (userId: number, weekStart: Date, reason: string) => {
         try {
             const response = await axios.post('/api/timesheets/reject', {
                 user_id: userId,
                 week_start: weekStart.toISOString(),
-                reason
+                reason,
             });
 
             // Reset approval status would be handled by the store
@@ -86,6 +88,6 @@ export function useTimesheetApproval() {
         submitTimesheet,
         approveTimesheet,
         rejectTimesheet,
-        status: timesheetStatus
+        status: timesheetStatus,
     };
 }

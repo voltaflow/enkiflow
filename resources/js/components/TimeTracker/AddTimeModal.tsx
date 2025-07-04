@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface Project {
     id: number;
@@ -38,14 +38,7 @@ interface AddTimeModalProps {
     }) => Promise<void>;
 }
 
-export function AddTimeModal({
-    isOpen,
-    onClose,
-    projects,
-    tasks,
-    date,
-    onSubmit
-}: AddTimeModalProps) {
+export function AddTimeModal({ isOpen, onClose, projects, tasks, date, onSubmit }: AddTimeModalProps) {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(projects.length > 0 ? projects[0].id : null);
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
     const [description, setDescription] = useState('');
@@ -54,53 +47,51 @@ export function AddTimeModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const availableTasks = selectedProjectId
-        ? tasks.filter(task => task.project_id === selectedProjectId)
-        : [];
+    const availableTasks = selectedProjectId ? tasks.filter((task) => task.project_id === selectedProjectId) : [];
 
     const calculateDuration = () => {
         const [startHours, startMinutes] = startTime.split(':').map(Number);
         const [endHours, endMinutes] = endTime.split(':').map(Number);
-        
+
         const startTotalMinutes = startHours * 60 + startMinutes;
         let endTotalMinutes = endHours * 60 + endMinutes;
-        
+
         // If end time is less than start time, assume it's the next day
         if (endTotalMinutes < startTotalMinutes) {
             endTotalMinutes += 24 * 60; // Add 24 hours in minutes
         }
-        
+
         const durationMinutes = endTotalMinutes - startTotalMinutes;
-        
+
         if (durationMinutes <= 0) return '00:00';
-        
+
         const hours = Math.floor(durationMinutes / 60);
         const minutes = durationMinutes % 60;
-        
+
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     };
 
     const handleSubmit = async () => {
         // Clear previous errors
         setValidationError(null);
-        
+
         // Validate required fields
         if (!selectedProjectId) {
             setValidationError('Por favor selecciona un proyecto');
             return;
         }
-        
+
         if (!selectedTaskId && availableTasks.length > 0) {
             setValidationError('Por favor selecciona una tarea');
             return;
         }
-        
+
         const duration = calculateDuration();
         if (duration === '00:00') {
             setValidationError('La hora de fin debe ser posterior a la hora de inicio');
             return;
         }
-        
+
         // Check if duration is more than 12 hours
         const [hours] = duration.split(':').map(Number);
         if (hours > 12) {
@@ -116,16 +107,16 @@ export function AddTimeModal({
             const endDate = new Date(`${dateStr}T${endTime}:00`);
             const startDateTime = startDate.toISOString();
             const endDateTime = endDate.toISOString();
-            
+
             await onSubmit({
                 project_id: selectedProjectId,
                 task_id: selectedTaskId,
                 description,
                 duration,
                 started_at: startDateTime,
-                ended_at: endDateTime
+                ended_at: endDateTime,
             });
-            
+
             // Reset form
             setSelectedProjectId(projects.length > 0 ? projects[0].id : null);
             setSelectedTaskId(null);
@@ -150,11 +141,9 @@ export function AddTimeModal({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>
-                        Agregar tiempo - {format(date, 'd \'de\' MMMM, yyyy', { locale: es })}
-                    </DialogTitle>
+                    <DialogTitle>Agregar tiempo - {format(date, "d 'de' MMMM, yyyy", { locale: es })}</DialogTitle>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                     {/* Validation Error Alert */}
                     {validationError && (
@@ -165,7 +154,9 @@ export function AddTimeModal({
                     )}
                     {/* Project Selector */}
                     <div className="space-y-2">
-                        <Label htmlFor="project">Proyecto <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="project">
+                            Proyecto <span className="text-red-500">*</span>
+                        </Label>
                         <Select
                             value={selectedProjectId?.toString() || ''}
                             onValueChange={(value) => {
@@ -177,15 +168,10 @@ export function AddTimeModal({
                                 <SelectValue placeholder="Seleccionar proyecto" />
                             </SelectTrigger>
                             <SelectContent>
-                                {projects.map(project => (
+                                {projects.map((project) => (
                                     <SelectItem key={project.id} value={project.id.toString()}>
                                         <div className="flex items-center gap-2">
-                                            {project.color && (
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: project.color }}
-                                                />
-                                            )}
+                                            {project.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />}
                                             <span>{project.name}</span>
                                         </div>
                                     </SelectItem>
@@ -197,16 +183,15 @@ export function AddTimeModal({
                     {/* Task Selector */}
                     {selectedProjectId && availableTasks.length > 0 && (
                         <div className="space-y-2">
-                            <Label htmlFor="task">Tarea <span className="text-red-500">*</span></Label>
-                            <Select
-                                value={selectedTaskId?.toString() || ''}
-                                onValueChange={(value) => setSelectedTaskId(parseInt(value))}
-                            >
+                            <Label htmlFor="task">
+                                Tarea <span className="text-red-500">*</span>
+                            </Label>
+                            <Select value={selectedTaskId?.toString() || ''} onValueChange={(value) => setSelectedTaskId(parseInt(value))}>
                                 <SelectTrigger id="task">
                                     <SelectValue placeholder="Seleccionar tarea" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableTasks.map(task => (
+                                    {availableTasks.map((task) => (
                                         <SelectItem key={task.id} value={task.id.toString()}>
                                             {task.title}
                                         </SelectItem>
@@ -220,9 +205,7 @@ export function AddTimeModal({
                     <div className="space-y-2">
                         <Label htmlFor="description">
                             Descripción
-                            <span className="text-xs text-muted-foreground ml-2">
-                                ({description.length}/255)
-                            </span>
+                            <span className="text-muted-foreground ml-2 text-xs">({description.length}/255)</span>
                         </Label>
                         <Textarea
                             id="description"
@@ -238,36 +221,22 @@ export function AddTimeModal({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="start-time">Hora inicio</Label>
-                            <Input
-                                id="start-time"
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                            />
+                            <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="end-time">Hora fin</Label>
-                            <Input
-                                id="end-time"
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                            />
+                            <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
                         </div>
                     </div>
 
                     {/* Duration Display */}
-                    <div className="text-center py-2">
-                        <span className="text-sm text-muted-foreground">Duración: </span>
+                    <div className="py-2 text-center">
+                        <span className="text-muted-foreground text-sm">Duración: </span>
                         <span className="font-semibold">{calculateDuration()}</span>
                         {(() => {
                             const [hours] = calculateDuration().split(':').map(Number);
                             if (hours > 12) {
-                                return (
-                                    <div className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-                                        ⚠️ Duración mayor a 12 horas
-                                    </div>
-                                );
+                                return <div className="mt-1 text-xs text-amber-600 dark:text-amber-500">⚠️ Duración mayor a 12 horas</div>;
                             }
                             return null;
                         })()}
@@ -275,17 +244,10 @@ export function AddTimeModal({
                 </div>
 
                 <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                    >
+                    <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
                         Cancelar
                     </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={isSubmitting || !selectedProjectId || (availableTasks.length > 0 && !selectedTaskId)}
-                    >
+                    <Button onClick={handleSubmit} disabled={isSubmitting || !selectedProjectId || (availableTasks.length > 0 && !selectedTaskId)}>
                         {isSubmitting ? 'Guardando...' : 'Guardar'}
                     </Button>
                 </DialogFooter>

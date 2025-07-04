@@ -9,10 +9,10 @@
  */
 export function formatDurationMMSS(seconds: number): string {
     if (!seconds || seconds === 0) return '00:00';
-    
+
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    
+
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
@@ -23,16 +23,16 @@ export function formatDurationMMSS(seconds: number): string {
  */
 export function formatDurationHHMM(seconds: number): string {
     if (!seconds || seconds === 0) return '00:00';
-    
+
     // Handle negative durations (shouldn't happen but protects against backend issues)
     const absSeconds = Math.abs(seconds);
     const isNegative = seconds < 0;
-    
+
     const hours = Math.floor(absSeconds / 3600);
     const minutes = Math.floor((absSeconds % 3600) / 60);
-    
+
     const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    
+
     // Show negative sign if duration is negative (for debugging)
     return isNegative ? `-${formatted}` : formatted;
 }
@@ -44,11 +44,11 @@ export function formatDurationHHMM(seconds: number): string {
  */
 export function formatDurationHHMMSS(seconds: number): string {
     if (!seconds || seconds === 0) return '00:00:00';
-    
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
@@ -59,7 +59,7 @@ export function formatDurationHHMMSS(seconds: number): string {
  */
 export function formatSecondsToHours(seconds: number): string {
     if (!seconds || seconds === 0) return '0.0';
-    
+
     const hours = seconds / 3600;
     return hours.toFixed(1);
 }
@@ -82,10 +82,10 @@ export function formatHours(hours: number): string {
 export function parseDurationMMSS(duration: string): number {
     const parts = duration.split(':');
     if (parts.length !== 2) return 0;
-    
+
     const minutes = parseInt(parts[0], 10) || 0;
     const seconds = parseInt(parts[1], 10) || 0;
-    
+
     return minutes * 60 + seconds;
 }
 
@@ -97,10 +97,10 @@ export function parseDurationMMSS(duration: string): number {
 export function parseDurationHHMM(duration: string): number {
     const parts = duration.split(':');
     if (parts.length !== 2) return 0;
-    
+
     const hours = parseInt(parts[0], 10) || 0;
     const minutes = parseInt(parts[1], 10) || 0;
-    
+
     return hours * 3600 + minutes * 60;
 }
 
@@ -112,10 +112,10 @@ export function parseDurationHHMM(duration: string): number {
 export function parseDurationHHMMSS(duration: string): number {
     const parts = duration.split(':');
     if (parts.length !== 3) return 0;
-    
+
     const hours = parseInt(parts[0], 10) || 0;
     const minutes = parseInt(parts[1], 10) || 0;
     const seconds = parseInt(parts[2], 10) || 0;
-    
+
     return hours * 3600 + minutes * 60 + seconds;
 }

@@ -1,7 +1,6 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Play, Pause, StopCircle } from 'lucide-react';
+import { Pause, Play, StopCircle } from 'lucide-react';
 
 interface TimerProps {
     initialTime?: number;
@@ -29,7 +28,7 @@ export function Timer({
     onStart,
     onPause,
     onResume,
-    onStop
+    onStop,
 }: TimerProps) {
     const canStart = !isRunning && !isPaused && !hasActiveTimer;
     const showStart = !isRunning && !isPaused;
@@ -42,60 +41,41 @@ export function Timer({
             <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4">
                     {/* Timer Display */}
-                    <div className="text-6xl font-mono font-bold text-center timer-display">
-                        {formattedTime}
-                    </div>
+                    <div className="timer-display text-center font-mono text-6xl font-bold">{formattedTime}</div>
 
                     {/* Controls */}
                     {showControls && (
-                        <div className="flex items-center gap-2 timer-controls">
+                        <div className="timer-controls flex items-center gap-2">
                             {showStart && (
                                 <Button
                                     size="lg"
                                     onClick={onStart}
                                     disabled={hasActiveTimer || !canStartTimer}
                                     className="start-button"
-                                    title={hasActiveTimer ? 'Ya hay otro temporizador activo' : (startDisabledReason || 'Iniciar temporizador')}
+                                    title={hasActiveTimer ? 'Ya hay otro temporizador activo' : startDisabledReason || 'Iniciar temporizador'}
                                 >
-                                    <Play className="h-5 w-5 mr-2" />
+                                    <Play className="mr-2 h-5 w-5" />
                                     {hasActiveTimer ? 'Otro timer activo' : 'Iniciar'}
                                 </Button>
                             )}
 
                             {showPause && (
-                                <Button
-                                    size="lg"
-                                    variant="secondary"
-                                    onClick={onPause}
-                                    className="pause-button"
-                                    title="Pausar temporizador"
-                                >
-                                    <Pause className="h-5 w-5 mr-2" />
+                                <Button size="lg" variant="secondary" onClick={onPause} className="pause-button" title="Pausar temporizador">
+                                    <Pause className="mr-2 h-5 w-5" />
                                     Pausar
                                 </Button>
                             )}
 
                             {showResume && (
-                                <Button
-                                    size="lg"
-                                    onClick={onResume}
-                                    className="resume-button"
-                                    title="Reanudar temporizador"
-                                >
-                                    <Play className="h-5 w-5 mr-2" />
+                                <Button size="lg" onClick={onResume} className="resume-button" title="Reanudar temporizador">
+                                    <Play className="mr-2 h-5 w-5" />
                                     Reanudar
                                 </Button>
                             )}
 
                             {showStop && (
-                                <Button
-                                    size="lg"
-                                    variant="destructive"
-                                    onClick={onStop}
-                                    className="stop-button"
-                                    title="Detener temporizador"
-                                >
-                                    <StopCircle className="h-5 w-5 mr-2" />
+                                <Button size="lg" variant="destructive" onClick={onStop} className="stop-button" title="Detener temporizador">
+                                    <StopCircle className="mr-2 h-5 w-5" />
                                     Detener
                                 </Button>
                             )}
@@ -104,17 +84,14 @@ export function Timer({
 
                     {/* Status indicator for active timer warning */}
                     {hasActiveTimer && showStart && (
-                        <p className="text-sm text-muted-foreground text-center">
-                            Solo se permite un temporizador activo a la vez.
-                            Detén el temporizador actual para iniciar uno nuevo.
+                        <p className="text-muted-foreground text-center text-sm">
+                            Solo se permite un temporizador activo a la vez. Detén el temporizador actual para iniciar uno nuevo.
                         </p>
                     )}
-                    
+
                     {/* Warning for missing task selection */}
                     {!hasActiveTimer && showStart && !canStartTimer && startDisabledReason && (
-                        <p className="text-sm text-amber-600 dark:text-amber-500 text-center">
-                            {startDisabledReason}
-                        </p>
+                        <p className="text-center text-sm text-amber-600 dark:text-amber-500">{startDisabledReason}</p>
                     )}
                 </div>
             </CardContent>

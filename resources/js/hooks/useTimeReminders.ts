@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTimeEntryStore } from '@/stores/timeEntryStore';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface ReminderOptions {
     dailyGoal?: number;
@@ -8,11 +8,7 @@ interface ReminderOptions {
 }
 
 export function useTimeReminders(options: ReminderOptions = {}) {
-    const {
-        dailyGoal = 8,
-        reminderTime = '17:00',
-        enableNotifications = true
-    } = options;
+    const { dailyGoal = 8, reminderTime = '17:00', enableNotifications = true } = options;
 
     const { todaysTotalHours, sendDailyReminder, state } = useTimeEntryStore();
     const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
@@ -66,7 +62,7 @@ export function useTimeReminders(options: ReminderOptions = {}) {
                 body: `Has registrado ${hoursTracked.toFixed(1)} horas hoy. Te faltan ${hoursRemaining.toFixed(1)} horas para alcanzar tu meta diaria.`,
                 icon: '/icon-192.png',
                 tag: 'time-reminder',
-                requireInteraction: true
+                requireInteraction: true,
             });
         }
 
@@ -105,6 +101,6 @@ export function useTimeReminders(options: ReminderOptions = {}) {
         nextReminderTime,
         shouldSendReminder: shouldSendReminder(),
         sendReminder,
-        requestNotificationPermission
+        requestNotificationPermission,
     };
 }

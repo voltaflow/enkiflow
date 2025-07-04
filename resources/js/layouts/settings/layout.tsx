@@ -1,5 +1,4 @@
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
@@ -41,14 +40,14 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="flex flex-col space-y-1 space-x-0">
                         {sidebarNavItems.map((item, index) => (
-                            <Link 
+                            <Link
                                 key={`${item.href}-${index}`}
-                                href={item.href} 
+                                href={item.href}
                                 className={cn(
-                                    'flex items-center gap-2 w-full justify-start px-2 py-1.5 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground',
+                                    'hover:bg-accent hover:text-accent-foreground flex w-full items-center justify-start gap-2 rounded-md px-2 py-1.5 text-sm font-medium',
                                     {
                                         'bg-muted': currentPath === item.href,
-                                    }
+                                    },
                                 )}
                                 preserveState
                                 preserveScroll

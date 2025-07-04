@@ -190,7 +190,8 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         }
     };
 
-    const filteredTasks = selectedProjectId && selectedProjectId !== 'none' ? tasks.filter((task) => task.project_id === parseInt(selectedProjectId)) : tasks;
+    const filteredTasks =
+        selectedProjectId && selectedProjectId !== 'none' ? tasks.filter((task) => task.project_id === parseInt(selectedProjectId)) : tasks;
 
     return (
         <Card className="w-full">
@@ -227,7 +228,11 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                             </SelectContent>
                         </Select>
 
-                        <Select value={selectedTaskId} onValueChange={setSelectedTaskId} disabled={loading || !selectedProjectId || selectedProjectId === 'none'}>
+                        <Select
+                            value={selectedTaskId}
+                            onValueChange={setSelectedTaskId}
+                            disabled={loading || !selectedProjectId || selectedProjectId === 'none'}
+                        >
                             <SelectTrigger>
                                 <SelectValue placeholder="Select task" />
                             </SelectTrigger>

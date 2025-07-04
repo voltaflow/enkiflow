@@ -6,9 +6,9 @@ import './react-refresh.js';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
+import { GlobalProviders } from './components/GlobalProviders';
 import { initializeTheme } from './hooks/use-appearance';
 import './lib/route-helper'; // Import our custom route helper
-import { GlobalProviders } from './components/GlobalProviders';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 root.render(
                     <GlobalProviders>
                         <App {...props} />
-                    </GlobalProviders>
+                    </GlobalProviders>,
                 );
             } else {
                 console.error('El elemento para montar la aplicación no existe');

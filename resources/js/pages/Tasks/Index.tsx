@@ -92,14 +92,14 @@ interface Props extends PageProps {
 
 export default function Index({ tasks, projects, filters, stats }: Props) {
     const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
-    
+
     // Calcular stats si no vienen del backend
     const tasksList = tasks.data || [];
     const taskStats = stats || {
         total: tasksList.length,
-        pending: tasksList.filter(t => t.status === 'pending').length,
-        in_progress: tasksList.filter(t => t.status === 'in_progress').length,
-        completed: tasksList.filter(t => t.status === 'completed').length,
+        pending: tasksList.filter((t) => t.status === 'pending').length,
+        in_progress: tasksList.filter((t) => t.status === 'in_progress').length,
+        completed: tasksList.filter((t) => t.status === 'completed').length,
     };
     const [localSearch, setLocalSearch] = useState(filters.search || '');
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
@@ -107,13 +107,17 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
     useEffect(() => {
         const timer = setTimeout(() => {
             if (localSearch !== filters.search) {
-                router.get(route('tasks.index'), {
-                    ...filters,
-                    search: localSearch,
-                }, {
-                    preserveState: true,
-                    preserveScroll: true,
-                });
+                router.get(
+                    route('tasks.index'),
+                    {
+                        ...filters,
+                        search: localSearch,
+                    },
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                    },
+                );
             }
         }, 300);
 
@@ -121,18 +125,22 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
     }, [localSearch, filters]);
 
     const updateFilters = (newFilters: Partial<typeof filters>) => {
-        router.get(route('tasks.index'), {
-            ...filters,
-            ...newFilters,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.get(
+            route('tasks.index'),
+            {
+                ...filters,
+                ...newFilters,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedTasks(tasksList.map(task => task.id));
+            setSelectedTasks(tasksList.map((task) => task.id));
         } else {
             setSelectedTasks([]);
         }
@@ -142,7 +150,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
         if (checked) {
             setSelectedTasks([...selectedTasks, taskId]);
         } else {
-            setSelectedTasks(selectedTasks.filter(id => id !== taskId));
+            setSelectedTasks(selectedTasks.filter((id) => id !== taskId));
         }
     };
 
@@ -155,11 +163,15 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
             delete: 'tasks.bulk-destroy',
         };
 
-        router.post(route(routeMap[action]), {
-            task_ids: selectedTasks,
-        }, {
-            onSuccess: () => setSelectedTasks([]),
-        });
+        router.post(
+            route(routeMap[action]),
+            {
+                task_ids: selectedTasks,
+            },
+            {
+                onSuccess: () => setSelectedTasks([]),
+            },
+        );
     };
 
     const getStatusIcon = (status: Task['status']) => {
@@ -186,11 +198,7 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
             completed: 'Completada',
         };
 
-        return (
-            <Badge variant={variants[status]}>
-                {labels[status]}
-            </Badge>
-        );
+        return <Badge variant={variants[status]}>{labels[status]}</Badge>;
     };
 
     const getPriorityBadge = (priority: number) => {
@@ -205,48 +213,46 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
         return <Badge variant={variant}>{label}</Badge>;
     };
 
-    const breadcrumbs = [
-        { title: 'Tareas', href: route('tasks.index') },
-    ];
+    const breadcrumbs = [{ title: 'Tareas', href: route('tasks.index') }];
 
     if (viewMode === 'kanban') {
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
                 <Head title="Tareas" />
-                
+
                 <div className="py-12">
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                        <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-semibold">Tareas</h1>
-                    <div className="flex items-center gap-2">
-                        <div className="flex rounded-md shadow-sm">
-                            <Button
-                                size="sm"
-                                variant={viewMode === 'list' ? 'default' : 'outline'}
-                                className="rounded-r-none"
-                                onClick={() => setViewMode('list')}
-                            >
-                                <LayoutList className="h-4 w-4" />
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant={viewMode === 'kanban' ? 'default' : 'outline'}
-                                className="rounded-l-none"
-                                onClick={() => setViewMode('kanban')}
-                            >
-                                <Grid3X3 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <Link href={route('tasks.create')}>
-                            <Button>
-                                <Plus className="h-4 w-4 mr-2" />
-                                Nueva Tarea
-                            </Button>
-                        </Link>
-                    </div>
+                        <div className="mb-6 flex items-center justify-between">
+                            <h1 className="text-3xl font-semibold">Tareas</h1>
+                            <div className="flex items-center gap-2">
+                                <div className="flex rounded-md shadow-sm">
+                                    <Button
+                                        size="sm"
+                                        variant={viewMode === 'list' ? 'default' : 'outline'}
+                                        className="rounded-r-none"
+                                        onClick={() => setViewMode('list')}
+                                    >
+                                        <LayoutList className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                                        className="rounded-l-none"
+                                        onClick={() => setViewMode('kanban')}
+                                    >
+                                        <Grid3X3 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <Link href={route('tasks.create')}>
+                                    <Button>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Nueva Tarea
+                                    </Button>
+                                </Link>
+                            </div>
                         </div>
 
-                        <div className="text-center py-12">
+                        <div className="py-12 text-center">
                             <p className="text-muted-foreground">Vista Kanban próximamente...</p>
                         </div>
                     </div>
@@ -258,337 +264,306 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Tareas" />
-            
+
             <div className="py-12">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between mb-6">
-                <h1 className="text-3xl font-semibold">Tareas</h1>
-                <div className="flex items-center gap-2">
-                    <div className="flex rounded-md shadow-sm">
-                        <Button
-                            size="sm"
-                            variant={viewMode === 'list' ? 'default' : 'outline'}
-                            className="rounded-r-none"
-                            onClick={() => setViewMode('list')}
-                        >
-                            <LayoutList className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant={viewMode === 'kanban' ? 'default' : 'outline'}
-                            className="rounded-l-none"
-                            onClick={() => setViewMode('kanban')}
-                        >
-                            <Grid3X3 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <Link href={route('tasks.create')}>
-                        <Button>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Nueva Tarea
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-4 mb-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total</CardTitle>
-                        <SortDesc className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{taskStats.total}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-                        <Circle className="h-4 w-4 text-gray-400" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{taskStats.pending}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
-                        <Clock className="h-4 w-4 text-blue-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{taskStats.in_progress}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{taskStats.completed}</div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Filters */}
-            <Card className="mb-6">
-                <CardContent className="pt-6">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar tareas..."
-                                value={localSearch}
-                                onChange={(e) => setLocalSearch(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                        <Select
-                            value={filters.status || 'all'}
-                            onValueChange={(value) => updateFilters({ status: value === 'all' ? undefined : value })}
-                        >
-                            <SelectTrigger className="w-full sm:w-[180px]">
-                                <SelectValue placeholder="Estado" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos los estados</SelectItem>
-                                <SelectItem value="pending">Pendiente</SelectItem>
-                                <SelectItem value="in_progress">En progreso</SelectItem>
-                                <SelectItem value="completed">Completada</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            value={filters.project_id || 'all'}
-                            onValueChange={(value) => updateFilters({ project_id: value === 'all' ? undefined : value })}
-                        >
-                            <SelectTrigger className="w-full sm:w-[180px]">
-                                <SelectValue placeholder="Proyecto" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos los proyectos</SelectItem>
-                                {projects.map((project) => (
-                                    <SelectItem key={project.id} value={project.id.toString()}>
-                                        {project.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Select
-                            value={filters.sort || 'created_desc'}
-                            onValueChange={(value) => updateFilters({ sort: value })}
-                        >
-                            <SelectTrigger className="w-full sm:w-[180px]">
-                                <SelectValue placeholder="Ordenar por" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="created_desc">Más recientes</SelectItem>
-                                <SelectItem value="created_asc">Más antiguas</SelectItem>
-                                <SelectItem value="priority_desc">Mayor prioridad</SelectItem>
-                                <SelectItem value="priority_asc">Menor prioridad</SelectItem>
-                                <SelectItem value="due_date_asc">Fecha límite próxima</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Bulk Actions */}
-            {selectedTasks.length > 0 && (
-                <Card className="mb-6 border-primary">
-                    <CardContent className="py-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">
-                                {selectedTasks.length} tarea{selectedTasks.length !== 1 && 's'} seleccionada{selectedTasks.length !== 1 && 's'}
-                            </span>
-                            <div className="flex gap-2">
+                    <div className="mb-6 flex items-center justify-between">
+                        <h1 className="text-3xl font-semibold">Tareas</h1>
+                        <div className="flex items-center gap-2">
+                            <div className="flex rounded-md shadow-sm">
                                 <Button
                                     size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBulkAction('complete')}
+                                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                                    className="rounded-r-none"
+                                    onClick={() => setViewMode('list')}
                                 >
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                    Completar
+                                    <LayoutList className="h-4 w-4" />
                                 </Button>
                                 <Button
                                     size="sm"
-                                    variant="outline"
-                                    onClick={() => handleBulkAction('in_progress')}
+                                    variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                                    className="rounded-l-none"
+                                    onClick={() => setViewMode('kanban')}
                                 >
-                                    <Clock className="h-4 w-4 mr-2" />
-                                    En progreso
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-destructive"
-                                    onClick={() => handleBulkAction('delete')}
-                                >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Eliminar
+                                    <Grid3X3 className="h-4 w-4" />
                                 </Button>
                             </div>
+                            <Link href={route('tasks.create')}>
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Nueva Tarea
+                                </Button>
+                            </Link>
                         </div>
-                    </CardContent>
-                </Card>
-            )}
+                    </div>
 
-            {/* Tasks Table */}
-            <Card>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-12">
-                                <Checkbox
-                                    checked={selectedTasks.length === tasksList.length && tasksList.length > 0}
-                                    onCheckedChange={handleSelectAll}
-                                />
-                            </TableHead>
-                            <TableHead>Tarea</TableHead>
-                            <TableHead>Proyecto</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead>Prioridad</TableHead>
-                            <TableHead>Asignado a</TableHead>
-                            <TableHead>Fecha límite</TableHead>
-                            <TableHead className="text-right">Acciones</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {tasksList.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={8} className="text-center py-8">
-                                    <p className="text-muted-foreground">No se encontraron tareas</p>
-                                    <Link href={route('tasks.create')}>
-                                        <Button className="mt-4" variant="outline">
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            Crear primera tarea
+                    {/* Stats Cards */}
+                    <div className="mb-6 grid gap-4 md:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total</CardTitle>
+                                <SortDesc className="text-muted-foreground h-4 w-4" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{taskStats.total}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+                                <Circle className="h-4 w-4 text-gray-400" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{taskStats.pending}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
+                                <Clock className="h-4 w-4 text-blue-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{taskStats.in_progress}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Completadas</CardTitle>
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{taskStats.completed}</div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Filters */}
+                    <Card className="mb-6">
+                        <CardContent className="pt-6">
+                            <div className="flex flex-col gap-4 sm:flex-row">
+                                <div className="relative flex-1">
+                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Input
+                                        placeholder="Buscar tareas..."
+                                        value={localSearch}
+                                        onChange={(e) => setLocalSearch(e.target.value)}
+                                        className="pl-9"
+                                    />
+                                </div>
+                                <Select
+                                    value={filters.status || 'all'}
+                                    onValueChange={(value) => updateFilters({ status: value === 'all' ? undefined : value })}
+                                >
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="Estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos los estados</SelectItem>
+                                        <SelectItem value="pending">Pendiente</SelectItem>
+                                        <SelectItem value="in_progress">En progreso</SelectItem>
+                                        <SelectItem value="completed">Completada</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <Select
+                                    value={filters.project_id || 'all'}
+                                    onValueChange={(value) => updateFilters({ project_id: value === 'all' ? undefined : value })}
+                                >
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="Proyecto" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todos los proyectos</SelectItem>
+                                        {projects.map((project) => (
+                                            <SelectItem key={project.id} value={project.id.toString()}>
+                                                {project.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={filters.sort || 'created_desc'} onValueChange={(value) => updateFilters({ sort: value })}>
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="Ordenar por" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="created_desc">Más recientes</SelectItem>
+                                        <SelectItem value="created_asc">Más antiguas</SelectItem>
+                                        <SelectItem value="priority_desc">Mayor prioridad</SelectItem>
+                                        <SelectItem value="priority_asc">Menor prioridad</SelectItem>
+                                        <SelectItem value="due_date_asc">Fecha límite próxima</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Bulk Actions */}
+                    {selectedTasks.length > 0 && (
+                        <Card className="border-primary mb-6">
+                            <CardContent className="py-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground text-sm">
+                                        {selectedTasks.length} tarea{selectedTasks.length !== 1 && 's'} seleccionada
+                                        {selectedTasks.length !== 1 && 's'}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <Button size="sm" variant="outline" onClick={() => handleBulkAction('complete')}>
+                                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                                            Completar
                                         </Button>
-                                    </Link>
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            tasksList.map((task) => (
-                                <TableRow key={task.id}>
-                                    <TableCell>
+                                        <Button size="sm" variant="outline" onClick={() => handleBulkAction('in_progress')}>
+                                            <Clock className="mr-2 h-4 w-4" />
+                                            En progreso
+                                        </Button>
+                                        <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleBulkAction('delete')}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Eliminar
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Tasks Table */}
+                    <Card>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-12">
                                         <Checkbox
-                                            checked={selectedTasks.includes(task.id)}
-                                            onCheckedChange={(checked) => handleSelectTask(task.id, checked as boolean)}
+                                            checked={selectedTasks.length === tasksList.length && tasksList.length > 0}
+                                            onCheckedChange={handleSelectAll}
                                         />
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-start gap-2">
-                                            {getStatusIcon(task.status)}
-                                            <div className="space-y-1">
-                                                <Link
-                                                    href={route('tasks.show', task.id)}
-                                                    className="font-medium hover:underline"
-                                                >
-                                                    {task.title}
-                                                </Link>
-                                                {task.description && (
-                                                    <p className="text-sm text-muted-foreground line-clamp-1">
-                                                        {task.description}
-                                                    </p>
-                                                )}
-                                                {task.tags && task.tags.length > 0 && (
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        {task.tags.map((tag) => (
-                                                            <Badge
-                                                                key={tag.id}
-                                                                variant="outline"
-                                                                className="text-xs"
-                                                                style={{ borderColor: tag.color, color: tag.color }}
-                                                            >
-                                                                {tag.name}
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Link
-                                            href={route('tenant.projects.show', task.project.id)}
-                                            className="text-sm hover:underline"
-                                        >
-                                            {task.project.name}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>{getStatusBadge(task.status)}</TableCell>
-                                    <TableCell>{getPriorityBadge(task.priority)}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Users className="h-4 w-4 text-muted-foreground" />
-                                            <span className="text-sm">{task.user.name}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {task.due_date ? (
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                                {new Date(task.due_date).toLocaleDateString('es-ES')}
-                                            </div>
-                                        ) : (
-                                            <span className="text-sm text-muted-foreground">-</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">Abrir menú</span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem asChild>
-                                                    <Link href={route('tasks.show', task.id)}>
-                                                        Ver detalles
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link href={route('tasks.edit', task.id)}>
-                                                        Editar
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                {task.status !== 'completed' && (
-                                                    <DropdownMenuItem
-                                                        onClick={() => router.post(route('tasks.complete', task.id))}
-                                                    >
-                                                        Marcar como completada
-                                                    </DropdownMenuItem>
-                                                )}
-                                                {task.status === 'pending' && (
-                                                    <DropdownMenuItem
-                                                        onClick={() => router.post(route('tasks.in-progress', task.id))}
-                                                    >
-                                                        Iniciar progreso
-                                                    </DropdownMenuItem>
-                                                )}
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    className="text-destructive"
-                                                    onClick={() => {
-                                                        if (confirm('¿Estás seguro de eliminar esta tarea?')) {
-                                                            router.delete(route('tasks.destroy', task.id));
-                                                        }
-                                                    }}
-                                                >
-                                                    Eliminar
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
+                                    </TableHead>
+                                    <TableHead>Tarea</TableHead>
+                                    <TableHead>Proyecto</TableHead>
+                                    <TableHead>Estado</TableHead>
+                                    <TableHead>Prioridad</TableHead>
+                                    <TableHead>Asignado a</TableHead>
+                                    <TableHead>Fecha límite</TableHead>
+                                    <TableHead className="text-right">Acciones</TableHead>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </Card>
+                            </TableHeader>
+                            <TableBody>
+                                {tasksList.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="py-8 text-center">
+                                            <p className="text-muted-foreground">No se encontraron tareas</p>
+                                            <Link href={route('tasks.create')}>
+                                                <Button className="mt-4" variant="outline">
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Crear primera tarea
+                                                </Button>
+                                            </Link>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    tasksList.map((task) => (
+                                        <TableRow key={task.id}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={selectedTasks.includes(task.id)}
+                                                    onCheckedChange={(checked) => handleSelectTask(task.id, checked as boolean)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-start gap-2">
+                                                    {getStatusIcon(task.status)}
+                                                    <div className="space-y-1">
+                                                        <Link href={route('tasks.show', task.id)} className="font-medium hover:underline">
+                                                            {task.title}
+                                                        </Link>
+                                                        {task.description && (
+                                                            <p className="text-muted-foreground line-clamp-1 text-sm">{task.description}</p>
+                                                        )}
+                                                        {task.tags && task.tags.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {task.tags.map((tag) => (
+                                                                    <Badge
+                                                                        key={tag.id}
+                                                                        variant="outline"
+                                                                        className="text-xs"
+                                                                        style={{ borderColor: tag.color, color: tag.color }}
+                                                                    >
+                                                                        {tag.name}
+                                                                    </Badge>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Link href={route('tenant.projects.show', task.project.id)} className="text-sm hover:underline">
+                                                    {task.project.name}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>{getStatusBadge(task.status)}</TableCell>
+                                            <TableCell>{getPriorityBadge(task.priority)}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="text-muted-foreground h-4 w-4" />
+                                                    <span className="text-sm">{task.user.name}</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {task.due_date ? (
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <Calendar className="text-muted-foreground h-4 w-4" />
+                                                        {new Date(task.due_date).toLocaleDateString('es-ES')}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-muted-foreground text-sm">-</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="sm">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Abrir menú</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={route('tasks.show', task.id)}>Ver detalles</Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={route('tasks.edit', task.id)}>Editar</Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        {task.status !== 'completed' && (
+                                                            <DropdownMenuItem onClick={() => router.post(route('tasks.complete', task.id))}>
+                                                                Marcar como completada
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {task.status === 'pending' && (
+                                                            <DropdownMenuItem onClick={() => router.post(route('tasks.in-progress', task.id))}>
+                                                                Iniciar progreso
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            className="text-destructive"
+                                                            onClick={() => {
+                                                                if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+                                                                    router.delete(route('tasks.destroy', task.id));
+                                                                }
+                                                            }}
+                                                        >
+                                                            Eliminar
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </Card>
                 </div>
             </div>
         </AppLayout>
