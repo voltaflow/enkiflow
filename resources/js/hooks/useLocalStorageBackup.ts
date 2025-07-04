@@ -26,7 +26,7 @@ export function useLocalStorageBackup() {
                 startTime: entry.started_at,
                 endTime: entry.stopped_at,
                 pausedAt: entry.paused_at?.toISOString ? entry.paused_at.toISOString() : entry.paused_at,
-                lastSyncedAt: new Date().toISOString()
+                lastSyncedAt: new Date().toISOString(),
             };
             localStorage.setItem(CURRENT_ENTRY_KEY, JSON.stringify(toStore));
         } catch (error) {
@@ -68,7 +68,7 @@ export function useLocalStorageBackup() {
                 ...entry,
                 startTime: entry.started_at,
                 endTime: entry.stopped_at,
-                failedAt: new Date().toISOString()
+                failedAt: new Date().toISOString(),
             });
 
             localStorage.setItem(FAILED_ENTRIES_KEY, JSON.stringify(failedEntries));
@@ -89,10 +89,7 @@ export function useLocalStorageBackup() {
     const removeFailedEntry = (entry: any) => {
         try {
             const failedEntries = getFailedEntries();
-            const updatedEntries = failedEntries.filter((e: any) =>
-                e.startTime !== entry.started_at ||
-                e.description !== entry.description
-            );
+            const updatedEntries = failedEntries.filter((e: any) => e.startTime !== entry.started_at || e.description !== entry.description);
 
             localStorage.setItem(FAILED_ENTRIES_KEY, JSON.stringify(updatedEntries));
         } catch (error) {
@@ -119,10 +116,13 @@ export function useLocalStorageBackup() {
 
     const saveIdleState = (idleData: any) => {
         try {
-            localStorage.setItem(IDLE_STATE_KEY, JSON.stringify({
-                ...idleData,
-                timestamp: new Date().toISOString()
-            }));
+            localStorage.setItem(
+                IDLE_STATE_KEY,
+                JSON.stringify({
+                    ...idleData,
+                    timestamp: new Date().toISOString(),
+                }),
+            );
         } catch (error) {
             // Silently fail
         }
@@ -147,6 +147,6 @@ export function useLocalStorageBackup() {
         savePreferences,
         getPreferences,
         saveIdleState,
-        getIdleState
+        getIdleState,
     };
 }

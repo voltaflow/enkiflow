@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
 
 interface Project {
     id: number;
@@ -50,14 +50,7 @@ interface EditTimeModalProps {
     }) => Promise<void>;
 }
 
-export function EditTimeModal({
-    isOpen,
-    onClose,
-    projects,
-    tasks,
-    entry,
-    onSubmit
-}: EditTimeModalProps) {
+export function EditTimeModal({ isOpen, onClose, projects, tasks, entry, onSubmit }: EditTimeModalProps) {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
     const [description, setDescription] = useState('');
@@ -70,51 +63,52 @@ export function EditTimeModal({
             setSelectedProjectId(entry.project_id);
             setSelectedTaskId(entry.task_id);
             setDescription(entry.description || '');
-            
+
             // Parse times from the entry
             const startDate = new Date(entry.started_at);
             setStartTime(format(startDate, 'HH:mm'));
-            
-            const endDate = entry.ended_at || entry.stopped_at ? new Date(entry.ended_at || entry.stopped_at!) : new Date(startDate.getTime() + entry.duration * 1000);
+
+            const endDate =
+                entry.ended_at || entry.stopped_at
+                    ? new Date(entry.ended_at || entry.stopped_at!)
+                    : new Date(startDate.getTime() + entry.duration * 1000);
             setEndTime(format(endDate, 'HH:mm'));
         }
     }, [entry]);
 
-    const availableTasks = selectedProjectId
-        ? tasks.filter(task => task.project_id === selectedProjectId)
-        : [];
+    const availableTasks = selectedProjectId ? tasks.filter((task) => task.project_id === selectedProjectId) : [];
 
     const calculateDuration = () => {
         const [startHours, startMinutes] = startTime.split(':').map(Number);
         const [endHours, endMinutes] = endTime.split(':').map(Number);
-        
+
         const startTotalMinutes = startHours * 60 + startMinutes;
         const endTotalMinutes = endHours * 60 + endMinutes;
-        
+
         const durationMinutes = endTotalMinutes - startTotalMinutes;
-        
+
         if (durationMinutes <= 0) return '00:00';
-        
+
         const hours = Math.floor(durationMinutes / 60);
         const minutes = durationMinutes % 60;
-        
+
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     };
 
     const handleSubmit = async () => {
         if (!entry) return;
-        
+
         // Validate required fields
         if (!selectedProjectId) {
             alert('Por favor selecciona un proyecto');
             return;
         }
-        
+
         if (!selectedTaskId && availableTasks.length > 0) {
             alert('Por favor selecciona una tarea');
             return;
         }
-        
+
         const duration = calculateDuration();
         if (duration === '00:00') {
             alert('La hora de fin debe ser posterior a la hora de inicio');
@@ -131,7 +125,7 @@ export function EditTimeModal({
                 description,
                 duration,
                 started_at: `${dateStr} ${startTime}:00`,
-                ended_at: `${dateStr} ${endTime}:00`
+                ended_at: `${dateStr} ${endTime}:00`,
             });
             onClose();
         } catch (error) {
@@ -147,12 +141,12 @@ export function EditTimeModal({
                 <DialogHeader>
                     <DialogTitle>Editar entrada de tiempo</DialogTitle>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
                         <Label htmlFor="project">
                             Proyecto
-                            <span className="text-red-500 ml-1">*</span>
+                            <span className="ml-1 text-red-500">*</span>
                         </Label>
                         <Select
                             value={selectedProjectId?.toString() || ''}
@@ -165,15 +159,10 @@ export function EditTimeModal({
                                 <SelectValue placeholder="Selecciona un proyecto" />
                             </SelectTrigger>
                             <SelectContent>
-                                {projects.map(project => (
+                                {projects.map((project) => (
                                     <SelectItem key={project.id} value={project.id.toString()}>
                                         <div className="flex items-center gap-2">
-                                            {project.color && (
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: project.color }}
-                                                />
-                                            )}
+                                            {project.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />}
                                             {project.name}
                                         </div>
                                     </SelectItem>
@@ -185,7 +174,7 @@ export function EditTimeModal({
                     <div className="space-y-2">
                         <Label htmlFor="task">
                             Tarea
-                            {availableTasks.length > 0 && <span className="text-red-500 ml-1">*</span>}
+                            {availableTasks.length > 0 && <span className="ml-1 text-red-500">*</span>}
                         </Label>
                         <Select
                             value={selectedTaskId?.toString() || ''}
@@ -193,10 +182,10 @@ export function EditTimeModal({
                             disabled={!selectedProjectId || availableTasks.length === 0}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder={availableTasks.length === 0 ? "Sin tareas disponibles" : "Selecciona una tarea"} />
+                                <SelectValue placeholder={availableTasks.length === 0 ? 'Sin tareas disponibles' : 'Selecciona una tarea'} />
                             </SelectTrigger>
                             <SelectContent>
-                                {availableTasks.map(task => (
+                                {availableTasks.map((task) => (
                                     <SelectItem key={task.id} value={task.id.toString()}>
                                         {task.title}
                                     </SelectItem>
@@ -219,27 +208,15 @@ export function EditTimeModal({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="start-time">Hora de inicio</Label>
-                            <Input
-                                id="start-time"
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                            />
+                            <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="end-time">Hora de fin</Label>
-                            <Input
-                                id="end-time"
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                            />
+                            <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
                         </div>
                     </div>
 
-                    <div className="text-sm text-muted-foreground">
-                        Duración: {calculateDuration()}
-                    </div>
+                    <div className="text-muted-foreground text-sm">Duración: {calculateDuration()}</div>
                 </div>
 
                 <DialogFooter>

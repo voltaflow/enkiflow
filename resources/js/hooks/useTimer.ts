@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useTimer(initialSeconds = 0) {
     const [seconds, setSeconds] = useState(initialSeconds);
@@ -49,7 +49,7 @@ export function useTimer(initialSeconds = 0) {
 
         const now = new Date();
         const pauseDuration = Math.floor((now.getTime() - pausedAt.getTime()) / 1000);
-        setTotalPausedTime(prev => prev + pauseDuration);
+        setTotalPausedTime((prev) => prev + pauseDuration);
 
         setIsPaused(false);
         setIsRunning(true);
@@ -70,7 +70,7 @@ export function useTimer(initialSeconds = 0) {
     }, [seconds]);
 
     const adjustDuration = useCallback((adjustmentSeconds: number) => {
-        setSeconds(prev => Math.max(0, prev + adjustmentSeconds));
+        setSeconds((prev) => Math.max(0, prev + adjustmentSeconds));
     }, []);
 
     // Set up interval to update timer
@@ -103,6 +103,6 @@ export function useTimer(initialSeconds = 0) {
         adjustDuration,
         startTime,
         pausedAt,
-        totalPausedTime
+        totalPausedTime,
     };
 }

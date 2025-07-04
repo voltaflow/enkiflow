@@ -1,7 +1,7 @@
 import { AppShell } from '@/components/app-shell';
 import { Heading } from '@/components/heading';
-import { TimeEntryForm } from '@/components/TimeTracker/time-entry-form';
 import { RunningTimer } from '@/components/TimeTracker/RunningTimer';
+import { TimeEntryForm } from '@/components/TimeTracker/time-entry-form';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

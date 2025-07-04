@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface IdleDetectionOptions {
     threshold?: number; // Seconds of inactivity
@@ -12,7 +12,7 @@ export function useIdleDetection(options: IdleDetectionOptions = {}) {
         threshold = 600, // 10 minutes by default
         onIdle = () => {},
         onActive = () => {},
-        events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll']
+        events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'],
     } = options;
 
     const [isIdle, setIsIdle] = useState(false);
@@ -62,7 +62,7 @@ export function useIdleDetection(options: IdleDetectionOptions = {}) {
 
     useEffect(() => {
         // Add event listeners for activity
-        events.forEach(event => {
+        events.forEach((event) => {
             window.addEventListener(event, resetActivity);
         });
 
@@ -75,7 +75,7 @@ export function useIdleDetection(options: IdleDetectionOptions = {}) {
         // Cleanup
         return () => {
             // Remove event listeners
-            events.forEach(event => {
+            events.forEach((event) => {
                 window.removeEventListener(event, resetActivity);
             });
 
@@ -93,6 +93,6 @@ export function useIdleDetection(options: IdleDetectionOptions = {}) {
         lastActivity,
         idleStarted,
         getIdleMinutes,
-        resetActivity
+        resetActivity,
     };
 }

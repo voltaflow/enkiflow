@@ -91,12 +91,19 @@
     <div class="container">
         <img src="{{ asset('logo.svg') }}" alt="{{ __('landing.logo_alt') }}" class="logo">
         <h1>Acceso No Autorizado</h1>
-        <p>No tienes permiso para acceder a este espacio de trabajo.</p>
+        
+        @if(isset($message))
+            <p>{{ $message }}</p>
+        @else
+            <p>No tienes permiso para acceder a este espacio de trabajo.</p>
+        @endif
         
         @if(isset($space))
             <div class="space-info">
-                <p>El espacio <span class="space-name">{{ $space->name }}</span> existe, pero no eres miembro.</p>
-                <p>Por favor, contacta con el administrador del espacio para solicitar acceso.</p>
+                <p>Espacio: <span class="space-name">{{ $space->name }}</span></p>
+                @if(!isset($message) || $message === 'No tienes acceso a este espacio de trabajo')
+                    <p>Por favor, contacta con el administrador del espacio para solicitar acceso.</p>
+                @endif
             </div>
         @endif
         

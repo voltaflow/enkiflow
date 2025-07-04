@@ -1,6 +1,6 @@
-import React, { ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ChangeEvent } from 'react';
 
 interface DescriptionInputProps {
     value: string;
@@ -10,13 +10,7 @@ interface DescriptionInputProps {
     onBlur?: () => void;
 }
 
-export function DescriptionInput({
-    value,
-    placeholder = '¿En qué estás trabajando?',
-    disabled,
-    onChange,
-    onBlur
-}: DescriptionInputProps) {
+export function DescriptionInput({ value, placeholder = '¿En qué estás trabajando?', disabled, onChange, onBlur }: DescriptionInputProps) {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(e.target.value);
     };

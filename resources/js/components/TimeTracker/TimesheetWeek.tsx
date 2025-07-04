@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, addDays, startOfWeek, isAfter } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Send, Copy, Plus, Trash2, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { formatDurationHHMM } from '@/lib/time-utils';
-import { TimesheetCellEditor } from './TimesheetCellEditor';
-import { AddProjectTaskModal } from './AddProjectTaskModal';
-import { useTimeEntryStore } from '@/stores/timeEntryStore';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import axios from '@/lib/axios-config';
 import { route } from '@/lib/route-helper';
+import { formatDurationHHMM } from '@/lib/time-utils';
+import { useTimeEntryStore } from '@/stores/timeEntryStore';
+import { addDays, format, startOfWeek } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Copy, Plus, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { AddProjectTaskModal } from './AddProjectTaskModal';
+import { TimesheetCellEditor } from './TimesheetCellEditor';
 
 interface TimeEntry {
     id: number | string;
@@ -65,7 +64,7 @@ export function TimesheetWeek({
     onSubmit,
     onDayClick,
     onDeleteEntry,
-    onDeleteRow
+    onDeleteRow,
 }: TimesheetWeekProps) {
     const [editingCell, setEditingCell] = useState<string | null>(null);
     const [isCopyingRows, setIsCopyingRows] = useState(false);
@@ -84,18 +83,21 @@ export function TimesheetWeek({
     const isNextWeekDisabled = weekStart.getTime() >= currentWeekStart.getTime();
 
     // Group entries by project/task and date (keep all necessary data)
-    const entriesMap = entries.reduce((acc, entry) => {
-        const key = `${entry.project_id}-${entry.task_id || 0}-${entry.date}`;
-        acc[key] = {
-            id: typeof entry.id === 'string' ? parseInt(entry.id, 10) : entry.id,
-            duration: entry.duration, // Keep in seconds
-            description: entry.description || '',
-            project_id: entry.project_id,
-            task_id: entry.task_id,
-            date: entry.date
-        };
-        return acc;
-    }, {} as Record<string, { id: number; duration: number; description: string; project_id: number | null; task_id: number | null; date: string }>);
+    const entriesMap = entries.reduce(
+        (acc, entry) => {
+            const key = `${entry.project_id}-${entry.task_id || 0}-${entry.date}`;
+            acc[key] = {
+                id: typeof entry.id === 'string' ? parseInt(entry.id, 10) : entry.id,
+                duration: entry.duration, // Keep in seconds
+                description: entry.description || '',
+                project_id: entry.project_id,
+                task_id: entry.task_id,
+                date: entry.date,
+            };
+            return acc;
+        },
+        {} as Record<string, { id: number; duration: number; description: string; project_id: number | null; task_id: number | null; date: string }>,
+    );
 
     // Group entries by project and their tasks
     interface ProjectGroup {
@@ -105,16 +107,16 @@ export function TimesheetWeek({
     }
 
     const projectGroups: ProjectGroup[] = [];
-    const projectMap = new Map<number, { tasks: Set<number | null>, total: number }>();
+    const projectMap = new Map<number, { tasks: Set<number | null>; total: number }>();
 
     // First pass: collect all project-task combinations and calculate totals
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
         if (!entry.project_id) return;
-        
+
         if (!projectMap.has(entry.project_id)) {
             projectMap.set(entry.project_id, { tasks: new Set(), total: 0 });
         }
-        
+
         const projectData = projectMap.get(entry.project_id)!;
         projectData.tasks.add(entry.task_id);
         projectData.total += entry.duration;
@@ -122,15 +124,15 @@ export function TimesheetWeek({
 
     // Second pass: build the project groups
     projectMap.forEach((data, projectId) => {
-        const project = projects.find(p => p.id === projectId);
+        const project = projects.find((p) => p.id === projectId);
         if (!project) return;
 
         const projectTasks: (Task | null)[] = [];
-        data.tasks.forEach(taskId => {
+        data.tasks.forEach((taskId) => {
             if (taskId === null) {
                 projectTasks.push(null);
             } else {
-                const task = tasks.find(t => t.id === taskId);
+                const task = tasks.find((t) => t.id === taskId);
                 if (task) projectTasks.push(task);
             }
         });
@@ -143,12 +145,12 @@ export function TimesheetWeek({
                 if (!b) return -1;
                 return a.title.localeCompare(b.title);
             }),
-            projectTotal: data.total
+            projectTotal: data.total,
         });
     });
 
     // Calculate totals (in seconds)
-    const dailyTotals = weekDates.map(date => {
+    const dailyTotals = weekDates.map((date) => {
         const dateStr = format(date, 'yyyy-MM-dd');
         return Object.entries(entriesMap)
             .filter(([key]) => key.endsWith(dateStr))
@@ -158,9 +160,7 @@ export function TimesheetWeek({
     // Calculate project totals for each day
     const getProjectDayTotal = (projectId: number, date: Date): number => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        return entries
-            .filter(e => e.project_id === projectId && e.date === dateStr)
-            .reduce((sum, e) => sum + e.duration, 0);
+        return entries.filter((e) => e.project_id === projectId && e.date === dateStr).reduce((sum, e) => sum + e.duration, 0);
     };
 
     const weekTotalSeconds = dailyTotals.reduce((sum, seconds) => sum + seconds, 0);
@@ -218,8 +218,8 @@ export function TimesheetWeek({
 
     return (
         <Card className="w-full shadow-sm">
-            <CardHeader className="pb-2 min-h-[72px]">
-                <div className="flex items-center justify-between h-[40px]">
+            <CardHeader className="min-h-[72px] pb-2">
+                <div className="flex h-[40px] items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="flex items-center">
                             <Button
@@ -241,18 +241,19 @@ export function TimesheetWeek({
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>
-                        
+
                         <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <Calendar className="text-muted-foreground h-4 w-4" />
                             <h2 className="text-lg font-semibold">
-                                {format(weekStart, 'd \'de\' MMM', { locale: es })} - {format(addDays(weekStart, 6), 'd \'de\' MMM, yyyy', { locale: es })}
+                                {format(weekStart, "d 'de' MMM", { locale: es })} -{' '}
+                                {format(addDays(weekStart, 6), "d 'de' MMM, yyyy", { locale: es })}
                             </h2>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-sm">
                             <span className="text-muted-foreground">Total:</span>{' '}
-                            <span className="font-semibold text-foreground">{formatDurationHHMM(weekTotalSeconds)}</span>
+                            <span className="text-foreground font-semibold">{formatDurationHHMM(weekTotalSeconds)}</span>
                             <span className="text-muted-foreground"> / {weeklyGoal}h</span>
                         </div>
                         {weekTotalHours >= weeklyGoal && (
@@ -264,30 +265,19 @@ export function TimesheetWeek({
                 </div>
             </CardHeader>
 
-            <CardContent className="p-6 pt-2 space-y-4">
+            <CardContent className="space-y-4 p-6 pt-2">
                 {/* Add Project/Task Button */}
                 {!isLocked && (
-                    <Button
-                        onClick={() => setShowAddProjectTaskModal(true)}
-                        className="w-full"
-                        variant="outline"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
+                    <Button onClick={() => setShowAddProjectTaskModal(true)} className="w-full" variant="outline">
+                        <Plus className="mr-2 h-4 w-4" />
                         Agregar proyecto/tarea
                     </Button>
                 )}
                 {!hasEntries && (
-                    <div className="mb-6 p-6 border-2 border-dashed rounded-lg bg-muted/20 text-center">
-                        <p className="text-muted-foreground mb-4 text-sm">
-                            No hay entradas de tiempo para esta semana
-                        </p>
-                        <Button
-                            onClick={handleCopyRowsFromPreviousWeek}
-                            disabled={isCopyingRows}
-                            variant="outline"
-                            size="sm"
-                        >
-                            <Copy className="h-4 w-4 mr-2" />
+                    <div className="bg-muted/20 mb-6 rounded-lg border-2 border-dashed p-6 text-center">
+                        <p className="text-muted-foreground mb-4 text-sm">No hay entradas de tiempo para esta semana</p>
+                        <Button onClick={handleCopyRowsFromPreviousWeek} disabled={isCopyingRows} variant="outline" size="sm">
+                            <Copy className="mr-2 h-4 w-4" />
                             {isCopyingRows ? 'Copiando...' : 'Copiar filas de la hoja más reciente'}
                         </Button>
                     </div>
@@ -296,22 +286,16 @@ export function TimesheetWeek({
                 <div className="overflow-x-auto rounded-md border">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="border-b bg-muted/30">
-                                <th className="sticky left-0 bg-muted/30 min-w-[250px] p-3 text-left font-medium">
-                                    Proyecto / Tarea
-                                </th>
+                            <tr className="bg-muted/30 border-b">
+                                <th className="bg-muted/30 sticky left-0 min-w-[250px] p-3 text-left font-medium">Proyecto / Tarea</th>
                                 {weekDates.map((date, index) => (
                                     <th
                                         key={index}
-                                        className={`min-w-[90px] p-3 text-center ${onDayClick ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+                                        className={`min-w-[90px] p-3 text-center ${onDayClick ? 'hover:bg-muted/50 cursor-pointer' : ''}`}
                                         onClick={() => onDayClick && onDayClick(date)}
                                     >
-                                        <div className="text-xs text-muted-foreground uppercase">
-                                            {format(date, 'EEE', { locale: es })}
-                                        </div>
-                                        <div className="text-sm font-semibold">
-                                            {format(date, 'd')}
-                                        </div>
+                                        <div className="text-muted-foreground text-xs uppercase">{format(date, 'EEE', { locale: es })}</div>
+                                        <div className="text-sm font-semibold">{format(date, 'd')}</div>
                                     </th>
                                 ))}
                                 <th className="min-w-[90px] p-3 text-center font-medium">Total</th>
@@ -321,13 +305,13 @@ export function TimesheetWeek({
                             {projectGroups.map((group) => {
                                 const isExpanded = expandedProjects.has(group.project.id);
                                 const hasMultipleTasks = group.tasks.length > 1;
-                                
+
                                 return (
                                     <React.Fragment key={group.project.id}>
                                         {/* Project row */}
-                                        <tr className="border-b hover:bg-muted/20 transition-colors group h-[56px]">
-                                            <td className="sticky left-0 bg-background p-3">
-                                                <div className="flex items-center gap-2 h-8">
+                                        <tr className="hover:bg-muted/20 group h-[56px] border-b transition-colors">
+                                            <td className="bg-background sticky left-0 p-3">
+                                                <div className="flex h-8 items-center gap-2">
                                                     {hasMultipleTasks && (
                                                         <Button
                                                             variant="ghost"
@@ -335,26 +319,20 @@ export function TimesheetWeek({
                                                             className="h-6 w-6 p-0"
                                                             onClick={() => toggleProjectExpanded(group.project.id)}
                                                         >
-                                                            {isExpanded ? (
-                                                                <ChevronUp className="h-4 w-4" />
-                                                            ) : (
-                                                                <ChevronDown className="h-4 w-4" />
-                                                            )}
+                                                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                                         </Button>
                                                     )}
                                                     {!hasMultipleTasks && <div className="w-6" />}
                                                     {group.project.color && (
                                                         <div
-                                                            className="w-2 h-8 rounded-sm flex-shrink-0"
+                                                            className="h-8 w-2 flex-shrink-0 rounded-sm"
                                                             style={{ backgroundColor: group.project.color }}
                                                         />
                                                     )}
                                                     <div className="min-w-0">
-                                                        <div className="font-medium text-sm">{group.project.name}</div>
+                                                        <div className="text-sm font-medium">{group.project.name}</div>
                                                         {!hasMultipleTasks && group.tasks[0] && (
-                                                            <div className="text-xs text-muted-foreground truncate">
-                                                                {group.tasks[0].title}
-                                                            </div>
+                                                            <div className="text-muted-foreground truncate text-xs">{group.tasks[0].title}</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -362,15 +340,16 @@ export function TimesheetWeek({
                                             {/* Project cells */}
                                             {weekDates.map((date) => {
                                                 const dateStr = format(date, 'yyyy-MM-dd');
-                                                
+
                                                 // For single task projects, allow direct editing on the project row
                                                 if (!hasMultipleTasks && group.tasks.length === 1) {
                                                     const task = group.tasks[0];
                                                     const cellKey = `${group.project.id}-${task?.id || 0}-${dateStr}`;
-                                                    const entry = entries.find(e =>
-                                                        e.project_id === group.project.id &&
-                                                        e.task_id === (task?.id || null) &&
-                                                        e.date === dateStr
+                                                    const entry = entries.find(
+                                                        (e) =>
+                                                            e.project_id === group.project.id &&
+                                                            e.task_id === (task?.id || null) &&
+                                                            e.date === dateStr,
                                                     );
                                                     const entryData = entriesMap[cellKey] || { duration: 0, description: '' };
                                                     const isEditing = editingCell === cellKey;
@@ -393,27 +372,23 @@ export function TimesheetWeek({
                                                                 onSave={(duration, description) =>
                                                                     handleCellSave(group.project.id, task?.id || null, date, duration, description)
                                                                 }
-                                                                onDelete={hasExistingEntry && !isVirtual && entryData.id && onDeleteEntry ? () => onDeleteEntry(entryData.id) : undefined}
+                                                                onDelete={
+                                                                    hasExistingEntry && !isVirtual && entryData.id && onDeleteEntry
+                                                                        ? () => onDeleteEntry(entryData.id)
+                                                                        : undefined
+                                                                }
                                                                 hasExistingEntry={hasExistingEntry && !isVirtual}
                                                             >
                                                                 <div
-                                                                    className={`
-                                                                        flex h-9 w-full items-center justify-center
-                                                                        rounded-md transition-all cursor-pointer
-                                                                        ${isLocked ? 'cursor-not-allowed opacity-60' : 'hover:bg-muted/50'}
-                                                                        ${hasExistingEntry && !isVirtual ? 'bg-primary/5' : ''}
-                                                                        ${entryData.duration > 0 ? 'font-medium text-foreground' : 'text-muted-foreground'}
-                                                                    `}
+                                                                    className={`flex h-9 w-full cursor-pointer items-center justify-center rounded-md transition-all ${isLocked ? 'cursor-not-allowed opacity-60' : 'hover:bg-muted/50'} ${hasExistingEntry && !isVirtual ? 'bg-primary/5' : ''} ${entryData.duration > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'} `}
                                                                 >
-                                                                    <span className="text-sm">
-                                                                        {formatDuration(entryData.duration)}
-                                                                    </span>
+                                                                    <span className="text-sm">{formatDuration(entryData.duration)}</span>
                                                                 </div>
                                                             </TimesheetCellEditor>
                                                         </td>
                                                     );
                                                 }
-                                                
+
                                                 // For multi-task projects, just show the total
                                                 const dayTotal = getProjectDayTotal(group.project.id, date);
                                                 return (
@@ -428,12 +403,12 @@ export function TimesheetWeek({
                                             })}
                                             <td className="p-3 text-center">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <span className="font-semibold text-sm">{formatDuration(group.projectTotal)}</span>
+                                                    <span className="text-sm font-semibold">{formatDuration(group.projectTotal)}</span>
                                                     {!isLocked && onDeleteRow && !hasMultipleTasks && group.tasks.length === 1 && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            className="h-6 w-6 text-destructive hover:text-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            className="text-destructive hover:text-destructive/90 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
                                                             onClick={() => handleDeleteRow(group.project.id, group.tasks[0]?.id || null)}
                                                             title="Eliminar todas las entradas de esta fila"
                                                         >
@@ -443,108 +418,114 @@ export function TimesheetWeek({
                                                 </div>
                                             </td>
                                         </tr>
-                                        
-                                        {/* Task rows - only show if expanded and has multiple tasks */}
-                                        {isExpanded && hasMultipleTasks && group.tasks.map((task) => {
-                                            const taskKey = task ? `task-${task.id}` : 'no-task';
-                                            return (
-                                                <tr key={taskKey} className="border-b hover:bg-muted/10 transition-all duration-200 group h-[48px]">
-                                                    <td className="sticky left-0 bg-background p-3 pl-14 h-[48px]">
-                                                        <div className="text-sm text-muted-foreground">
-                                                            {task ? task.title : <span className="italic">Sin tarea específica</span>}
-                                                        </div>
-                                                    </td>
-                                                    {weekDates.map((date, dateIndex) => {
-                                                        const dateStr = format(date, 'yyyy-MM-dd');
-                                                        const cellKey = `${group.project.id}-${task?.id || 0}-${dateStr}`;
-                                                        const entry = entries.find(e =>
-                                                            e.project_id === group.project.id &&
-                                                            e.task_id === (task?.id || null) &&
-                                                            e.date === dateStr
-                                                        );
-                                                        const entryData = entriesMap[cellKey] || { duration: 0, description: '' };
-                                                        const isEditing = editingCell === cellKey;
-                                                        const hasExistingEntry = !!entry && !entry.is_virtual;
-                                                        const isVirtual = entry?.is_virtual || false;
 
-                                                        return (
-                                                            <td key={dateIndex} className="p-2 text-center">
-                                                                <TimesheetCellEditor
-                                                                    isOpen={isEditing}
-                                                                    onOpenChange={(open) => {
-                                                                        if (open && !isLocked) {
-                                                                            setEditingCell(cellKey);
-                                                                        } else {
-                                                                            setEditingCell(null);
+                                        {/* Task rows - only show if expanded and has multiple tasks */}
+                                        {isExpanded &&
+                                            hasMultipleTasks &&
+                                            group.tasks.map((task) => {
+                                                const taskKey = task ? `task-${task.id}` : 'no-task';
+                                                return (
+                                                    <tr
+                                                        key={taskKey}
+                                                        className="hover:bg-muted/10 group h-[48px] border-b transition-all duration-200"
+                                                    >
+                                                        <td className="bg-background sticky left-0 h-[48px] p-3 pl-14">
+                                                            <div className="text-muted-foreground text-sm">
+                                                                {task ? task.title : <span className="italic">Sin tarea específica</span>}
+                                                            </div>
+                                                        </td>
+                                                        {weekDates.map((date, dateIndex) => {
+                                                            const dateStr = format(date, 'yyyy-MM-dd');
+                                                            const cellKey = `${group.project.id}-${task?.id || 0}-${dateStr}`;
+                                                            const entry = entries.find(
+                                                                (e) =>
+                                                                    e.project_id === group.project.id &&
+                                                                    e.task_id === (task?.id || null) &&
+                                                                    e.date === dateStr,
+                                                            );
+                                                            const entryData = entriesMap[cellKey] || { duration: 0, description: '' };
+                                                            const isEditing = editingCell === cellKey;
+                                                            const hasExistingEntry = !!entry && !entry.is_virtual;
+                                                            const isVirtual = entry?.is_virtual || false;
+
+                                                            return (
+                                                                <td key={dateIndex} className="p-2 text-center">
+                                                                    <TimesheetCellEditor
+                                                                        isOpen={isEditing}
+                                                                        onOpenChange={(open) => {
+                                                                            if (open && !isLocked) {
+                                                                                setEditingCell(cellKey);
+                                                                            } else {
+                                                                                setEditingCell(null);
+                                                                            }
+                                                                        }}
+                                                                        duration={entryData.duration}
+                                                                        description={entryData.description}
+                                                                        onSave={(duration, description) =>
+                                                                            handleCellSave(
+                                                                                group.project.id,
+                                                                                task?.id || null,
+                                                                                date,
+                                                                                duration,
+                                                                                description,
+                                                                            )
                                                                         }
-                                                                    }}
-                                                                    duration={entryData.duration}
-                                                                    description={entryData.description}
-                                                                    onSave={(duration, description) =>
-                                                                        handleCellSave(group.project.id, task?.id || null, date, duration, description)
-                                                                    }
-                                                                    onDelete={hasExistingEntry && !isVirtual && entryData.id && onDeleteEntry ? () => onDeleteEntry(entryData.id) : undefined}
-                                                                    hasExistingEntry={hasExistingEntry && !isVirtual}
-                                                                >
-                                                                    <div
-                                                                        className={`
-                                                                            flex h-9 w-full items-center justify-center
-                                                                            rounded-md transition-all cursor-pointer
-                                                                            ${isLocked ? 'cursor-not-allowed opacity-60' : 'hover:bg-muted/50'}
-                                                                            ${hasExistingEntry && !isVirtual ? 'bg-primary/5' : ''}
-                                                                            ${entryData.duration > 0 ? 'font-medium text-foreground' : 'text-muted-foreground'}
-                                                                        `}
+                                                                        onDelete={
+                                                                            hasExistingEntry && !isVirtual && entryData.id && onDeleteEntry
+                                                                                ? () => onDeleteEntry(entryData.id)
+                                                                                : undefined
+                                                                        }
+                                                                        hasExistingEntry={hasExistingEntry && !isVirtual}
                                                                     >
-                                                                        <span className="text-sm">
-                                                                            {formatDuration(entryData.duration)}
-                                                                        </span>
-                                                                    </div>
-                                                                </TimesheetCellEditor>
-                                                            </td>
-                                                        );
-                                                    })}
-                                                    <td className="p-3 text-center">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <span className="text-sm">
-                                                                {formatDuration(
-                                                                    weekDates.reduce((sum, date) => {
-                                                                        const dateStr = format(date, 'yyyy-MM-dd');
-                                                                        const key = `${group.project.id}-${task?.id || 0}-${dateStr}`;
-                                                                        return sum + (entriesMap[key]?.duration || 0);
-                                                                    }, 0)
+                                                                        <div
+                                                                            className={`flex h-9 w-full cursor-pointer items-center justify-center rounded-md transition-all ${isLocked ? 'cursor-not-allowed opacity-60' : 'hover:bg-muted/50'} ${hasExistingEntry && !isVirtual ? 'bg-primary/5' : ''} ${entryData.duration > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'} `}
+                                                                        >
+                                                                            <span className="text-sm">{formatDuration(entryData.duration)}</span>
+                                                                        </div>
+                                                                    </TimesheetCellEditor>
+                                                                </td>
+                                                            );
+                                                        })}
+                                                        <td className="p-3 text-center">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <span className="text-sm">
+                                                                    {formatDuration(
+                                                                        weekDates.reduce((sum, date) => {
+                                                                            const dateStr = format(date, 'yyyy-MM-dd');
+                                                                            const key = `${group.project.id}-${task?.id || 0}-${dateStr}`;
+                                                                            return sum + (entriesMap[key]?.duration || 0);
+                                                                        }, 0),
+                                                                    )}
+                                                                </span>
+                                                                {!isLocked && onDeleteRow && (
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="text-destructive hover:text-destructive/90 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+                                                                        onClick={() => handleDeleteRow(group.project.id, task?.id || null)}
+                                                                        title="Eliminar todas las entradas de esta fila"
+                                                                    >
+                                                                        <Trash2 className="h-3 w-3" />
+                                                                    </Button>
                                                                 )}
-                                                            </span>
-                                                            {!isLocked && onDeleteRow && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="h-6 w-6 text-destructive hover:text-destructive/90 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                    onClick={() => handleDeleteRow(group.project.id, task?.id || null)}
-                                                                    title="Eliminar todas las entradas de esta fila"
-                                                                >
-                                                                    <Trash2 className="h-3 w-3" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                     </React.Fragment>
                                 );
                             })}
                             {/* Daily totals row */}
-                            <tr className="border-t-2 bg-muted/30">
-                                <td className="sticky left-0 bg-muted/30 p-3 font-semibold">
-                                    Total por día
-                                </td>
+                            <tr className="bg-muted/30 border-t-2">
+                                <td className="bg-muted/30 sticky left-0 p-3 font-semibold">Total por día</td>
                                 {dailyTotals.map((total, index) => (
                                     <td key={index} className="p-3 text-center">
-                                        <span className="font-semibold text-sm">{formatDuration(total)}</span>
+                                        <span className="text-sm font-semibold">{formatDuration(total)}</span>
                                     </td>
                                 ))}
                                 <td className="p-3 text-center">
-                                    <span className="font-bold text-sm">{formatDurationHHMM(weekTotalSeconds)}</span>
+                                    <span className="text-sm font-bold">{formatDurationHHMM(weekTotalSeconds)}</span>
                                 </td>
                             </tr>
                         </tbody>
@@ -560,8 +541,8 @@ export function TimesheetWeek({
                 tasks={tasks}
                 existingProjectTaskCombinations={(() => {
                     const combinations = new Set<string>();
-                    projectGroups.forEach(group => {
-                        group.tasks.forEach(task => {
+                    projectGroups.forEach((group) => {
+                        group.tasks.forEach((task) => {
                             combinations.add(`${group.project.id}-${task?.id || 0}`);
                         });
                     });

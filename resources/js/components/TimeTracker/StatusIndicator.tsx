@@ -1,4 +1,3 @@
-import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -11,12 +10,7 @@ interface StatusIndicatorProps {
     showDuration?: boolean;
 }
 
-export function StatusIndicator({
-    status,
-    duration,
-    startTime,
-    showDuration = true
-}: StatusIndicatorProps) {
+export function StatusIndicator({ status, duration, startTime, showDuration = true }: StatusIndicatorProps) {
     const formatDuration = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
@@ -37,14 +31,14 @@ export function StatusIndicator({
                     icon: PlayCircle,
                     label: 'En ejecución',
                     variant: 'default' as const,
-                    className: 'bg-green-500 hover:bg-green-600 text-white'
+                    className: 'bg-green-500 hover:bg-green-600 text-white',
                 };
             case 'paused':
                 return {
                     icon: Pause,
                     label: 'En pausa',
                     variant: 'secondary' as const,
-                    className: 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                    className: 'bg-yellow-500 hover:bg-yellow-600 text-white',
                 };
             case 'stopped':
             default:
@@ -52,7 +46,7 @@ export function StatusIndicator({
                     icon: Circle,
                     label: 'Detenido',
                     variant: 'outline' as const,
-                    className: ''
+                    className: '',
                 };
         }
     };
@@ -62,25 +56,14 @@ export function StatusIndicator({
 
     return (
         <div className="flex items-center gap-4">
-            <Badge
-                variant={config.variant}
-                className={`flex items-center gap-2 ${config.className}`}
-            >
+            <Badge variant={config.variant} className={`flex items-center gap-2 ${config.className}`}>
                 <Icon className="h-3 w-3" />
                 <span>{config.label}</span>
             </Badge>
 
-            {showDuration && duration > 0 && (
-                <div className="text-sm text-muted-foreground">
-                    {formatDuration(duration)}
-                </div>
-            )}
+            {showDuration && duration > 0 && <div className="text-muted-foreground text-sm">{formatDuration(duration)}</div>}
 
-            {startTime && status !== 'stopped' && (
-                <div className="text-sm text-muted-foreground">
-                    Iniciado a las {formatStartTime(startTime)}
-                </div>
-            )}
+            {startTime && status !== 'stopped' && <div className="text-muted-foreground text-sm">Iniciado a las {formatStartTime(startTime)}</div>}
         </div>
     );
 }

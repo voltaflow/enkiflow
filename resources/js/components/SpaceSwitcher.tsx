@@ -23,7 +23,7 @@ export default function SpaceSwitcher({ currentSpace, spaces }: SpaceSwitcherPro
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredSpaces, setFilteredSpaces] = useState(spaces);
     const [isOpen, setIsOpen] = useState(false);
-    
+
     // Atajo de teclado Ctrl+K para abrir el selector
     useHotkeys('ctrl+k', (e) => {
         e.preventDefault();
@@ -99,19 +99,26 @@ export default function SpaceSwitcher({ currentSpace, spaces }: SpaceSwitcherPro
                         <Button asChild variant="ghost" className="w-full justify-start">
                             <a href={route('spaces.index')}>Administrar todos los espacios</a>
                         </Button>
-                        <Button asChild variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20">
-                            <a href={route('logout.all')} onClick={(e) => {
-                                e.preventDefault();
-                                const form = document.getElementById('logout-all-form') as HTMLFormElement;
-                                form?.submit();
-                            }}>
-                                <LogOut className="h-4 w-4 mr-2" />
+                        <Button
+                            asChild
+                            variant="ghost"
+                            className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20"
+                        >
+                            <a
+                                href={route('logout.all')}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const form = document.getElementById('logout-all-form') as HTMLFormElement;
+                                    form?.submit();
+                                }}
+                            >
+                                <LogOut className="mr-2 h-4 w-4" />
                                 Cerrar sesión en todos los espacios
                             </a>
                         </Button>
                     </div>
                 </div>
-                
+
                 {/* Formulario oculto para logout global */}
                 <form id="logout-all-form" action={route('logout.all')} method="POST" className="hidden">
                     <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''} />

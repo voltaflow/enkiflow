@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface QueuedRequest {
     id: string;
@@ -46,45 +46,54 @@ export function useOfflineQueue({
     }, [queueKey]);
 
     // Save queue to localStorage
-    const saveQueue = useCallback((queue: QueuedRequest[]) => {
-        try {
-            localStorage.setItem(queueKey, JSON.stringify(queue));
-            setQueueSize(queue.length);
-        } catch (error) {
-            console.error('Error saving offline queue:', error);
-        }
-    }, [queueKey]);
+    const saveQueue = useCallback(
+        (queue: QueuedRequest[]) => {
+            try {
+                localStorage.setItem(queueKey, JSON.stringify(queue));
+                setQueueSize(queue.length);
+            } catch (error) {
+                console.error('Error saving offline queue:', error);
+            }
+        },
+        [queueKey],
+    );
 
     // Add request to queue
-    const enqueue = useCallback((url: string, method: string, data: any) => {
-        const request: QueuedRequest = {
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            url,
-            method,
-            data,
-            timestamp: Date.now(),
-            retryCount: 0,
-            maxRetries,
-        };
+    const enqueue = useCallback(
+        (url: string, method: string, data: any) => {
+            const request: QueuedRequest = {
+                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                url,
+                method,
+                data,
+                timestamp: Date.now(),
+                retryCount: 0,
+                maxRetries,
+            };
 
-        const queue = loadQueue();
-        queue.push(request);
-        saveQueue(queue);
+            const queue = loadQueue();
+            queue.push(request);
+            saveQueue(queue);
 
-        // Try to sync immediately if online
-        if (isOnline) {
-            scheduleSyncAttempt();
-        }
+            // Try to sync immediately if online
+            if (isOnline) {
+                scheduleSyncAttempt();
+            }
 
-        return request.id;
-    }, [isOnline, loadQueue, saveQueue, maxRetries]);
+            return request.id;
+        },
+        [isOnline, loadQueue, saveQueue, maxRetries],
+    );
 
     // Remove request from queue
-    const dequeue = useCallback((requestId: string) => {
-        const queue = loadQueue();
-        const filtered = queue.filter(req => req.id !== requestId);
-        saveQueue(filtered);
-    }, [loadQueue, saveQueue]);
+    const dequeue = useCallback(
+        (requestId: string) => {
+            const queue = loadQueue();
+            const filtered = queue.filter((req) => req.id !== requestId);
+            saveQueue(filtered);
+        },
+        [loadQueue, saveQueue],
+    );
 
     // Execute a queued request
     const executeRequest = async (request: QueuedRequest): Promise<boolean> => {
@@ -93,7 +102,7 @@ export function useOfflineQueue({
                 method: request.method,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: request.data ? JSON.stringify(request.data) : undefined,
                 credentials: 'same-origin',
@@ -107,15 +116,15 @@ export function useOfflineQueue({
             return true;
         } catch (error) {
             console.error('Error executing queued request:', error);
-            
+
             // Update retry count
             request.retryCount++;
-            
+
             if (request.retryCount >= request.maxRetries) {
                 onError?.(request, error);
                 return true; // Remove from queue after max retries
             }
-            
+
             return false;
         }
     };
@@ -132,7 +141,7 @@ export function useOfflineQueue({
 
         for (const request of queue) {
             const success = await executeRequest(request);
-            
+
             if (!success) {
                 // Keep in queue for retry
                 remainingQueue.push(request);
@@ -185,7 +194,7 @@ export function useOfflineQueue({
 
         // Check initial state
         setIsOnline(navigator.onLine);
-        
+
         // Process queue on mount if online
         if (navigator.onLine) {
             processQueue();
@@ -194,7 +203,7 @@ export function useOfflineQueue({
         return () => {
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline', handleOffline);
-            
+
             if (syncTimeoutRef.current) {
                 clearTimeout(syncTimeoutRef.current);
             }
@@ -220,8 +229,7 @@ export function useOfflineQueue({
 
 // Timer-specific offline queue hook
 export function useTimerOfflineQueue() {
-    const handleSync = useCallback((request: QueuedRequest) => {
-    }, []);
+    const handleSync = useCallback((request: QueuedRequest) => {}, []);
 
     const handleError = useCallback((request: QueuedRequest, error: any) => {
         console.error('Timer request failed after max retries:', request, error);
@@ -236,13 +244,19 @@ export function useTimerOfflineQueue() {
     });
 
     // Timer-specific methods
-    const queueTimerSync = useCallback((timerData: any) => {
-        return queue.enqueue('/api/timer/active/sync', 'POST', timerData);
-    }, [queue]);
+    const queueTimerSync = useCallback(
+        (timerData: any) => {
+            return queue.enqueue('/api/timer/active/sync', 'POST', timerData);
+        },
+        [queue],
+    );
 
-    const queueTimerStop = useCallback((timerData: any) => {
-        return queue.enqueue('/api/timer/active/stop', 'POST', timerData);
-    }, [queue]);
+    const queueTimerStop = useCallback(
+        (timerData: any) => {
+            return queue.enqueue('/api/timer/active/stop', 'POST', timerData);
+        },
+        [queue],
+    );
 
     return {
         ...queue,

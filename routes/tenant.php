@@ -263,29 +263,57 @@ Route::middleware([
             Route::get('/project', [ReportController::class, 'project'])->name('project');
         });
 
-        // Analytics
-        Route::get('/analytics', [App\Http\Controllers\Tenant\AnalyticsController::class, 'index'])->name('analytics.index');
-        Route::get('/api/analytics/data', [App\Http\Controllers\Tenant\AnalyticsController::class, 'data'])->name('api.analytics.data');
-        Route::post('/api/analytics/export', [App\Http\Controllers\Tenant\AnalyticsController::class, 'export'])->name('api.analytics.export');
+        // Analytics - Solo managers y superiores pueden ver estadísticas
+        Route::middleware(['tenant.role:view_statistics'])->group(function () {
+            Route::get('/analytics', [App\Http\Controllers\Tenant\AnalyticsController::class, 'index'])->name('analytics.index');
+            Route::get('/api/analytics/data', [App\Http\Controllers\Tenant\AnalyticsController::class, 'data'])->name('api.analytics.data');
+            Route::post('/api/analytics/export', [App\Http\Controllers\Tenant\AnalyticsController::class, 'export'])->name('api.analytics.export');
+        });
 
-        // User roles and permissions
-        Route::get('/users', [App\Http\Controllers\Tenant\UserRoleController::class, 'index'])->name('tenant.users.index');
-        Route::get('/users/invite', [App\Http\Controllers\Tenant\UserRoleController::class, 'create'])->name('tenant.users.invite');
-        Route::post('/users/invite', [App\Http\Controllers\Tenant\UserRoleController::class, 'store'])->name('tenant.users.store');
-        Route::put('/users/{user}/role', [App\Http\Controllers\Tenant\UserRoleController::class, 'update'])->name('tenant.users.update');
-        Route::delete('/users/{user}', [App\Http\Controllers\Tenant\UserRoleController::class, 'destroy'])->name('tenant.users.destroy');
+        // User management - Nueva implementación moderna
+        Route::get('/users', [App\Http\Controllers\Tenant\UserController::class, 'index'])
+            ->name('users.index')
+            ->middleware('can:viewAny,App\Models\User');
         
-        // Invitations
-        Route::get('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'index'])
-            ->name('tenant.invitations.index');
-        Route::get('/invitations/create', [App\Http\Controllers\Tenant\InvitationController::class, 'create'])
-            ->name('tenant.invitations.create');
-        Route::post('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'store'])
-            ->name('tenant.invitations.store');
-        Route::post('/invitations/{invitation}/resend', [App\Http\Controllers\Tenant\InvitationController::class, 'resend'])
-            ->name('tenant.invitations.resend');
-        Route::delete('/invitations/{invitation}', [App\Http\Controllers\Tenant\InvitationController::class, 'destroy'])
-            ->name('tenant.invitations.destroy');
+        // Legacy User routes - DEBEN IR ANTES de las rutas con parámetros
+        Route::middleware(['tenant.role:role:admin'])->group(function () {
+            Route::get('/users/invite', [App\Http\Controllers\Tenant\UserRoleController::class, 'create'])->name('tenant.users.invite');
+            Route::post('/users/invite', [App\Http\Controllers\Tenant\UserRoleController::class, 'store'])->name('tenant.users.store');
+            Route::get('/legacy/users', [App\Http\Controllers\Tenant\UserRoleController::class, 'index'])->name('tenant.users.index');
+            Route::put('/legacy/users/{user}/role', [App\Http\Controllers\Tenant\UserRoleController::class, 'update'])->name('tenant.users.update');
+            Route::delete('/legacy/users/{user}', [App\Http\Controllers\Tenant\UserRoleController::class, 'destroy'])->name('tenant.users.destroy');
+        });
+            
+        // Rutas con parámetros van DESPUÉS de las rutas específicas
+        Route::get('/users/{user}', [App\Http\Controllers\Tenant\UserController::class, 'show'])
+            ->name('users.show')
+            ->middleware('can:view,user');
+            
+        Route::put('/users/{user}', [App\Http\Controllers\Tenant\UserController::class, 'update'])
+            ->name('users.update')
+            ->middleware('can:update,user');
+            
+        Route::delete('/users/{user}', [App\Http\Controllers\Tenant\UserController::class, 'destroy'])
+            ->name('users.destroy')
+            ->middleware('can:delete,user');
+            
+        Route::post('/users/{user}/reset-password', [App\Http\Controllers\Tenant\UserController::class, 'resetPassword'])
+            ->name('users.reset-password')
+            ->middleware('can:resetPassword,user');
+        
+        // Invitations - Requiere permiso específico de invitar usuarios
+        Route::middleware(['tenant.role:invite_users'])->group(function () {
+            Route::get('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'index'])
+                ->name('tenant.invitations.index');
+            Route::get('/invitations/create', [App\Http\Controllers\Tenant\InvitationController::class, 'create'])
+                ->name('tenant.invitations.create');
+            Route::post('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'store'])
+                ->name('tenant.invitations.store');
+            Route::post('/invitations/{invitation}/resend', [App\Http\Controllers\Tenant\InvitationController::class, 'resend'])
+                ->name('tenant.invitations.resend');
+            Route::delete('/invitations/{invitation}', [App\Http\Controllers\Tenant\InvitationController::class, 'destroy'])
+                ->name('tenant.invitations.destroy');
+        });
         
         // Invitation statistics API
         Route::prefix('api/invitations')->name('api.invitations.')->group(function () {

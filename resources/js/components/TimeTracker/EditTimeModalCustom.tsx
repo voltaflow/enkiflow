@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface Project {
     id: number;
@@ -50,14 +50,7 @@ interface EditTimeModalCustomProps {
     }) => Promise<void>;
 }
 
-export function EditTimeModalCustom({
-    isOpen,
-    onClose,
-    projects,
-    tasks,
-    entry,
-    onSubmit
-}: EditTimeModalCustomProps) {
+export function EditTimeModalCustom({ isOpen, onClose, projects, tasks, entry, onSubmit }: EditTimeModalCustomProps) {
     const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
     const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
     const [description, setDescription] = useState('');
@@ -65,7 +58,7 @@ export function EditTimeModalCustom({
     const [endTime, setEndTime] = useState('10:00');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
-    
+
     // Reset submitting state when modal closes
     useEffect(() => {
         if (!isOpen) {
@@ -78,12 +71,12 @@ export function EditTimeModalCustom({
             setSelectedProjectId(entry.project_id);
             setSelectedTaskId(entry.task_id);
             setDescription(entry.description || '');
-            
+
             // Parse times from the entry
             // Extract time part safely without timezone conversion
             let startTimeStr = '09:00';
             let endTimeStr = '10:00';
-            
+
             if (entry.started_at.includes('T')) {
                 // ISO format: extract time from 2025-06-23T09:00:00.000000Z
                 const timePart = entry.started_at.split('T')[1];
@@ -95,7 +88,7 @@ export function EditTimeModalCustom({
                     startTimeStr = parts[1].substring(0, 5); // Get HH:mm
                 }
             }
-            
+
             // Calculate end time based on duration
             if (entry.ended_at || entry.stopped_at) {
                 const endDateStr = entry.ended_at || entry.stopped_at!;
@@ -116,7 +109,7 @@ export function EditTimeModalCustom({
                 const endMinutes = totalMinutes % 60;
                 endTimeStr = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
             }
-            
+
             setStartTime(startTimeStr);
             setEndTime(endTimeStr);
         } else {
@@ -131,29 +124,27 @@ export function EditTimeModalCustom({
         setIsSubmitting(false);
     }, [entry]);
 
-    const availableTasks = selectedProjectId
-        ? tasks.filter(task => task.project_id === selectedProjectId)
-        : [];
+    const availableTasks = selectedProjectId ? tasks.filter((task) => task.project_id === selectedProjectId) : [];
 
     const calculateDuration = () => {
         const [startHours, startMinutes] = startTime.split(':').map(Number);
         const [endHours, endMinutes] = endTime.split(':').map(Number);
-        
+
         const startTotalMinutes = startHours * 60 + startMinutes;
         let endTotalMinutes = endHours * 60 + endMinutes;
-        
+
         // If end time is less than start time, assume it's the next day
         if (endTotalMinutes < startTotalMinutes) {
             endTotalMinutes += 24 * 60; // Add 24 hours in minutes
         }
-        
+
         const durationMinutes = endTotalMinutes - startTotalMinutes;
-        
+
         if (durationMinutes <= 0) return '00:00';
-        
+
         const hours = Math.floor(durationMinutes / 60);
         const minutes = durationMinutes % 60;
-        
+
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     };
 
@@ -161,27 +152,27 @@ export function EditTimeModalCustom({
         if (!entry || !entry.id) {
             return;
         }
-        
+
         // Clear previous errors
         setValidationError(null);
-        
+
         // Validate required fields
         if (!selectedProjectId) {
             setValidationError('Por favor selecciona un proyecto');
             return;
         }
-        
+
         if (!selectedTaskId && availableTasks.length > 0) {
             setValidationError('Por favor selecciona una tarea');
             return;
         }
-        
+
         const duration = calculateDuration();
         if (duration === '00:00') {
             setValidationError('La hora de fin debe ser posterior a la hora de inicio');
             return;
         }
-        
+
         // Check if duration is more than 12 hours but don't block
         const [hours] = duration.split(':').map(Number);
         if (hours > 12) {
@@ -206,7 +197,7 @@ export function EditTimeModalCustom({
                 // MySQL format: 2025-06-23 09:00:00
                 dateStr = entry.started_at.split(' ')[0];
             }
-            
+
             await onSubmit({
                 id: entry.id,
                 project_id: selectedProjectId,
@@ -214,7 +205,7 @@ export function EditTimeModalCustom({
                 description,
                 duration,
                 started_at: `${dateStr} ${startTime}:00`,
-                ended_at: `${dateStr} ${endTime}:00`
+                ended_at: `${dateStr} ${endTime}:00`,
             });
             // Reset submitting state after successful update
             setIsSubmitting(false);
@@ -228,7 +219,7 @@ export function EditTimeModalCustom({
             onClose();
         }
     };
-    
+
     const handleClose = () => {
         if (!isSubmitting) {
             onClose();
@@ -238,17 +229,14 @@ export function EditTimeModalCustom({
     if (!isOpen || !entry) return null;
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            onClick={handleBackdropClick}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={handleBackdropClick}>
             {/* Backdrop */}
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
-            
+
             {/* Modal */}
-            <div className="relative bg-background border border-border rounded-lg shadow-lg max-w-lg w-full mx-4 p-6">
-                <h2 className="text-lg font-semibold mb-4 text-foreground">Editar entrada de tiempo</h2>
-                
+            <div className="bg-background border-border relative mx-4 w-full max-w-lg rounded-lg border p-6 shadow-lg">
+                <h2 className="text-foreground mb-4 text-lg font-semibold">Editar entrada de tiempo</h2>
+
                 <div className="space-y-4">
                     {/* Validation Error Alert */}
                     {validationError && (
@@ -257,7 +245,7 @@ export function EditTimeModalCustom({
                             <AlertDescription>{validationError}</AlertDescription>
                         </Alert>
                     )}
-                    
+
                     <div className="space-y-2">
                         <Label htmlFor="project" className="text-foreground">
                             Proyecto
@@ -274,15 +262,10 @@ export function EditTimeModalCustom({
                                 <SelectValue placeholder="Selecciona un proyecto" />
                             </SelectTrigger>
                             <SelectContent>
-                                {projects.map(project => (
+                                {projects.map((project) => (
                                     <SelectItem key={project.id} value={project.id.toString()}>
                                         <div className="flex items-center gap-2">
-                                            {project.color && (
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: project.color }}
-                                                />
-                                            )}
+                                            {project.color && <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color }} />}
                                             {project.name}
                                         </div>
                                     </SelectItem>
@@ -302,10 +285,10 @@ export function EditTimeModalCustom({
                             disabled={!selectedProjectId || availableTasks.length === 0}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder={availableTasks.length === 0 ? "Sin tareas disponibles" : "Selecciona una tarea"} />
+                                <SelectValue placeholder={availableTasks.length === 0 ? 'Sin tareas disponibles' : 'Selecciona una tarea'} />
                             </SelectTrigger>
                             <SelectContent>
-                                {availableTasks.map(task => (
+                                {availableTasks.map((task) => (
                                     <SelectItem key={task.id} value={task.id.toString()}>
                                         {task.title}
                                     </SelectItem>
@@ -315,7 +298,9 @@ export function EditTimeModalCustom({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description" className="text-foreground">Descripción</Label>
+                        <Label htmlFor="description" className="text-foreground">
+                            Descripción
+                        </Label>
                         <Textarea
                             id="description"
                             value={description}
@@ -327,42 +312,32 @@ export function EditTimeModalCustom({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="start-time" className="text-foreground">Hora de inicio</Label>
-                            <Input
-                                id="start-time"
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                            />
+                            <Label htmlFor="start-time" className="text-foreground">
+                                Hora de inicio
+                            </Label>
+                            <Input id="start-time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="end-time" className="text-foreground">Hora de fin</Label>
-                            <Input
-                                id="end-time"
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                            />
+                            <Label htmlFor="end-time" className="text-foreground">
+                                Hora de fin
+                            </Label>
+                            <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
                         </div>
                     </div>
 
-                    <div className="text-sm text-muted-foreground">
-                        Duración: <span className="font-medium text-foreground">{calculateDuration()}</span>
+                    <div className="text-muted-foreground text-sm">
+                        Duración: <span className="text-foreground font-medium">{calculateDuration()}</span>
                         {(() => {
                             const [hours] = calculateDuration().split(':').map(Number);
                             if (hours > 12) {
-                                return (
-                                    <div className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-                                        ⚠️ Duración mayor a 12 horas
-                                    </div>
-                                );
+                                return <div className="mt-1 text-xs text-amber-600 dark:text-amber-500">⚠️ Duración mayor a 12 horas</div>;
                             }
                             return null;
                         })()}
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 mt-6">
+                <div className="mt-6 flex justify-end gap-3">
                     <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
                         Cancelar
                     </Button>

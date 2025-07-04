@@ -47,7 +47,6 @@ interface IndexProps {
 }
 
 export default function Index({ owned_spaces, member_spaces }: IndexProps) {
-    
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Espacios" />

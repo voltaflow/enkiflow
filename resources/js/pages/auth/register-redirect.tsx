@@ -12,9 +12,9 @@ export default function RegisterRedirect({ url }: RegisterRedirectProps) {
     }, [url]);
 
     return (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex min-h-screen items-center justify-center">
             <div className="text-center">
-                <h2 className="text-2xl font-semibold mb-2">Creating your workspace...</h2>
+                <h2 className="mb-2 text-2xl font-semibold">Creating your workspace...</h2>
                 <p className="text-muted-foreground">You will be redirected in a moment.</p>
             </div>
         </div>

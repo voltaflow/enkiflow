@@ -1,12 +1,12 @@
-import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
-import AuthLayout from '@/layouts/auth-layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Building2, Mail, Shield, Clock, Lock, User } from 'lucide-react';
+import AuthLayout from '@/layouts/auth-layout';
+import { Head, useForm } from '@inertiajs/react';
+import { Building2, Mail, Shield, User } from 'lucide-react';
+import React from 'react';
 
 interface Props {
     invitation: {
@@ -41,7 +41,7 @@ export default function Register({ invitation, space }: Props) {
             month: 'long',
             day: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
         });
     };
 
@@ -51,36 +51,34 @@ export default function Register({ invitation, space }: Props) {
 
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-8 w-8 text-primary" />
+                    <div className="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                        <User className="text-primary h-8 w-8" />
                     </div>
                     <CardTitle className="text-2xl">Crear tu cuenta</CardTitle>
-                    <CardDescription>
-                        Completa tu información para unirte a {space.name}
-                    </CardDescription>
+                    <CardDescription>Completa tu información para unirte a {space.name}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="mb-6 space-y-4">
                         <div className="flex items-center gap-3">
-                            <Building2 className="h-5 w-5 text-muted-foreground" />
+                            <Building2 className="text-muted-foreground h-5 w-5" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Espacio de trabajo</p>
+                                <p className="text-muted-foreground text-sm">Espacio de trabajo</p>
                                 <p className="font-medium">{space.name}</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <Mail className="h-5 w-5 text-muted-foreground" />
+                            <Mail className="text-muted-foreground h-5 w-5" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Correo electrónico</p>
+                                <p className="text-muted-foreground text-sm">Correo electrónico</p>
                                 <p className="font-medium">{invitation.email}</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <Shield className="h-5 w-5 text-muted-foreground" />
+                            <Shield className="text-muted-foreground h-5 w-5" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Rol asignado</p>
+                                <p className="text-muted-foreground text-sm">Rol asignado</p>
                                 <Badge variant="secondary" className="mt-1">
                                     {invitation.role_label}
                                 </Badge>
@@ -98,9 +96,7 @@ export default function Register({ invitation, space }: Props) {
                                 onChange={(e) => setData('first_name', e.target.value)}
                                 required
                             />
-                            {errors.first_name && (
-                                <p className="text-sm text-destructive">{errors.first_name}</p>
-                            )}
+                            {errors.first_name && <p className="text-destructive text-sm">{errors.first_name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -112,9 +108,7 @@ export default function Register({ invitation, space }: Props) {
                                 onChange={(e) => setData('last_name', e.target.value)}
                                 required
                             />
-                            {errors.last_name && (
-                                <p className="text-sm text-destructive">{errors.last_name}</p>
-                            )}
+                            {errors.last_name && <p className="text-destructive text-sm">{errors.last_name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -126,9 +120,7 @@ export default function Register({ invitation, space }: Props) {
                                 onChange={(e) => setData('password', e.target.value)}
                                 required
                             />
-                            {errors.password && (
-                                <p className="text-sm text-destructive">{errors.password}</p>
-                            )}
+                            {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -142,7 +134,7 @@ export default function Register({ invitation, space }: Props) {
                             />
                         </div>
 
-                        <Button type="submit" className="w-full mt-6" disabled={processing}>
+                        <Button type="submit" className="mt-6 w-full" disabled={processing}>
                             {processing ? 'Creando cuenta...' : 'Crear cuenta y unirme'}
                         </Button>
                     </form>
