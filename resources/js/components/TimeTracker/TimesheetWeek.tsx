@@ -44,6 +44,7 @@ interface TimesheetWeekProps {
     tasks: Task[];
     isLocked: boolean;
     weeklyGoal?: number;
+    isGuest?: boolean;
     onCellUpdate: (projectId: number | null, taskId: number | null, date: string, hours: number, description?: string) => void;
     onWeekChange: (newWeekStart: Date) => void;
     onSubmit: () => void;
@@ -59,6 +60,7 @@ export function TimesheetWeek({
     tasks,
     isLocked,
     weeklyGoal = 40,
+    isGuest = false,
     onCellUpdate,
     onWeekChange,
     onSubmit,
@@ -267,7 +269,7 @@ export function TimesheetWeek({
 
             <CardContent className="space-y-4 p-6 pt-2">
                 {/* Add Project/Task Button */}
-                {!isLocked && (
+                {!isLocked && !isGuest && (
                     <Button onClick={() => setShowAddProjectTaskModal(true)} className="w-full" variant="outline">
                         <Plus className="mr-2 h-4 w-4" />
                         Agregar proyecto/tarea
@@ -276,10 +278,12 @@ export function TimesheetWeek({
                 {!hasEntries && (
                     <div className="bg-muted/20 mb-6 rounded-lg border-2 border-dashed p-6 text-center">
                         <p className="text-muted-foreground mb-4 text-sm">No hay entradas de tiempo para esta semana</p>
-                        <Button onClick={handleCopyRowsFromPreviousWeek} disabled={isCopyingRows} variant="outline" size="sm">
-                            <Copy className="mr-2 h-4 w-4" />
-                            {isCopyingRows ? 'Copiando...' : 'Copiar filas de la hoja más reciente'}
-                        </Button>
+                        {!isGuest && (
+                            <Button onClick={handleCopyRowsFromPreviousWeek} disabled={isCopyingRows} variant="outline" size="sm">
+                                <Copy className="mr-2 h-4 w-4" />
+                                {isCopyingRows ? 'Copiando...' : 'Copiar filas de la hoja más reciente'}
+                            </Button>
+                        )}
                     </div>
                 )}
 
@@ -404,7 +408,7 @@ export function TimesheetWeek({
                                             <td className="p-3 text-center">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <span className="text-sm font-semibold">{formatDuration(group.projectTotal)}</span>
-                                                    {!isLocked && onDeleteRow && !hasMultipleTasks && group.tasks.length === 1 && (
+                                                    {!isLocked && !isGuest && onDeleteRow && !hasMultipleTasks && group.tasks.length === 1 && (
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
@@ -497,7 +501,7 @@ export function TimesheetWeek({
                                                                         }, 0),
                                                                     )}
                                                                 </span>
-                                                                {!isLocked && onDeleteRow && (
+                                                                {!isLocked && !isGuest && onDeleteRow && (
                                                                     <Button
                                                                         variant="ghost"
                                                                         size="icon"

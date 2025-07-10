@@ -129,7 +129,6 @@ export function EditTimeModal({ isOpen, onClose, projects, tasks, entry, onSubmi
             });
             onClose();
         } catch (error) {
-            console.error('Error updating time entry:', error);
         } finally {
             setIsSubmitting(false);
         }

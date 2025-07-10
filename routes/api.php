@@ -14,4 +14,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// API routes will be added here as needed
+// API routes moved to tenant.php to ensure proper tenant context

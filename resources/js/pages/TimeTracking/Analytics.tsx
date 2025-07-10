@@ -110,7 +110,6 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
             setChartData(response.data);
         } catch (error) {
             toast.error('Failed to load analytics data');
-            console.error(error);
         } finally {
             setIsLoading(false);
         }

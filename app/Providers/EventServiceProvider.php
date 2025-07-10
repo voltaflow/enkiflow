@@ -52,6 +52,17 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\LogInvitationActivity::class,
             \App\Listeners\SendReminderNotification::class,
         ],
+
+        // Eventos de reportes y entradas de tiempo
+        \App\Events\TimeEntryCreated::class => [
+            \App\Listeners\InvalidateReportCache::class,
+        ],
+        \App\Events\TimeEntryUpdated::class => [
+            \App\Listeners\InvalidateReportCache::class,
+        ],
+        \App\Events\TimeEntryDeleted::class => [
+            \App\Listeners\InvalidateReportCache::class,
+        ],
     ];
 
     /**

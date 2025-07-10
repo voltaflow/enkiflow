@@ -257,11 +257,21 @@ export default function Index({ clients, filters }: Props) {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={route('tenant.clients.show', client.id)}>Ver detalles</Link>
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                router.visit(route('tenant.clients.show', client.id));
+                                                            }}
+                                                        >
+                                                            Ver detalles
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={route('tenant.clients.edit', client.id)}>Editar</Link>
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                router.visit(route('tenant.clients.edit', client.id));
+                                                            }}
+                                                        >
+                                                            Editar
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         {!client.deleted_at && (

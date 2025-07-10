@@ -23,6 +23,7 @@ enum SpacePermission: string
     case EDIT_PROJECTS = 'edit_projects';
     case DELETE_PROJECTS = 'delete_projects';
     case VIEW_ALL_PROJECTS = 'view_all_projects';
+    case MANAGE_ALL_PROJECTS = 'manage_all_projects';
 
     // Tareas
     case CREATE_TASKS = 'create_tasks';
@@ -63,6 +64,7 @@ enum SpacePermission: string
             self::EDIT_PROJECTS,
             self::DELETE_PROJECTS,
             self::VIEW_ALL_PROJECTS,
+            self::MANAGE_ALL_PROJECTS,
             self::CREATE_TASKS,
             self::EDIT_ANY_TASK,
             self::EDIT_OWN_TASKS,
@@ -98,6 +100,7 @@ enum SpacePermission: string
                 self::EDIT_PROJECTS,
                 self::DELETE_PROJECTS,
                 self::VIEW_ALL_PROJECTS,
+                self::MANAGE_ALL_PROJECTS,
                 self::CREATE_TASKS,
                 self::EDIT_ANY_TASK,
                 self::EDIT_OWN_TASKS,
@@ -184,6 +187,7 @@ enum SpacePermission: string
             self::EDIT_PROJECTS => 'Editar proyectos',
             self::DELETE_PROJECTS => 'Eliminar proyectos',
             self::VIEW_ALL_PROJECTS => 'Ver todos los proyectos',
+            self::MANAGE_ALL_PROJECTS => 'Gestionar todos los proyectos',
             self::CREATE_TASKS => 'Crear tareas',
             self::EDIT_ANY_TASK => 'Editar cualquier tarea',
             self::EDIT_OWN_TASKS => 'Editar tareas propias',

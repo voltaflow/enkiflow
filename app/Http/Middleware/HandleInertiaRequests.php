@@ -93,6 +93,28 @@ class HandleInertiaRequests extends Middleware
                     ->with('domains')
                     ->get(['tenants.id', 'tenants.name'])
                     ->toArray();
+                    
+                // Añadir el rol del usuario en el espacio actual
+                $spaceUser = \App\Models\SpaceUser::where('tenant_id', $currentSpace->id)
+                    ->where('user_id', $request->user()->id)
+                    ->first();
+                    
+                if ($spaceUser) {
+                    $sharedData['auth']['spaceRole'] = $spaceUser->role->value;
+                    $sharedData['auth']['isGuest'] = $spaceUser->role === \App\Enums\SpaceRole::GUEST;
+                    $sharedData['auth']['isManager'] = $spaceUser->role === \App\Enums\SpaceRole::MANAGER;
+                    $sharedData['auth']['isAdmin'] = $spaceUser->role === \App\Enums\SpaceRole::ADMIN;
+                    $sharedData['auth']['isMember'] = $spaceUser->role === \App\Enums\SpaceRole::MEMBER;
+                    $sharedData['auth']['isOwner'] = $request->user()->id === $currentSpace->owner_id;
+                } else if ($request->user()->id === $currentSpace->owner_id) {
+                    // Si es el dueño pero no tiene registro SpaceUser
+                    $sharedData['auth']['spaceRole'] = \App\Enums\SpaceRole::OWNER->value;
+                    $sharedData['auth']['isGuest'] = false;
+                    $sharedData['auth']['isManager'] = false;
+                    $sharedData['auth']['isAdmin'] = false;
+                    $sharedData['auth']['isMember'] = false;
+                    $sharedData['auth']['isOwner'] = true;
+                }
             }
         }
 

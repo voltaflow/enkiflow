@@ -50,7 +50,7 @@ export function useBroadcastSync(channelName: string = 'enkiflow_sync') {
                 }
             };
         } catch (error) {
-            console.warn('BroadcastChannel not supported:', error);
+            // BroadcastChannel not supported
         }
     }, [channelName]);
 
@@ -101,7 +101,7 @@ export function useBroadcastSync(channelName: string = 'enkiflow_sync') {
         try {
             channelRef.current.postMessage(message);
         } catch (error) {
-            console.error('Failed to broadcast message:', error);
+            // Failed to broadcast message
         }
     }, []);
 
@@ -208,7 +208,7 @@ export function useStorageSync(key: string) {
                     }),
                 );
             } catch (error) {
-                console.error('Failed to sync to localStorage:', error);
+                // Failed to sync to localStorage
             }
         },
         [key],
@@ -225,7 +225,7 @@ export function useStorageSync(key: string) {
                 }
             }
         } catch (error) {
-            console.error('Failed to read from localStorage:', error);
+            // Failed to read from localStorage
         }
         return null;
     }, [key]);

@@ -128,11 +128,14 @@ export default function Show({ client, stats }: Props) {
                                 <Button variant="outline">Acciones</Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                    <Link href={route('tenant.clients.edit', client.id)}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Editar
-                                    </Link>
+                                <DropdownMenuItem
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        router.visit(route('tenant.clients.edit', client.id));
+                                    }}
+                                >
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {!client.deleted_at && (

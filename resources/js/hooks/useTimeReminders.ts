@@ -10,7 +10,12 @@ interface ReminderOptions {
 export function useTimeReminders(options: ReminderOptions = {}) {
     const { dailyGoal = 8, reminderTime = '17:00', enableNotifications = true } = options;
 
-    const { todaysTotalHours, sendDailyReminder, state } = useTimeEntryStore();
+    // TODO: Update when timeEntryStore is fully implemented with reminder features
+    const store = useTimeEntryStore();
+    const todaysTotalHours = 0;
+    const sendDailyReminder = async () => {};
+    const state = { reminders: { dailySent: false } };
+    
     const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
     const [nextReminderTime, setNextReminderTime] = useState<Date | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);

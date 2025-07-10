@@ -151,6 +151,30 @@ class Kernel extends ConsoleKernel
                  ->appendOutputTo(storage_path('logs/invitations.log'));
 
         // ===================================
+        // REPORTES Y KPIs
+        // ===================================
+        
+        // Update dashboard KPIs every 15 minutes during business hours
+        $schedule->command('reports:update-kpis')
+            ->weekdays()
+            ->everyFifteenMinutes()
+            ->between('8:00', '18:00')
+            ->name('update-dashboard-kpis')
+            ->onOneServer()
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/kpis-update.log'));
+        
+        // Check KPI thresholds and send alerts daily
+        $schedule->call(function () {
+            $alertService = app(\App\Services\KpiAlertService::class);
+            $alertService->checkAndSendAlerts();
+        })->dailyAt('09:00')
+          ->name('check-kpi-alerts')
+          ->onOneServer()
+          ->runInBackground();
+
+        // ===================================
         // HORIZON (si está instalado)
         // ===================================
         

@@ -255,13 +255,34 @@ Route::middleware([
             Route::get('/templates', [App\Http\Controllers\Tenant\TimeEntryExportController::class, 'getTemplates'])->name('templates');
         });
 
-        // Report API endpoints
+        // Report API endpoints - Original endpoints for backward compatibility
         Route::prefix('api/reports')->name('api.reports.')->group(function () {
             Route::get('/daily', [ReportController::class, 'daily'])->name('daily');
             Route::get('/weekly', [ReportController::class, 'weekly'])->name('weekly');
             Route::get('/monthly', [ReportController::class, 'monthly'])->name('monthly');
             Route::get('/project', [ReportController::class, 'project'])->name('project');
         });
+        
+        // New Time Reports API endpoints
+        Route::prefix('api/reports')->group(function () {
+            Route::get('/date-range', [App\Http\Controllers\Api\TimeReportController::class, 'byDateRange']);
+            Route::get('/project/{project}', [App\Http\Controllers\Api\TimeReportController::class, 'byProject']);
+            Route::get('/user/{user}', [App\Http\Controllers\Api\TimeReportController::class, 'byUser']);
+            Route::get('/billing', [App\Http\Controllers\Api\TimeReportController::class, 'billing']);
+            Route::get('/metrics', [App\Http\Controllers\Api\TimeReportController::class, 'metrics']);
+            Route::get('/summary', [App\Http\Controllers\Api\TimeReportController::class, 'summary']);
+            Route::get('/weekly', [App\Http\Controllers\Api\TimeReportController::class, 'weekly']);
+            
+            // Complex report generation
+            Route::post('/complex', [App\Http\Controllers\Api\TimeReportController::class, 'requestComplexReport']);
+            Route::get('/status/{jobId}', [App\Http\Controllers\Api\TimeReportController::class, 'checkReportStatus']);
+            Route::get('/download/{jobId}', [App\Http\Controllers\Api\TimeReportController::class, 'downloadReport'])->name('api.reports.download');
+        });
+
+        // Reports UI routes
+        Route::get('/reports', [App\Http\Controllers\Tenant\ReportsController::class, 'index'])
+            ->name('tenant.reports.index')
+            ->middleware('tenant.role:view_statistics');
 
         // Analytics - Solo managers y superiores pueden ver estadísticas
         Route::middleware(['tenant.role:view_statistics'])->group(function () {
@@ -301,6 +322,99 @@ Route::middleware([
             ->name('users.reset-password')
             ->middleware('can:resetPassword,user');
         
+        // User's assigned projects API
+        Route::get('/api/user/assigned-projects', [App\Http\Controllers\Api\UserProjectController::class, 'assignedProjects'])
+            ->name('api.user.assigned-projects');
+        
+        // User Project Assignments API
+        Route::prefix('api/users/{user}/projects')->name('api.users.projects.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'index'])
+                ->name('index')
+                ->middleware('can:viewProjects,user');
+                
+            Route::get('/available', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'available'])
+                ->name('available')
+                ->middleware('can:viewProjects,user');
+                
+            Route::post('/', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'store'])
+                ->name('store')
+                ->middleware('can:assignProjects,user');
+                
+            Route::put('/sync', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'sync'])
+                ->name('sync')
+                ->middleware('can:assignProjects,user');
+                
+            Route::put('/{project}', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'update'])
+                ->name('update')
+                ->middleware('can:assignProjects,user');
+                
+            Route::delete('/', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('can:assignProjects,user');
+        });
+        
+        // Project Member Assignments API
+        Route::prefix('api/projects/{project}/members')->name('api.projects.members.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Api\ProjectUserAssignmentController::class, 'index'])
+                ->name('index');
+                
+            Route::get('/available', [App\Http\Controllers\Api\ProjectUserAssignmentController::class, 'available'])
+                ->name('available');
+                
+            Route::post('/', [App\Http\Controllers\Api\ProjectUserAssignmentController::class, 'store'])
+                ->name('store');
+                
+            Route::put('/{user}', [App\Http\Controllers\Api\ProjectUserAssignmentController::class, 'update'])
+                ->name('update');
+                
+            Route::delete('/{user}', [App\Http\Controllers\Api\ProjectUserAssignmentController::class, 'destroy'])
+                ->name('destroy');
+        });
+        
+        // Project Permissions API (New permission system)
+        Route::prefix('api/projects/{project}/permissions')->name('api.projects.permissions.')->group(function () {
+            Route::get('/options', [App\Http\Controllers\Api\ProjectPermissionController::class, 'options'])
+                ->name('options');
+                
+            Route::get('/{user}', [App\Http\Controllers\Api\ProjectPermissionController::class, 'show'])
+                ->name('show')
+                ->middleware('can:manageMembers,project');
+                
+            Route::put('/{user}/role', [App\Http\Controllers\Api\ProjectPermissionController::class, 'updateRole'])
+                ->name('update-role')
+                ->middleware('can:manageMembers,project');
+                
+            Route::put('/{user}/permissions', [App\Http\Controllers\Api\ProjectPermissionController::class, 'updatePermissions'])
+                ->name('update-permissions')
+                ->middleware('can:manageMembers,project');
+                
+            Route::post('/users', [App\Http\Controllers\Api\ProjectPermissionController::class, 'addUser'])
+                ->name('add-user')
+                ->middleware('can:manageMembers,project');
+                
+            Route::delete('/{user}', [App\Http\Controllers\Api\ProjectPermissionController::class, 'removeUser'])
+                ->name('remove-user')
+                ->middleware('can:manageMembers,project');
+        });
+        
+        // User Project Assignments API
+        Route::prefix('api/users/{user}/projects')->name('api.users.projects.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'index'])
+                ->name('index');
+                
+            Route::get('/available', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'available'])
+                ->name('available');
+                
+            Route::post('/', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'store'])
+                ->name('store');
+                
+            Route::put('/{project}', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'update'])
+                ->name('update');
+                
+            Route::delete('/{project}', [App\Http\Controllers\Api\UserProjectAssignmentController::class, 'destroy'])
+                ->name('destroy');
+        });
+        
         // Invitations - Requiere permiso específico de invitar usuarios
         Route::middleware(['tenant.role:invite_users'])->group(function () {
             Route::get('/invitations', [App\Http\Controllers\Tenant\InvitationController::class, 'index'])
@@ -323,13 +437,28 @@ Route::middleware([
                 ->name('logs');
         });
         
-        // Demo data management
-        Route::prefix('settings/developer')->name('settings.')->group(function () {
-            Route::get('/demo-data', [App\Http\Controllers\DemoDataController::class, 'index'])->name('demo-data');
-            Route::post('/demo-data/generate', [App\Http\Controllers\DemoDataController::class, 'generate'])->name('demo-data.generate');
-            Route::post('/demo-data/reset', [App\Http\Controllers\DemoDataController::class, 'reset'])->name('demo-data.reset');
-            Route::get('/demo-data/snapshot', [App\Http\Controllers\DemoDataController::class, 'snapshot'])->name('demo-data.snapshot');
-            Route::post('/demo-data/clone', [App\Http\Controllers\DemoDataController::class, 'clone'])->name('demo-data.clone');
+        // Space user management API
+        Route::prefix('api/spaces/{space}/users')->name('api.spaces.users.')->group(function () {
+            Route::put('/{user}/role', [App\Http\Controllers\Api\SpaceUserController::class, 'updateRole'])
+                ->name('update-role')
+                ->middleware('tenant.role:manage_user_roles');
+        });
+        
+        // Settings pages
+        Route::prefix('settings')->name('settings.')->group(function () {
+            // Permissions management (requires manage_user_roles permission)
+            Route::get('/permissions', [App\Http\Controllers\Settings\PermissionsController::class, 'index'])
+                ->name('permissions')
+                ->middleware('tenant.role:manage_user_roles');
+            
+            // Demo data management
+            Route::prefix('developer')->group(function () {
+                Route::get('/demo-data', [App\Http\Controllers\DemoDataController::class, 'index'])->name('demo-data');
+                Route::post('/demo-data/generate', [App\Http\Controllers\DemoDataController::class, 'generate'])->name('demo-data.generate');
+                Route::post('/demo-data/reset', [App\Http\Controllers\DemoDataController::class, 'reset'])->name('demo-data.reset');
+                Route::get('/demo-data/snapshot', [App\Http\Controllers\DemoDataController::class, 'snapshot'])->name('demo-data.snapshot');
+                Route::post('/demo-data/clone', [App\Http\Controllers\DemoDataController::class, 'clone'])->name('demo-data.clone');
+            });
         });
     });
 });

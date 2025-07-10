@@ -8,12 +8,16 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import React, { useState } from 'react';
 // import { Slider } from '@/components/ui/slider';
+import { PermissionAuditView } from '@/components/permissions/PermissionAuditView';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import AssignedProjectsPanel from '@/components/users/AssignedProjectsPanel';
+import AssignProjectsModal from '@/components/users/AssignProjectsModal';
+import { useFeature } from '@/composables/useFeature';
 import { cn } from '@/lib/utils';
-import { Archive, ArrowLeft, Check, CheckCircle2, Clock, DollarSign, Mail, RotateCcw, Shield, Trash2, User, X, XCircle } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
+import { Archive, ArrowLeft, Check, CheckCircle2, Clock, DollarSign, Mail, RotateCcw, Shield, Trash2, User, X, XCircle } from 'lucide-react';
 import { useEffect } from 'react';
 
 interface Permission {
@@ -48,6 +52,7 @@ interface Props {
     canDeleteUsers: boolean;
     canManageRoles: boolean;
     canResetPasswords: boolean;
+    canAssignProjects: boolean;
 }
 
 const permissionCategories = [
@@ -120,8 +125,18 @@ const permissionCategories = [
     },
 ];
 
-export default function Show({ user: initialUser, availableRoles, canEditUsers, canDeleteUsers, canManageRoles, canResetPasswords }: Props) {
+export default function Show({
+    user: initialUser,
+    availableRoles,
+    canEditUsers,
+    canDeleteUsers,
+    canManageRoles,
+    canResetPasswords,
+    canAssignProjects,
+}: Props) {
+    const hasPermissionFeature = useFeature('project_permissions');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [assignProjectsModalOpen, setAssignProjectsModalOpen] = useState(false);
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const { props } = usePage<any>();
     const [user, setUser] = useState(initialUser);
@@ -206,7 +221,8 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
 
     const handleUpdateRole = () => {
         setNotification({ type: 'success', message: 'Actualizando rol...' });
-        router.put(route('users.update', user.id), 
+        router.put(
+            route('users.update', user.id),
             { role: data.role },
             {
                 preserveScroll: true,
@@ -216,37 +232,38 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                 },
                 onError: () => {
                     setNotification({ type: 'error', message: 'Error al actualizar el rol' });
-                }
-            }
+                },
+            },
         );
     };
 
     const handleStatusToggle = () => {
         const newStatus = user.status === 'archived' ? 'active' : 'archived';
         setNotification({ type: 'success', message: newStatus === 'active' ? 'Restaurando usuario...' : 'Archivando usuario...' });
-        
-        router.put(route('users.update', user.id), 
+
+        router.put(
+            route('users.update', user.id),
             { status: newStatus },
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     setData('status', newStatus);
                     setUser({ ...user, status: newStatus });
-                    setNotification({ 
-                        type: 'success', 
-                        message: newStatus === 'active' ? 'Usuario restaurado correctamente' : 'Usuario archivado correctamente' 
+                    setNotification({
+                        type: 'success',
+                        message: newStatus === 'active' ? 'Usuario restaurado correctamente' : 'Usuario archivado correctamente',
                     });
                 },
                 onError: () => {
                     setNotification({ type: 'error', message: 'Error al cambiar el estado del usuario' });
-                }
-            }
+                },
+            },
         );
     };
 
     const handleResetPassword = () => {
         setNotification({ type: 'success', message: 'Enviando enlace de restablecimiento...' });
-        
+
         router.post(
             route('users.reset-password', user.id),
             {},
@@ -279,20 +296,21 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                 <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
                     {/* Notification */}
                     {notification && (
-                        <Alert className={cn(
-                            "mb-6",
-                            notification.type === 'success' && "border-green-500 bg-green-50",
-                            notification.type === 'error' && "border-red-500 bg-red-50"
-                        )}>
+                        <Alert
+                            className={cn(
+                                'mb-6',
+                                notification.type === 'success' && 'border-green-500 bg-green-50',
+                                notification.type === 'error' && 'border-red-500 bg-red-50',
+                            )}
+                        >
                             {notification.type === 'success' ? (
                                 <CheckCircle2 className="h-4 w-4 text-green-600" />
                             ) : (
                                 <XCircle className="h-4 w-4 text-red-600" />
                             )}
-                            <AlertDescription className={cn(
-                                notification.type === 'success' && "text-green-800",
-                                notification.type === 'error' && "text-red-800"
-                            )}>
+                            <AlertDescription
+                                className={cn(notification.type === 'success' && 'text-green-800', notification.type === 'error' && 'text-red-800')}
+                            >
                                 {notification.message}
                             </AlertDescription>
                         </Alert>
@@ -381,7 +399,7 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                                     <Label className="text-muted-foreground text-sm">Rol</Label>
                                     {canManageRoles ? (
                                         <>
-                                            <div className="flex gap-2 mt-1">
+                                            <div className="mt-1 flex gap-2">
                                                 <Select value={data.role} onValueChange={handleRoleChange} disabled={processing}>
                                                     <SelectTrigger className="flex-1">
                                                         <SelectValue />
@@ -395,12 +413,7 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                                                     </SelectContent>
                                                 </Select>
                                                 {data.role !== user.role && (
-                                                    <Button 
-                                                        variant="default" 
-                                                        size="sm"
-                                                        onClick={handleUpdateRole}
-                                                        disabled={processing}
-                                                    >
+                                                    <Button variant="default" size="sm" onClick={handleUpdateRole} disabled={processing}>
                                                         Actualizar permisos
                                                     </Button>
                                                 )}
@@ -515,7 +528,6 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                                             />
                                         </div>
                                     </div>
-
                                 </form>
                             </CardContent>
                         </Card>
@@ -528,15 +540,11 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <p className="font-medium">Guardar cambios de disponibilidad y tarifas</p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-muted-foreground text-sm">
                                             Los cambios en la disponibilidad semanal, tasa interna y tasa facturable requieren guardarse
                                         </p>
                                     </div>
-                                    <Button 
-                                        onClick={handleSubmit} 
-                                        disabled={processing}
-                                        size="lg"
-                                    >
+                                    <Button onClick={handleSubmit} disabled={processing} size="lg">
                                         Guardar Cambios
                                     </Button>
                                 </div>
@@ -544,38 +552,61 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                         </Card>
                     )}
 
+                    {/* Assigned Projects */}
+                    <AssignedProjectsPanel userId={user.id} canManage={canAssignProjects} onAssignProjects={() => setAssignProjectsModalOpen(true)} />
+
                     {/* Effective Permissions */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Permisos Efectivos</CardTitle>
-                            <CardDescription>Permisos que tiene este usuario basados en su rol y configuración personalizada.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                {permissionCategories.map((category) => (
-                                    <div key={category.name} className="space-y-2">
-                                        <h4 className="text-sm font-medium">{category.label}</h4>
-                                        <ul className="space-y-1">
-                                            {category.permissions.map((permission) => (
-                                                <li key={permission.value} className="flex items-center text-sm">
-                                                    {hasPermission(permission.value) ? (
-                                                        <Check className="mr-2 h-4 w-4 text-green-600" />
-                                                    ) : (
-                                                        <X className="mr-2 h-4 w-4 text-gray-300" />
-                                                    )}
-                                                    <span
-                                                        className={cn(hasPermission(permission.value) ? 'text-foreground' : 'text-muted-foreground')}
-                                                    >
-                                                        {permission.label}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {hasPermissionFeature ? (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Auditoría de Permisos</CardTitle>
+                                <CardDescription>Vista detallada de todos los permisos de {user.name} y su origen.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <PermissionAuditView 
+                                    userId={user.id} 
+                                    userName={user.name} 
+                                    showHeader={false}
+                                    userSpaceRole={user.role}
+                                    userSpacePermissions={user.effective_permissions}
+                                />
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Permisos Efectivos</CardTitle>
+                                <CardDescription>Permisos que tiene este usuario basados en su rol y configuración personalizada.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    {permissionCategories.map((category) => (
+                                        <div key={category.name} className="space-y-2">
+                                            <h4 className="text-sm font-medium">{category.label}</h4>
+                                            <ul className="space-y-1">
+                                                {category.permissions.map((permission) => (
+                                                    <li key={permission.value} className="flex items-center text-sm">
+                                                        {hasPermission(permission.value) ? (
+                                                            <Check className="mr-2 h-4 w-4 text-green-600" />
+                                                        ) : (
+                                                            <X className="mr-2 h-4 w-4 text-gray-300" />
+                                                        )}
+                                                        <span
+                                                            className={cn(
+                                                                hasPermission(permission.value) ? 'text-foreground' : 'text-muted-foreground',
+                                                            )}
+                                                        >
+                                                            {permission.label}
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Delete Button */}
                     {canDeleteUsers && (
@@ -608,6 +639,18 @@ export default function Show({ user: initialUser, availableRoles, canEditUsers, 
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Assign Projects Modal */}
+            <AssignProjectsModal
+                open={assignProjectsModalOpen}
+                onClose={() => setAssignProjectsModalOpen(false)}
+                userId={user.id}
+                userName={user.name}
+                onSuccess={() => {
+                    setAssignProjectsModalOpen(false);
+                    router.reload();
+                }}
+            />
         </AppLayout>
     );
 }

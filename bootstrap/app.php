@@ -63,6 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             RedirectToSpaceSubdomain::class,
             \App\Http\Middleware\LogRequests::class,
+            \App\Http\Middleware\ShareFeatureFlags::class,
         ]);
 
         $middleware->alias([
@@ -71,6 +72,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => CustomAuthenticate::class, // Reemplazar el middleware de autenticación por defecto
             'teleport' => \App\Http\Middleware\TeleportToSpace::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'project.permission' => \App\Http\Middleware\EnsureProjectPermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

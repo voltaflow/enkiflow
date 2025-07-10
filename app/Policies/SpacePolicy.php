@@ -28,7 +28,9 @@ class SpacePolicy
         }
 
         // Otherwise, get the actual SpaceUser record
-        return $space->users()->where('user_id', $user->id)->first();
+        return SpaceUser::where('tenant_id', $space->id)
+            ->where('user_id', $user->id)
+            ->first();
     }
 
     /**

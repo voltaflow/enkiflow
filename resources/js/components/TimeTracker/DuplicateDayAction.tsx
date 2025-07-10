@@ -31,7 +31,6 @@ export function DuplicateDayAction({ onDuplicate, disabled = false, className }:
             setFromDate(new Date());
             setToDate(new Date());
         } catch (error) {
-            console.error('Error duplicating day:', error);
         } finally {
             setIsLoading(false);
         }

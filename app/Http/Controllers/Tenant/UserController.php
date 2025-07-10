@@ -115,6 +115,7 @@ class UserController extends Controller
             'canDeleteUsers' => $this->userHasPermission($request->user(), SpacePermission::REMOVE_USERS),
             'canManageRoles' => $this->userHasPermission($request->user(), SpacePermission::MANAGE_USER_ROLES),
             'canResetPasswords' => $this->userHasPermission($request->user(), SpacePermission::MANAGE_USER_ROLES),
+            'canAssignProjects' => $request->user()->can('assignProjects', $user),
         ]);
     }
 
