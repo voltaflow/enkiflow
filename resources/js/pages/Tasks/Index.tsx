@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { PageProps } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Calendar, CheckCircle2, Circle, Clock, Grid3X3, LayoutList, MoreHorizontal, Plus, Search, SortDesc, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -91,6 +91,13 @@ interface Props extends PageProps {
 }
 
 export default function Index({ tasks, projects, filters, stats }: Props) {
+    const { auth } = usePage().props as any;
+    const isGuest = auth?.isGuest || false;
+    const isManager = auth?.isManager || false;
+    const isAdmin = auth?.isAdmin || false;
+    const isMember = auth?.isMember || false;
+    const spaceRole = auth?.spaceRole;
+    const currentUserId = auth?.user?.id;
     const [selectedTasks, setSelectedTasks] = useState<number[]>([]);
 
     // Calcular stats si no vienen del backend
@@ -243,12 +250,14 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                                         <Grid3X3 className="h-4 w-4" />
                                     </Button>
                                 </div>
-                                <Link href={route('tasks.create')}>
-                                    <Button>
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Nueva Tarea
-                                    </Button>
-                                </Link>
+                                {(isMember || isManager || isAdmin || spaceRole === 'owner') && (
+                                    <Link href={route('tasks.create')}>
+                                        <Button>
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Nueva Tarea
+                                        </Button>
+                                    </Link>
+                                )}
                             </div>
                         </div>
 
@@ -288,12 +297,14 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                                     <Grid3X3 className="h-4 w-4" />
                                 </Button>
                             </div>
-                            <Link href={route('tasks.create')}>
-                                <Button>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Nueva Tarea
-                                </Button>
-                            </Link>
+                            {(isMember || isManager || isAdmin || spaceRole === 'owner') && (
+                                <Link href={route('tasks.create')}>
+                                    <Button>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Nueva Tarea
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     </div>
 
@@ -396,8 +407,8 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                         </CardContent>
                     </Card>
 
-                    {/* Bulk Actions */}
-                    {selectedTasks.length > 0 && (
+                    {/* Bulk Actions - not available for MEMBER */}
+                    {selectedTasks.length > 0 && !isGuest && !isMember && (
                         <Card className="border-primary mb-6">
                             <CardContent className="py-3">
                                 <div className="flex items-center justify-between">
@@ -449,12 +460,14 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                                     <TableRow>
                                         <TableCell colSpan={8} className="py-8 text-center">
                                             <p className="text-muted-foreground">No se encontraron tareas</p>
-                                            <Link href={route('tasks.create')}>
-                                                <Button className="mt-4" variant="outline">
-                                                    <Plus className="mr-2 h-4 w-4" />
-                                                    Crear primera tarea
-                                                </Button>
-                                            </Link>
+                                            {(isMember || isManager || isAdmin || spaceRole === 'owner') && (
+                                                <Link href={route('tasks.create')}>
+                                                    <Button className="mt-4" variant="outline">
+                                                        <Plus className="mr-2 h-4 w-4" />
+                                                        Crear primera tarea
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -527,34 +540,84 @@ export default function Index({ tasks, projects, filters, stats }: Props) {
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                                         <DropdownMenuSeparator />
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={route('tasks.show', task.id)}>Ver detalles</Link>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={route('tasks.edit', task.id)}>Editar</Link>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        {task.status !== 'completed' && (
-                                                            <DropdownMenuItem onClick={() => router.post(route('tasks.complete', task.id))}>
-                                                                Marcar como completada
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                        {task.status === 'pending' && (
-                                                            <DropdownMenuItem onClick={() => router.post(route('tasks.in-progress', task.id))}>
-                                                                Iniciar progreso
-                                                            </DropdownMenuItem>
-                                                        )}
-                                                        <DropdownMenuSeparator />
                                                         <DropdownMenuItem
-                                                            className="text-destructive"
-                                                            onClick={() => {
-                                                                if (confirm('¿Estás seguro de eliminar esta tarea?')) {
-                                                                    router.delete(route('tasks.destroy', task.id));
-                                                                }
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                router.visit(route('tasks.show', task.id));
                                                             }}
                                                         >
-                                                            Eliminar
+                                                            Ver detalles
                                                         </DropdownMenuItem>
+                                                        {/* Para MEMBER: solo puede editar/eliminar sus propias tareas */}
+                                                        {isMember && task.user.id === currentUserId && (
+                                                            <>
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        router.visit(route('tasks.edit', task.id));
+                                                                    }}
+                                                                >
+                                                                    Editar
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                {task.status !== 'completed' && (
+                                                                    <DropdownMenuItem onClick={() => router.post(route('tasks.complete', task.id))}>
+                                                                        Marcar como completada
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                {task.status === 'pending' && (
+                                                                    <DropdownMenuItem onClick={() => router.post(route('tasks.in-progress', task.id))}>
+                                                                        Iniciar progreso
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    className="text-destructive"
+                                                                    onClick={() => {
+                                                                        if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+                                                                            router.delete(route('tasks.destroy', task.id));
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    Eliminar
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
+                                                        {/* Para MANAGER, ADMIN y OWNER: pueden editar/eliminar cualquier tarea */}
+                                                        {(isManager || isAdmin || spaceRole === 'owner') && (
+                                                            <>
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        router.visit(route('tasks.edit', task.id));
+                                                                    }}
+                                                                >
+                                                                    Editar
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                {task.status !== 'completed' && (
+                                                                    <DropdownMenuItem onClick={() => router.post(route('tasks.complete', task.id))}>
+                                                                        Marcar como completada
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                {task.status === 'pending' && (
+                                                                    <DropdownMenuItem onClick={() => router.post(route('tasks.in-progress', task.id))}>
+                                                                        Iniciar progreso
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    className="text-destructive"
+                                                                    onClick={() => {
+                                                                        if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+                                                                            router.delete(route('tasks.destroy', task.id));
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    Eliminar
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>

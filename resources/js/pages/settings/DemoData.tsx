@@ -78,7 +78,6 @@ export default function DemoData({ scenarios, demoStats, hasDemoData }: Props) {
                 form.setData('scenario', 'default');
             },
             onError: (errors) => {
-                console.error('Error generating demo data:', errors);
                 // Restaurar el valor original si hay error
                 form.setData('scenario', originalScenario);
             },
@@ -97,7 +96,6 @@ export default function DemoData({ scenarios, demoStats, hasDemoData }: Props) {
                 preserveScroll: true,
                 onSuccess: () => {},
                 onError: (errors) => {
-                    console.error('Error resetting demo data:', errors);
                 },
                 onProgress: () => {},
             },

@@ -44,6 +44,10 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
     const shouldUseApiSpaces = auth?.user && (currentSpace || tenant) && !loading && spaces.length > 0;
     const availableSpaces = shouldUseApiSpaces ? spaces : userSpaces || [];
 
+    // Siempre mostrar el SpaceSwitcher si hay un espacio activo
+    // Si aún está cargando, usar userSpaces temporalmente para evitar parpadeo
+    const displaySpaces = loading && userSpaces ? userSpaces : availableSpaces;
+
     return (
         <header className="border-sidebar-border/50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4">
             <div className="flex items-center gap-2">
@@ -52,8 +56,8 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
             </div>
 
             <div className="flex items-center gap-4">
-                {/* Mostrar SpaceSwitcher cuando hay un espacio activo y más de un espacio disponible */}
-                {activeSpace && availableSpaces.length > 0 && !loading && <SpaceSwitcher currentSpace={activeSpace} spaces={availableSpaces} />}
+                {/* Mostrar SpaceSwitcher siempre que haya un espacio activo y espacios disponibles */}
+                {activeSpace && displaySpaces.length > 0 && <SpaceSwitcher currentSpace={activeSpace} spaces={displaySpaces} />}
             </div>
         </header>
     );

@@ -126,7 +126,6 @@ export function AddTimeModal({ isOpen, onClose, projects, tasks, date, onSubmit 
             setValidationError(null);
             onClose();
         } catch (error: any) {
-            console.error('Error adding time entry:', error);
             if (error.message) {
                 setValidationError(error.message);
             } else {

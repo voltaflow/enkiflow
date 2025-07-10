@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import 'react-day-picker/dist/style.css';
 
 @plugin 'tailwindcss-animate';
 
@@ -156,4 +157,44 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Calendar fixes for react-day-picker v9 */
+.rdp {
+  --rdp-cell-size: 40px;
+}
+
+.rdp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rdp-tbody {
+  display: table-row-group;
+}
+
+.rdp-head {
+  display: table-header-group;
+}
+
+.rdp-row {
+  display: table-row;
+}
+
+.rdp-cell {
+  display: table-cell;
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  text-align: center;
+  vertical-align: middle;
+  padding: 0;
+}
+
+.rdp-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--rdp-cell-size) - 4px);
+  height: calc(var(--rdp-cell-size) - 4px);
+  margin: 2px;
 }

@@ -3,7 +3,7 @@ import { Heading } from '@/components/heading';
 import { ViewSelector } from '@/components/TimeTracker/ViewSelector';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import axios from '@/lib/axios-config';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -64,6 +64,9 @@ interface TimeUnifiedProps {
 }
 
 function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, activeView = 'timer' }: TimeUnifiedProps) {
+    const { auth } = usePage().props as any;
+    const isGuest = auth?.isGuest || false;
+    
     const [currentView, setCurrentView] = useState(activeView);
     const [showIdlePrompt, setShowIdlePrompt] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -97,7 +100,44 @@ function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, active
     const [rowToDelete, setRowToDelete] = useState<{ projectId: number; taskId: number | null } | null>(null);
 
     // Store and hooks
-    const store = useTimeEntryStore();
+    const timeEntryStore = useTimeEntryStore();
+    // Create a wrapper to provide the expected store structure
+    const store = {
+        state: {
+            approval: {
+                isSubmitted: false,
+                isApproved: false,
+                isLocked: false,
+                submittedAt: null,
+                approvedBy: null
+            },
+            currentEntry: {
+                is_running: false,
+                is_paused: false,
+                project_id: null,
+                task_id: null
+            },
+            recentEntries: [],
+            preferences: {
+                dailyHoursGoal: 8
+            }
+        },
+        hasActiveTimer: false,
+        formattedDuration: '00:00:00',
+        status: 'idle',
+        currentDuration: 0,
+        canEditEntry: true,
+        startTimer: async () => {},
+        pauseTimer: async () => {},
+        resumeTimer: async () => {},
+        stopTimer: async () => {},
+        updateTimeEntry: async () => {},
+        updateEntryProject: async () => {},
+        updateEntryDescription: async () => {},
+        duplicatePreviousDay: async () => [],
+        handleIdleExceeded: () => {},
+        ...timeEntryStore
+    };
     const { submitTimesheet, canSubmit, status: approvalStatus } = useTimesheetApproval();
 
     // State for week entries (initially from props)
@@ -309,7 +349,6 @@ function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, active
                 await loadWeekData(weekStart);
             }
         } catch (error: any) {
-            console.error('Error response:', error.response?.data);
             if (error.response?.status === 422) {
                 const validationErrors = error.response.data.errors;
                 const errorMessages = Object.values(validationErrors).flat().join(', ');
@@ -394,6 +433,15 @@ function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, active
                     {/* Timer View */}
                     {currentView === 'timer' && (
                         <div className="mt-6 min-h-[500px] space-y-6">
+                            {isGuest ? (
+                                <div className="mx-auto max-w-2xl text-center">
+                                    <p className="text-muted-foreground">
+                                        Como usuario invitado, no puedes registrar tiempo. 
+                                        Puedes ver los registros de tiempo en las vistas de día y semana.
+                                    </p>
+                                </div>
+                            ) : (
+                            <>
                             <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-1 lg:grid-cols-2">
                                 {/* Timer Controls */}
                                 <div className="space-y-4">
@@ -462,6 +510,8 @@ function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, active
                                     {/* Map recent entries here */}
                                 </div>
                             )}
+                            </>
+                            )}
                         </div>
                     )}
 
@@ -480,6 +530,7 @@ function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, active
                                         projects={projects}
                                         isLocked={store.state.approval.isLocked}
                                         dailyGoal={store.state.preferences.dailyHoursGoal}
+                                        isGuest={isGuest}
                                         onAddTime={() => setShowAddTimeModal(true)}
                                         onEditEntry={(entry) => {
                                             setEntryToEdit(entry as any);
@@ -538,6 +589,7 @@ function TimeUnifiedContent({ projects, tasks, todayEntries, weekEntries, active
                                 ) : (
                                     <TimesheetWeek
                                         weekStart={weekStart}
+                                        isGuest={isGuest}
                                         entries={currentWeekEntries.map((entry) => {
                                             // Handle both date formats: "YYYY-MM-DD HH:MM:SS" and ISO format
                                             let dateStr = '';

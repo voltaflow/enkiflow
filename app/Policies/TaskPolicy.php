@@ -38,7 +38,9 @@ class TaskPolicy
         }
 
         // Otherwise, get the actual SpaceUser record
-        return $space ? $space->users()->where('user_id', $user->id)->first() : null;
+        return $space ? SpaceUser::where('tenant_id', $space->id)
+            ->where('user_id', $user->id)
+            ->first() : null;
     }
 
     /**

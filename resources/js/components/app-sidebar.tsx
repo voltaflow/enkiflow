@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Building2, Clock, Folder, LayoutGrid, Mail, Users, type LucideIcon } from 'lucide-react';
+import { BarChart3, BookOpen, Building2, Clock, Folder, LayoutGrid, Mail, Users, type LucideIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import AppLogo from './app-logo';
 
@@ -100,8 +100,14 @@ const TimesheetIcon = forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(f
 }) as LucideIcon;
 
 export function AppSidebar() {
-    const { tenant } = usePage().props as any;
+    const { tenant, auth } = usePage().props as any;
     const isTenant = !!tenant;
+    const isGuest = auth?.isGuest || false;
+    const isManager = auth?.isManager || false;
+    const isAdmin = auth?.isAdmin || false;
+    const isMember = auth?.isMember || false;
+    const isOwner = auth?.isOwner || false;
+    const spaceRole = auth?.spaceRole;
 
     // Build navigation items based on context
     const mainNavItems: NavItem[] = [];
@@ -133,32 +139,58 @@ export function AppSidebar() {
                 href: '/tasks',
                 icon: TaskIcon,
             },
-            {
-                title: 'Clientes',
-                href: '/clients',
-                icon: Building2,
-            },
-            {
-                title: 'Proyectos',
-                href: '/projects',
-                icon: ProjectIcon,
-            },
-            {
-                title: 'Registro de Tiempo',
-                href: '/time',
-                icon: Clock,
-            },
-            {
-                title: 'Usuarios',
-                href: '/users',
-                icon: Users,
-            },
-            {
-                title: 'Invitaciones',
-                href: '/invitations',
-                icon: Mail,
-            },
         ];
+
+        // Projects - available to all roles
+        tenantNavItems.push({
+            title: 'Proyectos',
+            href: '/projects',
+            icon: ProjectIcon,
+        });
+
+        // Time tracking - available to all roles
+        tenantNavItems.push({
+            title: 'Registro de Tiempo',
+            href: '/time',
+            icon: Clock,
+        });
+
+        // Add items based on user permissions
+        if (!isGuest && !isMember) {
+            // Clients - available to ADMIN and OWNER only (not for MEMBER)
+            if (isAdmin || isOwner) {
+                tenantNavItems.push({
+                    title: 'Clientes',
+                    href: '/clients',
+                    icon: Building2,
+                });
+            }
+
+            // Reports - available to MANAGER, ADMIN and OWNER (not for MEMBER)
+            if (isManager || isAdmin || isOwner) {
+                tenantNavItems.push({
+                    title: 'Reportes',
+                    href: '/reports',
+                    icon: BarChart3,
+                });
+            }
+
+            // Users and Invitations - only for ADMIN and OWNER
+            if (isAdmin || isOwner) {
+                tenantNavItems.push(
+                    {
+                        title: 'Usuarios',
+                        href: '/users',
+                        icon: Users,
+                    },
+                    {
+                        title: 'Invitaciones',
+                        href: '/invitations',
+                        icon: Mail,
+                    },
+                );
+            }
+        }
 
         // Add tenant navigation items
         mainNavItems.push(...tenantNavItems);

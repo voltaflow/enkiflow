@@ -1,3 +1,4 @@
+import AssignedProjects from '@/components/projects/AssignedProjects';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Building2, Calendar, CheckCircle, FolderOpen, MoreHorizontal, Plus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -55,6 +56,12 @@ interface Props {
 }
 
 export default function Index({ projects, filters, clients = [] }: Props) {
+    const { auth } = usePage().props as any;
+    const isGuest = auth?.isGuest || false;
+    const isManager = auth?.isManager || false;
+    const isAdmin = auth?.isAdmin || false;
+    const isMember = auth?.isMember || false;
+    const spaceRole = auth?.spaceRole;
     const [search, setSearch] = useState(filters.term || '');
 
     // Búsqueda automática con debounce
@@ -135,14 +142,26 @@ export default function Index({ projects, filters, clients = [] }: Props) {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight">Proyectos</h1>
-                            <p className="text-muted-foreground mt-1">Gestiona tus proyectos y realiza seguimiento del progreso</p>
+                            <p className="text-muted-foreground mt-1">
+                                {isGuest || isMember ? 'Visualiza los proyectos del espacio' : 'Gestiona tus proyectos y realiza seguimiento del progreso'}
+                            </p>
                         </div>
-                        <Link href={route('tenant.projects.create')}>
-                            <Button>
-                                <Plus className="mr-2 h-4 w-4" />
-                                Nuevo Proyecto
-                            </Button>
-                        </Link>
+                        {(isManager || isAdmin || spaceRole === 'owner') && (
+                            <Link href={route('tenant.projects.create')}>
+                                <Button>
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    Nuevo Proyecto
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Proyectos asignados al usuario */}
+                    <AssignedProjects />
+
+                    {/* Todos los proyectos del espacio */}
+                    <div className="mt-6">
+                        <h2 className="text-xl font-semibold mb-4">Todos los Proyectos del Espacio</h2>
                     </div>
 
                     <Card>
@@ -205,7 +224,7 @@ export default function Index({ projects, filters, clients = [] }: Props) {
                                             ? 'Intenta cambiar los filtros de búsqueda'
                                             : 'Comienza creando tu primer proyecto'}
                                     </p>
-                                    {!search && !filters.status && !filters.client_id && (
+                                    {!search && !filters.status && !filters.client_id && (isManager || isAdmin || spaceRole === 'owner') && (
                                         <Link href={route('tenant.projects.create')}>
                                             <Button className="mt-4">
                                                 <Plus className="mr-2 h-4 w-4" />
@@ -297,16 +316,34 @@ export default function Index({ projects, filters, clients = [] }: Props) {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={route('tenant.projects.show', project.id)}>Ver detalles</Link>
+                                                        <DropdownMenuItem
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                router.visit(route('tenant.projects.show', project.id));
+                                                            }}
+                                                        >
+                                                            Ver detalles
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={route('tenant.projects.edit', project.id)}>Editar</Link>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onClick={() => deleteProject(project)} className="text-destructive">
-                                                            Eliminar
-                                                        </DropdownMenuItem>
+                                                        {(isManager || isAdmin || spaceRole === 'owner') && (
+                                                            <>
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault();
+                                                                        router.visit(route('tenant.projects.edit', project.id));
+                                                                    }}
+                                                                >
+                                                                    Editar
+                                                                </DropdownMenuItem>
+                                                                {(isAdmin || spaceRole === 'owner') && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem onClick={() => deleteProject(project)} className="text-destructive">
+                                                                            Eliminar
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>

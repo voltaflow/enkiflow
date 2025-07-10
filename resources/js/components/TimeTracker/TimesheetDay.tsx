@@ -40,6 +40,7 @@ interface TimesheetDayProps {
     projects: Project[];
     isLocked: boolean;
     dailyGoal?: number;
+    isGuest?: boolean;
     onAddTime: () => void;
     onEditEntry: (entry: TimeEntry) => void;
     onDeleteEntry: (entryId: number) => void;
@@ -54,6 +55,7 @@ export function TimesheetDay({
     projects,
     isLocked,
     dailyGoal = 8,
+    isGuest = false,
     onAddTime,
     onEditEntry,
     onDeleteEntry,
@@ -132,7 +134,7 @@ export function TimesheetDay({
 
             <CardContent className="space-y-4">
                 {/* Add Time Button */}
-                {!isLocked && (
+                {!isLocked && !isGuest && (
                     <Button onClick={onAddTime} className="w-full" variant="outline">
                         <Plus className="mr-2 h-4 w-4" />
                         Añadir tiempo
@@ -187,7 +189,7 @@ export function TimesheetDay({
                                         </div>
                                     </TableCell>
                                     <TableCell className="w-[80px]">
-                                        {!isLocked && (
+                                        {!isLocked && !isGuest && (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon">

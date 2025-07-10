@@ -131,6 +131,34 @@ class ProjectService
     {
         $query = Project::query()
             ->with(['client:id,name', 'tags', 'user:id,name']);
+        
+        // Filter by user assignments if not owner/admin
+        $user = auth()->user();
+        $space = tenant();
+        
+        // Check if user is space owner
+        $isOwner = $space && $user->id === $space->owner_id;
+        
+        if (!$isOwner) {
+            // Get SpaceUser record
+            $spaceUser = \App\Models\SpaceUser::where('tenant_id', tenant('id'))
+                ->where('user_id', $user->id)
+                ->first();
+            
+            // If user is not admin, check permissions
+            if (!$spaceUser || !$spaceUser->isAdmin()) {
+                // Check if user has VIEW_ALL_PROJECTS permission
+                if (!$spaceUser || !$spaceUser->hasPermission(\App\Enums\SpacePermission::VIEW_ALL_PROJECTS)) {
+                    // Only filter by assigned projects if user doesn't have VIEW_ALL_PROJECTS permission
+                    $query->whereExists(function ($q) use ($user) {
+                        $q->select(\DB::raw(1))
+                            ->from('project_user')
+                            ->whereColumn('projects.id', 'project_user.project_id')
+                            ->where('project_user.user_id', $user->id);
+                    });
+                }
+            }
+        }
 
         // Search by term
         if (!empty($filters['term'])) {

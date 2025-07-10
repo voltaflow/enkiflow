@@ -34,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\Illuminate\Contracts\Cache\Repository::class, function ($app) {
             return $app['cache.store'];
         });
+        
+        // Register ProjectPermissionResolver as singleton
+        $this->app->singleton(\App\Services\ProjectPermissionResolver::class);
     }
 
     /**

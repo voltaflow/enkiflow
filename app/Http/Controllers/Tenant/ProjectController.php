@@ -125,6 +125,7 @@ class ProjectController extends Controller
             'can_edit' => $currentUser->can('update', $project),
             'can_delete' => $currentUser->can('delete', $project),
             'can_complete' => $currentUser->can('complete', $project),
+            'can_manage_members' => $currentUser->can('manageMembers', $project),
             'stats' => $stats,
         ]);
     }

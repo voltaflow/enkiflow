@@ -3,14 +3,22 @@ import axios from 'axios';
 import { useCallback, useMemo, useState } from 'react';
 
 export function useTimesheetApproval() {
-    const {
-        state,
-        submitTimesheet: storeSubmitTimesheet,
-        approveTimesheet: storeApproveTimesheet,
-        lockTimesheet,
-        todaysTotalHours,
-        timesheetStatus,
-    } = useTimeEntryStore();
+    // TODO: Update when timeEntryStore is fully implemented with approval features
+    const store = useTimeEntryStore();
+    
+    // Default values until the store is properly implemented
+    const state = {
+        approval: {
+            isSubmitted: false,
+            isApproved: false,
+            isLocked: false,
+        }
+    };
+    const storeSubmitTimesheet = async () => {};
+    const storeApproveTimesheet = async () => {};
+    const lockTimesheet = async () => {};
+    const todaysTotalHours = 0;
+    const timesheetStatus = 'draft';
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isApproving, setIsApproving] = useState(false);

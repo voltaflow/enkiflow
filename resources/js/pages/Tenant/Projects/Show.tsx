@@ -1,11 +1,15 @@
+import AssignMembersModal from '@/components/projects/AssignMembersModal';
+import ProjectMembersPanel from '@/components/projects/ProjectMembersPanel';
+import { AdvancedPermissionManager } from '@/components/permissions/AdvancedPermissionManager';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, Edit, FolderOpen, Plus, Tag, Trash2, User } from 'lucide-react';
+import { useState } from 'react';
 
 interface Task {
     id: number;
@@ -65,6 +69,7 @@ interface Props {
     can_edit: boolean;
     can_delete: boolean;
     can_complete: boolean;
+    can_manage_members: boolean;
     stats?: {
         total_tasks: number;
         completed_tasks: number;
@@ -73,7 +78,15 @@ interface Props {
     };
 }
 
-export default function Show({ project, is_owner, can_edit, can_delete, can_complete, stats }: Props) {
+export default function Show({ project, is_owner, can_edit, can_delete, can_complete, can_manage_members, stats }: Props) {
+    const { auth } = usePage().props as any;
+    const isGuest = auth?.isGuest || false;
+    const isManager = auth?.isManager || false;
+    const isAdmin = auth?.isAdmin || false;
+    const isMember = auth?.isMember || false;
+    const spaceRole = auth?.spaceRole;
+    const [assignMembersModalOpen, setAssignMembersModalOpen] = useState(false);
+
     const completeProject = () => {
         if (confirm(`¿Estás seguro de que deseas marcar "${project.name}" como completado?`)) {
             router.post(
@@ -162,11 +175,14 @@ export default function Show({ project, is_owner, can_edit, can_delete, can_comp
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {can_edit && (
-                                    <DropdownMenuItem asChild>
-                                        <Link href={route('tenant.projects.edit', project.id)}>
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            Editar
-                                        </Link>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            router.visit(route('tenant.projects.edit', project.id));
+                                        }}
+                                    >
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Editar
                                     </DropdownMenuItem>
                                 )}
 
@@ -252,6 +268,7 @@ export default function Show({ project, is_owner, can_edit, can_delete, can_comp
                             <TabsTrigger value="info">Información</TabsTrigger>
                             <TabsTrigger value="tasks">Tareas</TabsTrigger>
                             <TabsTrigger value="time">Tiempo</TabsTrigger>
+                            <TabsTrigger value="members">Miembros</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="info" className="space-y-4">
@@ -331,12 +348,14 @@ export default function Show({ project, is_owner, can_edit, can_delete, can_comp
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
                                         <CardTitle>Tareas</CardTitle>
-                                        <Link href={`${route('tasks.create')}?project_id=${project.id}`}>
-                                            <Button size="sm">
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                Nueva Tarea
-                                            </Button>
-                                        </Link>
+                                        {(isMember || isManager || isAdmin || spaceRole === 'owner') && (
+                                            <Link href={`${route('tasks.create')}?project_id=${project.id}`}>
+                                                <Button size="sm">
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Nueva Tarea
+                                                </Button>
+                                            </Link>
+                                        )}
                                     </div>
                                 </CardHeader>
                                 <CardContent>
@@ -369,12 +388,14 @@ export default function Show({ project, is_owner, can_edit, can_delete, can_comp
                                         <div className="py-8 text-center">
                                             <CheckCircle className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                                             <p className="text-muted-foreground">No hay tareas asociadas a este proyecto</p>
-                                            <Link href={`${route('tasks.create')}?project_id=${project.id}`}>
-                                                <Button className="mt-4">
-                                                    <Plus className="mr-2 h-4 w-4" />
-                                                    Crear Tarea
-                                                </Button>
-                                            </Link>
+                                            {(isMember || isManager || isAdmin || spaceRole === 'owner') && (
+                                                <Link href={`${route('tasks.create')}?project_id=${project.id}`}>
+                                                    <Button className="mt-4">
+                                                        <Plus className="mr-2 h-4 w-4" />
+                                                        Crear Tarea
+                                                    </Button>
+                                                </Link>
+                                            )}
                                         </div>
                                     )}
                                 </CardContent>
@@ -386,12 +407,14 @@ export default function Show({ project, is_owner, can_edit, can_delete, can_comp
                                 <CardHeader>
                                     <div className="flex items-center justify-between">
                                         <CardTitle>Registro de Tiempo</CardTitle>
-                                        <Link href={`${route('tenant.time.index')}?project_id=${project.id}`}>
-                                            <Button size="sm">
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                Registrar Tiempo
-                                            </Button>
-                                        </Link>
+                                        {(!isGuest) && (
+                                            <Link href={`${route('tenant.time.index')}?project_id=${project.id}`}>
+                                                <Button size="sm">
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Registrar Tiempo
+                                                </Button>
+                                            </Link>
+                                        )}
                                     </div>
                                 </CardHeader>
                                 <CardContent>
@@ -399,19 +422,63 @@ export default function Show({ project, is_owner, can_edit, can_delete, can_comp
                                     <div className="py-8 text-center">
                                         <Clock className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
                                         <p className="text-muted-foreground">No hay registros de tiempo para este proyecto</p>
-                                        <Link href={`${route('tenant.time.index')}?project_id=${project.id}`}>
-                                            <Button className="mt-4">
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                Registrar Tiempo
-                                            </Button>
-                                        </Link>
+                                        {(!isGuest) && (
+                                            <Link href={`${route('tenant.time.index')}?project_id=${project.id}`}>
+                                                <Button className="mt-4">
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Registrar Tiempo
+                                                </Button>
+                                            </Link>
+                                        )}
                                     </div>
                                 </CardContent>
                             </Card>
                         </TabsContent>
+
+                        <TabsContent value="members" className="space-y-4">
+                            {(isAdmin || spaceRole === 'owner') && (
+                                <>
+                                    <ProjectMembersPanel
+                                        projectId={project.id}
+                                        projectName={project.name}
+                                        canManage={can_manage_members}
+                                        onAssignMembers={() => setAssignMembersModalOpen(true)}
+                                    />
+                                    {can_manage_members && (
+                                        <AdvancedPermissionManager
+                                            projectId={project.id}
+                                            projectName={project.name}
+                                            onSave={() => window.location.reload()}
+                                        />
+                                    )}
+                                </>
+                            )}
+                            {(isManager || isGuest || spaceRole === 'member') && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Acceso a Miembros</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-muted-foreground">No tienes permisos para gestionar los miembros de este proyecto.</p>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </TabsContent>
                     </Tabs>
                 </div>
             </div>
+
+            {/* Assign Members Modal */}
+            <AssignMembersModal
+                open={assignMembersModalOpen}
+                onClose={() => setAssignMembersModalOpen(false)}
+                projectId={project.id}
+                projectName={project.name}
+                onSuccess={() => {
+                    // Reload the page to show updated members
+                    window.location.reload();
+                }}
+            />
         </AppLayout>
     );
 }

@@ -17,6 +17,7 @@
         "laravel/horizon": "^5.32",
         "laravel/octane": "^2.9",
         "laravel/tinker": "^2.10.1",
+        "spatie/laravel-data": "^4.17",
         "stancl/tenancy": "^3.9",
         "tightenco/ziggy": "^2.4"
     },

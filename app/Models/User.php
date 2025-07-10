@@ -83,4 +83,74 @@ class User extends Authenticatable
     {
         return $this->id === $space->owner_id;
     }
+
+    /**
+     * Get all projects assigned to the user in the current tenant.
+     */
+    public function assignedProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+            ->using(ProjectUser::class)
+            ->withPivot([
+                'role',
+                'custom_rate',
+                'all_current_projects',
+                'all_future_projects'
+            ])
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if the user has access to all current projects.
+     */
+    public function hasAccessToAllCurrentProjects(): bool
+    {
+        return $this->assignedProjects()
+            ->wherePivot('all_current_projects', true)
+            ->exists();
+    }
+
+    /**
+     * Check if the user has access to all future projects.
+     */
+    public function hasAccessToAllFutureProjects(): bool
+    {
+        return $this->assignedProjects()
+            ->wherePivot('all_future_projects', true)
+            ->exists();
+    }
+
+    /**
+     * Get the accessible projects for the user (including all current/future access).
+     */
+    public function accessibleProjects()
+    {
+        $query = Project::query();
+
+        // Check if user has access to all current projects
+        if ($this->hasAccessToAllCurrentProjects()) {
+            return $query;
+        }
+
+        // Otherwise, return only assigned projects
+        return $query->whereIn('id', $this->assignedProjects()->pluck('projects.id'));
+    }
+
+    /**
+     * Get the user's role for a specific project.
+     */
+    public function getRoleForProject(Project $project): ?string
+    {
+        $assignment = $this->assignedProjects()->find($project->id);
+        return $assignment ? $assignment->pivot->role : null;
+    }
+
+    /**
+     * Get the user's custom rate for a specific project.
+     */
+    public function getCustomRateForProject(Project $project): ?float
+    {
+        $assignment = $this->assignedProjects()->find($project->id);
+        return $assignment ? $assignment->pivot->custom_rate : null;
+    }
 }

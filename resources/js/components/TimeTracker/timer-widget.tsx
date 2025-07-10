@@ -88,7 +88,6 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                 setSelectedTaskId(response.data.timer.task_id?.toString() || 'none');
             }
         } catch (err) {
-            console.error('Failed to fetch current timer:', err);
         }
     };
 
@@ -186,7 +185,6 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                 task_id: selectedTaskId && selectedTaskId !== 'none' ? parseInt(selectedTaskId) : null,
             });
         } catch (err) {
-            console.error('Failed to update timer:', err);
         }
     };
 

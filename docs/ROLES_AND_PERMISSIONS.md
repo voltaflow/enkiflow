@@ -2,17 +2,25 @@
 
 ## Resumen de la Implementación
 
-Se ha implementado un sistema completo de roles y permisos granular para EnkiFlow. El sistema permite:
+EnkiFlow implementa un sistema dual de roles y permisos que opera en dos niveles:
 
-1. **Asignar roles predefinidos** a usuarios por espacio de trabajo
-2. **Personalizar permisos** de forma individual por usuario
-3. **Proteger rutas** basándose en roles o permisos específicos
-4. **Mantener aislamiento** completo entre tenants
+1. **Nivel de Espacio (Space)**: Permisos globales que aplican a todo el espacio de trabajo
+2. **Nivel de Proyecto (Project)**: Permisos específicos que pueden heredar, ampliar o restringir los permisos de espacio
 
-## Roles Disponibles
+### Características Principales
+
+- **Sistema Dual**: Roles y permisos separados para espacios y proyectos
+- **Herencia con Override**: Los permisos de proyecto pueden modificar los comportamientos heredados del espacio
+- **Personalización Granular**: Permisos individuales pueden ser otorgados, revocados o reseteados
+- **Permisos Temporales**: Soporte para accesos con fecha de expiración
+- **Auditoría Completa**: Registro de quién y cuándo se modificaron los permisos
+- **Caché Inteligente**: Sistema de caché para optimizar el rendimiento
+
+## 🏢 Roles a Nivel de Espacio
 
 ### 1. **OWNER** (Propietario)
 - Control total del espacio
+- Bypass automático de todos los permisos de proyecto
 - Único rol que puede eliminar el espacio y gestionar facturación
 - Tiene todos los permisos (24 en total)
 
@@ -36,7 +44,34 @@ Se ha implementado un sistema completo de roles y permisos granular para EnkiFlo
 - Puede comentar pero no modificar contenido
 - Tiene 6 permisos
 
-## 🔐 Permisos Implementados (24 total)
+## 📁 Roles a Nivel de Proyecto
+
+### 1. **ADMIN** (Administrador de Proyecto)
+- Control total sobre el proyecto específico
+- Puede gestionar miembros del proyecto
+- Acceso completo a todas las funcionalidades del proyecto
+
+### 2. **MANAGER** (Gerente de Proyecto)
+- Gestión del proyecto y sus miembros
+- Puede ver reportes y presupuestos
+- Puede exportar datos del proyecto
+
+### 3. **EDITOR** (Editor)
+- Puede editar contenido del proyecto
+- Acceso a reportes básicos
+- Puede trackear tiempo en todas las tareas
+
+### 4. **MEMBER** (Miembro)
+- Participación activa en el proyecto
+- Puede editar contenido y trackear su propio tiempo
+- Acceso limitado a funcionalidades
+
+### 5. **VIEWER** (Observador)
+- Solo visualización del proyecto
+- No puede modificar ningún contenido
+- Acceso de solo lectura
+
+## 🔐 Permisos de Espacio (24 total)
 
 ### Gestión del Espacio
 - `manage_space` - Administrar configuración del espacio
@@ -77,88 +112,82 @@ Se ha implementado un sistema completo de roles y permisos granular para EnkiFlo
 - `manage_tags` - Gestionar etiquetas
 - `view_statistics` - Ver estadísticas y reportes
 
-## Permisos de cada Rol
+## 🔐 Permisos de Proyecto (10 total)
 
-### **OWNER** (24 permisos - todos)
-Tiene TODOS los permisos del sistema
+### Gestión del Proyecto
+- `can_manage_project` - Control total sobre la configuración del proyecto
+- `can_manage_members` - Gestionar miembros del proyecto
 
-### **ADMIN** (20 permisos)
-Todos los permisos EXCEPTO:
-- `DELETE_SPACE` (no puede eliminar el espacio)
-- `MANAGE_BILLING` (no puede gestionar facturación)
-- `VIEW_INVOICES` (no puede ver facturas)
-- `DELETE_OWN_COMMENTS` (no tiene este permiso)
+### Contenido
+- `can_edit_content` - Crear y editar contenido del proyecto
+- `can_delete_content` - Eliminar contenido del proyecto
 
-### **MANAGER** (15 permisos)
-- `MANAGE_SPACE`
-- `VIEW_SPACE`
-- `CREATE_PROJECTS`
-- `EDIT_PROJECTS`
-- `DELETE_PROJECTS`
-- `VIEW_ALL_PROJECTS`
-- `CREATE_TASKS`
-- `EDIT_ANY_TASK`
-- `DELETE_ANY_TASK`
-- `VIEW_ALL_TASKS`
-- `CREATE_COMMENTS`
-- `EDIT_OWN_COMMENTS`
-- `DELETE_OWN_COMMENTS`
-- `MANAGE_TAGS`
-- `VIEW_STATISTICS`
+### Visualización y Reportes
+- `can_view_reports` - Ver reportes y analytics del proyecto
+- `can_view_budget` - Ver información de presupuesto
+- `can_export_data` - Exportar datos del proyecto
 
-### **MEMBER** (9 permisos)
-- `VIEW_SPACE`
-- `VIEW_ALL_PROJECTS`
-- `CREATE_TASKS`
-- `EDIT_OWN_TASKS`
-- `DELETE_OWN_TASKS`
-- `VIEW_ALL_TASKS`
-- `CREATE_COMMENTS`
-- `EDIT_OWN_COMMENTS`
-- `DELETE_OWN_COMMENTS`
+### Time Tracking
+- `can_track_time` - Registrar tiempo propio
+- `can_view_all_time_entries` - Ver registros de tiempo de todos
 
-### **GUEST** (6 permisos)
-- `VIEW_SPACE`
-- `VIEW_ALL_PROJECTS`
-- `VIEW_ALL_TASKS`
-- `CREATE_COMMENTS`
-- `EDIT_OWN_COMMENTS`
-- `DELETE_OWN_COMMENTS`
+### Integraciones
+- `can_manage_integrations` - Gestionar integraciones del proyecto
 
-## Uso del Sistema
+## 🔄 Resolución de Permisos
 
-### 1. Proteger Rutas con Roles
+El sistema determina los permisos efectivos de un usuario mediante el siguiente proceso:
+
+### 1. **Verificación de Propietario**
+Si el usuario es OWNER del espacio, automáticamente tiene TODOS los permisos en TODOS los proyectos.
+
+### 2. **Herencia de Espacio**
+Si el proyecto tiene `inherit_space_permissions = true`:
+- Se verifican primero los permisos del espacio
+- Si el permiso existe a nivel de espacio, se usa ese valor
+
+### 3. **Permisos de Proyecto**
+Se evalúan los permisos específicos del proyecto:
+- **Rol Base**: Permisos por defecto según el rol del usuario en el proyecto
+- **Overrides Explícitos**: Permisos específicamente otorgados o revocados
+- **Permisos Temporales**: Se verifica que no hayan expirado
+
+### 4. **Precedencia**
+1. Owner del espacio (bypass total)
+2. Permisos explícitos del proyecto
+3. Permisos del rol del proyecto
+4. Permisos heredados del espacio (si aplica)
+
+## 💻 Uso del Sistema
+
+### 1. Proteger Rutas con Roles de Espacio
 
 ```php
-// Requiere rol de admin o superior
+// Requiere rol de admin o superior en el espacio
 Route::middleware(['tenant.role:role:admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users/invite', [UserController::class, 'invite']);
 });
-
-// Requiere rol de manager o superior
-Route::middleware(['tenant.role:role:manager'])->group(function () {
-    Route::get('/reports', [ReportController::class, 'index']);
-});
 ```
 
-### 2. Proteger Rutas con Permisos Específicos
+### 2. Proteger Rutas con Permisos de Proyecto
 
 ```php
-// Requiere permiso específico
-Route::middleware(['tenant.role:create_projects'])->group(function () {
-    Route::post('/projects', [ProjectController::class, 'store']);
+// Requiere permiso específico en el proyecto
+Route::middleware(['auth', 'can:can_manage_members,project'])->group(function () {
+    Route::post('/projects/{project}/members', [ProjectMemberController::class, 'store']);
 });
 
-// Requiere permiso para ver estadísticas
-Route::middleware(['tenant.role:view_statistics'])->group(function () {
-    Route::get('/analytics', [AnalyticsController::class, 'index']);
+// Múltiples permisos (requiere todos)
+Route::middleware(['auth', 'can:can_view_reports,project', 'can:can_export_data,project'])->group(function () {
+    Route::get('/projects/{project}/export', [ProjectExportController::class, 'export']);
 });
 ```
 
 ### 3. Verificar Permisos en Controladores
 
 ```php
+// Para permisos de espacio
 use App\Traits\HasSpacePermissions;
 use App\Enums\SpacePermission;
 
@@ -168,132 +197,158 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
-        // Verificar permiso
         if (!$this->userHasPermission($request->user(), SpacePermission::CREATE_PROJECTS)) {
             abort(403, 'No tienes permiso para crear proyectos');
         }
+    }
+}
 
-        // Crear proyecto...
+// Para permisos de proyecto
+class TaskController extends Controller
+{
+    public function update(Request $request, Project $project, Task $task)
+    {
+        // Verificar permiso de proyecto
+        if (!$request->user()->hasProjectPermission($project, 'can_edit_content')) {
+            abort(403, 'No tienes permiso para editar contenido en este proyecto');
+        }
     }
 }
 ```
 
-### 4. Comando Artisan para Asignar Roles
-
-```bash
-# Asignar rol básico
-php artisan space:assign-role usuario@ejemplo.com 1 admin
-
-# Asignar rol con permisos adicionales
-php artisan space:assign-role usuario@ejemplo.com 1 member \
-  --additional=create_projects \
-  --additional=view_statistics
-
-# Asignar rol con permisos revocados
-php artisan space:assign-role usuario@ejemplo.com 1 manager \
-  --revoked=delete_projects
-```
-
-### 5. Gestión Programática de Permisos
+### 4. Gestión de Permisos de Proyecto via API
 
 ```php
-// Obtener o crear relación usuario-espacio
-$spaceUser = SpaceUser::firstOrCreate(
-    ['tenant_id' => $space->id, 'user_id' => $user->id],
-    ['role' => SpaceRole::MEMBER]
+// Asignar usuario a proyecto con rol
+$projectPermissionService->addUserToProject(
+    $project->id,
+    $user->id,
+    'editor',
+    '2024-12-31', // opcional: fecha de expiración
+    'Acceso temporal para revisión' // opcional: notas
 );
 
-// Asignar permisos personalizados (ignora el rol)
-$spaceUser->custom_permissions = [
-    'view_space',
-    'create_tasks',
-    'view_all_projects'
-];
+// Actualizar rol de usuario en proyecto
+$projectPermissionService->updateUserRole($project->id, $user->id, 'manager');
 
-// O añadir permisos adicionales al rol
-$spaceUser->additional_permissions = ['create_projects', 'view_statistics'];
+// Otorgar permisos específicos
+$projectPermissionService->updateUserPermissions(
+    $project->id,
+    $user->id,
+    ['can_view_budget', 'can_export_data'],
+    'grant'
+);
 
-// O revocar permisos específicos del rol
-$spaceUser->revoked_permissions = ['delete_tasks'];
+// Revocar permisos específicos
+$projectPermissionService->updateUserPermissions(
+    $project->id,
+    $user->id,
+    ['can_delete_content'],
+    'revoke'
+);
 
-$spaceUser->save();
+// Resetear permisos a los del rol
+$projectPermissionService->updateUserPermissions(
+    $project->id,
+    $user->id,
+    ['can_manage_members'],
+    'reset'
+);
 ```
 
-## Personalización de Permisos
+### 5. Comando Artisan para Gestión
 
-El sistema ofrece tres formas de personalizar permisos:
+```bash
+# Asignar rol de espacio
+php artisan space:assign-role usuario@ejemplo.com 1 admin
 
-### 1. **Permisos Personalizados** (`custom_permissions`)
-- Reemplaza completamente los permisos del rol
-- El usuario solo tendrá los permisos listados aquí
+# Asignar rol de proyecto
+php artisan project:assign-role usuario@ejemplo.com 1 editor
 
-### 2. **Permisos Adicionales** (`additional_permissions`)
-- Añade permisos extra al rol base
-- Útil para dar capacidades específicas sin cambiar de rol
+# Listar permisos de un usuario en un proyecto
+php artisan project:list-permissions usuario@ejemplo.com 1
+```
 
-### 3. **Permisos Revocados** (`revoked_permissions`)
-- Quita permisos específicos del rol
-- Útil para limitar temporalmente capacidades
+## 🎯 Personalización de Permisos
 
-## Ejemplos de Implementación en Rutas
+### Nivel de Espacio
+
+El sistema ofrece tres formas de personalizar permisos de espacio:
+
+1. **Permisos Personalizados** (`custom_permissions`)
+   - Reemplaza completamente los permisos del rol
+   
+2. **Permisos Adicionales** (`additional_permissions`)
+   - Añade permisos extra al rol base
+   
+3. **Permisos Revocados** (`revoked_permissions`)
+   - Quita permisos específicos del rol
+
+### Nivel de Proyecto
+
+Los permisos de proyecto usan un sistema de overrides explícitos:
 
 ```php
-// routes/tenant.php
-
-// Gestión de usuarios - Solo admin y owner
-Route::middleware(['tenant.role:role:admin'])->group(function () {
-    Route::resource('users', UserController::class);
-});
-
-// Invitaciones - Requiere permiso específico
-Route::middleware(['tenant.role:invite_users'])->group(function () {
-    Route::resource('invitations', InvitationController::class);
-});
-
-// Analytics - Requiere permiso de ver estadísticas
-Route::middleware(['tenant.role:view_statistics'])->group(function () {
-    Route::get('/analytics', [AnalyticsController::class, 'index']);
-    Route::get('/reports', [ReportController::class, 'index']);
-});
-
-// Proyectos - Diferentes permisos para diferentes acciones
-Route::get('/projects', [ProjectController::class, 'index']); // Todos pueden ver
-Route::middleware(['tenant.role:create_projects'])->group(function () {
-    Route::post('/projects', [ProjectController::class, 'store']);
-});
-Route::middleware(['tenant.role:edit_projects'])->group(function () {
-    Route::put('/projects/{project}', [ProjectController::class, 'update']);
-});
-Route::middleware(['tenant.role:delete_projects'])->group(function () {
-    Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
-});
+// Estructura en base de datos
+user_project_permissions: {
+    user_id: 1,
+    project_id: 1,
+    role: 'member',
+    explicit_permissions: {
+        'can_view_budget': true,  // Otorgado explícitamente
+        'can_delete_content': false, // Revocado explícitamente
+        'can_export_data': null  // Hereda del rol
+    }
+}
 ```
 
-## Consideraciones de Seguridad
+## 🔧 Consideraciones Técnicas
 
-1. **Aislamiento de Tenant**: El middleware verifica automáticamente que el usuario pertenezca al tenant actual
-2. **Caché de Permisos**: Los permisos se cachean por 30 minutos para mejorar el rendimiento
-3. **Owner Virtual**: Si un usuario es el propietario del espacio, automáticamente obtiene rol OWNER
-4. **Validación de Enums**: El sistema valida que los roles y permisos sean válidos antes de asignarlos
+### Caché de Permisos
+- Los permisos de espacio se cachean por 30 minutos
+- Los permisos de proyecto se cachean por 15 minutos
+- El caché se invalida automáticamente al actualizar permisos
 
-## Migración de Datos Existentes
+### Permisos Temporales
+- Campo `expires_at` para accesos con fecha límite
+- Se verifican automáticamente en cada request
+- Útil para consultores o accesos de revisión
 
-Si tienes usuarios existentes, sus roles actuales se mantendrán. Las nuevas columnas JSON permiten personalización sin afectar los roles base:
+### Auditoría
+- `created_by`: Usuario que otorgó el permiso
+- `updated_by`: Último usuario en modificar
+- `notes`: Campo opcional para documentar razones
+- Todos los cambios quedan registrados en la base de datos
 
-```sql
--- Ver usuarios y sus roles actuales
-SELECT u.email, s.name as space, su.role 
-FROM space_users su
-JOIN users u ON u.id = su.user_id
-JOIN spaces s ON s.id = su.tenant_id;
-```
+### Performance
+- Eager loading de relaciones para minimizar queries
+- Índices en campos clave (user_id, project_id, role)
+- Caché multinivel para optimizar verificaciones frecuentes
 
-## Próximos Pasos Recomendados
+## 📊 Matriz de Permisos por Rol
 
-1. **Auditoría**: Implementar registro de cambios de roles/permisos
-2. **UI de Gestión**: Crear interfaz para que admins gestionen permisos
-3. **Políticas Laravel**: Implementar policies para lógica compleja
-4. **Tests**: Añadir tests para verificar el sistema de permisos
-5. **Documentación API**: Documentar endpoints protegidos
+### Roles de Proyecto y sus Permisos
 
-El sistema está completamente funcional y listo para usar. Todas las rutas pueden protegerse con el middleware `tenant.role` especificando roles o permisos específicos.
+| Permiso | Admin | Manager | Editor | Member | Viewer |
+|---------|-------|---------|--------|--------|--------|
+| can_manage_project | ✅ | ❌ | ❌ | ❌ | ❌ |
+| can_manage_members | ✅ | ✅ | ❌ | ❌ | ❌ |
+| can_edit_content | ✅ | ✅ | ✅ | ✅ | ❌ |
+| can_delete_content | ✅ | ✅ | ❌ | ❌ | ❌ |
+| can_view_reports | ✅ | ✅ | ✅ | ❌ | ❌ |
+| can_view_budget | ✅ | ✅ | ❌ | ❌ | ❌ |
+| can_export_data | ✅ | ✅ | ❌ | ❌ | ❌ |
+| can_track_time | ✅ | ✅ | ✅ | ✅ | ❌ |
+| can_view_all_time_entries | ✅ | ✅ | ✅ | ❌ | ❌ |
+| can_manage_integrations | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+## 🚀 Próximos Pasos Recomendados
+
+1. **UI de Gestión Avanzada**: Interfaz para gestión visual de permisos
+2. **Plantillas de Permisos**: Conjuntos predefinidos de permisos para casos comunes
+3. **Delegación de Permisos**: Permitir que usuarios deleguen sus permisos temporalmente
+4. **Logs de Auditoría**: Interfaz para revisar historial de cambios
+5. **Notificaciones**: Alertar sobre cambios de permisos o expiración de accesos
+6. **API REST**: Endpoints públicos para gestión de permisos via API
+
+El sistema está completamente funcional y listo para usar en producción, con soporte completo para escenarios empresariales complejos.
