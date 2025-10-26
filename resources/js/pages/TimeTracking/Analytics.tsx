@@ -5,9 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
-import { endOfMonth, endOfWeek, format, startOfMonth, startOfWeek } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
 import { Activity, BarChart3, Calendar, ChevronDown, ChevronUp, Clock, Download, Filter } from 'lucide-react';
-import { useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Stats {
@@ -23,6 +23,11 @@ interface Stats {
     month: {
         hours: number;
         average_daily: number;
+    };
+    ai_usage?: {
+        total_categorizations: number;
+        total_cost: number;
+        average_cost: number;
     };
 }
 
@@ -59,9 +64,21 @@ interface Props {
 }
 
 export default function Analytics({ stats, weeklyData, projectDistribution, productivityTrends }: Props) {
-    const [selectedPeriod, setSelectedPeriod] = useState('week');
-    const [isLoading, setIsLoading] = useState(false);
-    const [chartData, setChartData] = useState<any>(null);
+    const ensureNumber = (value: number | null | undefined) => {
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+            return 0;
+        }
+        return value;
+    };
+
+    const formatHours = (value: number | null | undefined, digits = 1) => ensureNumber(value).toFixed(digits);
+    const formatCurrency = (value: number | null | undefined, digits = 4) => `$${ensureNumber(value).toFixed(digits)}`;
+
+    const aiUsage = stats.ai_usage ?? {
+        total_categorizations: 0,
+        total_cost: 0,
+        average_cost: 0,
+    };
 
     // Calculate project percentages
     const totalProjectHours = projectDistribution.reduce((sum, p) => sum + p.hours, 0);
@@ -71,65 +88,33 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
     }));
 
     // Find productivity trends
-    const avgProductivity = productivityTrends.reduce((sum, t) => sum + t.productivity_score, 0) / productivityTrends.length;
+    const avgProductivity =
+        productivityTrends.length > 0
+            ? productivityTrends.reduce((sum, t) => sum + t.productivity_score, 0) / productivityTrends.length
+            : 0;
     const productivityChange =
         productivityTrends.length >= 2
             ? productivityTrends[productivityTrends.length - 1].productivity_score - productivityTrends[0].productivity_score
             : 0;
-
-    const loadPeriodData = async (period: string) => {
-        setIsLoading(true);
-        try {
-            let startDate, endDate;
-
-            switch (period) {
-                case 'week':
-                    startDate = startOfWeek(new Date());
-                    endDate = endOfWeek(new Date());
-                    break;
-                case 'month':
-                    startDate = startOfMonth(new Date());
-                    endDate = endOfMonth(new Date());
-                    break;
-                case 'year':
-                    startDate = new Date(new Date().getFullYear(), 0, 1);
-                    endDate = new Date(new Date().getFullYear(), 11, 31);
-                    break;
-                default:
-                    return;
-            }
-
-            const response = await axios.get('/api/analytics/data', {
-                params: {
-                    start_date: format(startDate, 'yyyy-MM-dd'),
-                    end_date: format(endDate, 'yyyy-MM-dd'),
-                    metric: 'hours',
-                },
-            });
-
-            setChartData(response.data);
-        } catch (error) {
-            toast.error('Failed to load analytics data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const latestFocusHours = productivityTrends.length > 0 ? productivityTrends[productivityTrends.length - 1].focus_hours : 0;
+    const billableRatio = stats.week.hours > 0 ? (stats.week.billable_hours / stats.week.hours) * 100 : 0;
+    const averageDailyHours = ensureNumber(stats.month.average_daily);
 
     const exportReport = async () => {
         try {
-            const response = await axios.post('/api/analytics/export', {
+            await axios.post('/api/analytics/export', {
                 start_date: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
                 end_date: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
                 format: 'pdf',
             });
 
             toast.info('Export functionality coming soon');
-        } catch (error) {
+        } catch {
             toast.error('Export not yet available');
         }
     };
 
-    const StatCard = ({ title, value, subtitle, icon: Icon, trend }: any) => (
+    const StatCard = ({ title, value, subtitle, icon: Icon, trend }: StatCardProps) => (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -147,6 +132,14 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
             </CardContent>
         </Card>
     );
+
+    interface StatCardProps {
+        title: string;
+        value: string;
+        subtitle?: string;
+        icon: LucideIcon;
+        trend?: number;
+    }
 
     return (
         <AppLayout>
@@ -171,30 +164,52 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
                 <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <StatCard
                         title="Today's Hours"
-                        value={`${stats.today.hours.toFixed(1)}h`}
+                        value={`${formatHours(stats.today.hours)}h`}
                         subtitle={`${stats.today.entries} entries`}
                         icon={Clock}
                     />
                     <StatCard
                         title="This Week"
-                        value={`${stats.week.hours.toFixed(1)}h`}
-                        subtitle={`${stats.week.billable_hours.toFixed(1)}h billable`}
+                        value={`${formatHours(stats.week.hours)}h`}
+                        subtitle={`${formatHours(stats.week.billable_hours)}h billable`}
                         icon={Calendar}
                     />
                     <StatCard
                         title="This Month"
-                        value={`${stats.month.hours.toFixed(1)}h`}
-                        subtitle={`${stats.month.average_daily.toFixed(1)}h daily avg`}
+                        value={`${formatHours(stats.month.hours)}h`}
+                        subtitle={`${formatHours(averageDailyHours)}h daily avg`}
                         icon={BarChart3}
                     />
                     <StatCard
                         title="Productivity"
-                        value={`${avgProductivity.toFixed(0)}%`}
+                        value={`${formatHours(avgProductivity, 0)}%`}
                         subtitle="Focus time ratio"
                         icon={Activity}
                         trend={productivityChange}
                     />
                 </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>AI Usage This Month</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div>
+                            <div className="text-2xl font-bold">{aiUsage.total_categorizations}</div>
+                            <p className="text-muted-foreground text-xs">categorizations performed</p>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex items-center justify-between">
+                                <span>Total cost</span>
+                                <span className="font-semibold">{formatCurrency(aiUsage.total_cost)}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span>Average cost per categorization</span>
+                                <span className="font-semibold">{formatCurrency(aiUsage.average_cost)}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <Tabs defaultValue="overview" className="space-y-4">
                     <TabsList>
@@ -237,7 +252,7 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
                             </CardHeader>
                             <CardContent>
                                 <div className="mb-8 text-center">
-                                    <div className="text-primary text-6xl font-bold">{avgProductivity.toFixed(0)}%</div>
+                                    <div className="text-primary text-6xl font-bold">{formatHours(avgProductivity, 0)}%</div>
                                     <p className="text-muted-foreground">Average focus time ratio</p>
                                 </div>
 
@@ -245,7 +260,7 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
                                     <div>
                                         <div className="mb-2 flex justify-between text-sm">
                                             <span>Focus Time</span>
-                                            <span>{productivityTrends[productivityTrends.length - 1]?.focus_hours.toFixed(1)}h</span>
+                                            <span>{`${formatHours(latestFocusHours)}h`}</span>
                                         </div>
                                         <Progress value={75} className="h-2" />
                                     </div>
@@ -316,7 +331,7 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
                                     <div>
                                         <h4 className="mb-4 text-sm font-medium">Daily Hours</h4>
                                         <div className="flex h-32 items-end gap-1">
-                                            {productivityTrends.slice(-14).map((trend, index) => (
+                                            {productivityTrends.slice(-14).map((trend) => (
                                                 <div
                                                     key={trend.date}
                                                     className="bg-primary hover:bg-primary/80 flex-1 rounded-t transition-colors"
@@ -336,11 +351,11 @@ export default function Analytics({ stats, weeklyData, projectDistribution, prod
                                             <p className="text-muted-foreground text-xs">Active Projects</p>
                                         </div>
                                         <div>
-                                            <p className="text-2xl font-bold">{((stats.week.billable_hours / stats.week.hours) * 100).toFixed(0)}%</p>
+                                            <p className="text-2xl font-bold">{`${formatHours(billableRatio, 0)}%`}</p>
                                             <p className="text-muted-foreground text-xs">Billable Ratio</p>
                                         </div>
                                         <div>
-                                            <p className="text-2xl font-bold">{stats.month.average_daily.toFixed(1)}h</p>
+                                            <p className="text-2xl font-bold">{`${formatHours(averageDailyHours)}h`}</p>
                                             <p className="text-muted-foreground text-xs">Daily Average</p>
                                         </div>
                                     </div>

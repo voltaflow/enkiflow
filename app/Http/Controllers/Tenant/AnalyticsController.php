@@ -58,6 +58,13 @@ class AnalyticsController extends Controller
         $thisWeek = Carbon::now()->startOfWeek();
         $thisMonth = Carbon::now()->startOfMonth();
 
+        $monthlyAverageDaily = TimeEntry::where('user_id', $userId)
+            ->where('started_at', '>=', $thisMonth)
+            ->groupBy(DB::raw('DATE(started_at)'))
+            ->selectRaw('SUM(duration) / 3600 as daily_hours')
+            ->pluck('daily_hours')
+            ->avg();
+
         return [
             'today' => [
                 'hours' => TimeEntry::where('user_id', $userId)
@@ -84,12 +91,12 @@ class AnalyticsController extends Controller
                 'hours' => TimeEntry::where('user_id', $userId)
                     ->where('started_at', '>=', $thisMonth)
                     ->sum('duration') / 3600,
-                'average_daily' => TimeEntry::where('user_id', $userId)
-                    ->where('started_at', '>=', $thisMonth)
-                    ->groupBy(DB::raw('DATE(started_at)'))
-                    ->selectRaw('SUM(duration) / 3600 as daily_hours')
-                    ->pluck('daily_hours')
-                    ->avg(),
+                'average_daily' => $monthlyAverageDaily ? (float) $monthlyAverageDaily : 0.0,
+            ],
+            'ai_usage' => [
+                'total_categorizations' => 0,
+                'total_cost' => 0.0,
+                'average_cost' => 0.0,
             ],
         ];
     }
