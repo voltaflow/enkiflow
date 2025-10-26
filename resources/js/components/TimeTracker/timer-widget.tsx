@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTimerSync } from '@/hooks/use-broadcast-sync';
 import axios from 'axios';
 import { Clock, Pause, Play, Square } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Project {
     id: number;
@@ -31,11 +31,68 @@ interface Timer {
     task?: Task;
 }
 
+type RawTimer = Partial<Timer> & { total_duration?: number | string | null };
+
+interface TimeEntryPayload {
+    id: number;
+    duration: number;
+    formatted_duration: string;
+    description: string;
+    project_id: number | null;
+    task_id: number | null;
+    started_at: string;
+    ended_at: string | null;
+}
+
+interface CurrentTimerResponse {
+    timer: RawTimer | null;
+}
+
+interface TimerStartResponse {
+    timer: RawTimer;
+}
+
+interface TimerStatusResponse {
+    timer: RawTimer;
+}
+
+interface TimerStopResponse {
+    time_entry: TimeEntryPayload;
+}
+
 interface TimerWidgetProps {
     projects: Project[];
     tasks: Task[];
-    onTimerStop?: (timeEntry: any) => void;
+    onTimerStop?: (timeEntry: TimeEntryPayload) => void;
 }
+
+const ensureNumber = (value: unknown): number => {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) && numericValue >= 0 ? numericValue : 0;
+};
+
+const normalizeTimer = (rawTimer: RawTimer): Timer => ({
+    id: rawTimer.id ?? 0,
+    description: rawTimer.description ?? '',
+    project_id: rawTimer.project_id ?? null,
+    task_id: rawTimer.task_id ?? null,
+    started_at: rawTimer.started_at ?? new Date().toISOString(),
+    is_running: rawTimer.is_running ?? false,
+    total_duration: ensureNumber(rawTimer.total_duration),
+    project: rawTimer.project,
+    task: rawTimer.task,
+});
+
+const getErrorMessage = (error: unknown, fallback: string): string => {
+    if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: unknown } | undefined;
+        if (typeof data?.message === 'string') {
+            return data.message;
+        }
+    }
+
+    return fallback;
+};
 
 export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidgetProps) {
     const [timer, setTimer] = useState<Timer | null>(null);
@@ -52,7 +109,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
     // Fetch current timer on mount
     useEffect(() => {
         fetchCurrentTimer();
-    }, []);
+    }, [fetchCurrentTimer]);
 
     // Update display time every second
     useEffect(() => {
@@ -65,10 +122,10 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
             if (timer.is_running) {
                 const startTime = new Date(timer.started_at).getTime();
                 const now = new Date().getTime();
-                const elapsed = Math.floor((now - startTime) / 1000) + timer.total_duration;
+                const elapsed = Math.floor((now - startTime) / 1000) + ensureNumber(timer.total_duration);
                 setDisplayTime(formatTime(elapsed));
             } else {
-                setDisplayTime(formatTime(timer.total_duration));
+                setDisplayTime(formatTime(ensureNumber(timer.total_duration)));
             }
         };
 
@@ -78,20 +135,25 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         return () => clearInterval(interval);
     }, [timer]);
 
-    const fetchCurrentTimer = async () => {
+    const fetchCurrentTimer = useCallback(async () => {
         try {
-            const response = await axios.get('/api/timer/current');
+            const response = await axios.get<CurrentTimerResponse>('/api/timer/current');
             if (response.data.timer) {
-                setTimer(response.data.timer);
-                setDescription(response.data.timer.description || '');
-                setSelectedProjectId(response.data.timer.project_id?.toString() || 'none');
-                setSelectedTaskId(response.data.timer.task_id?.toString() || 'none');
+                const normalized = normalizeTimer(response.data.timer);
+                setTimer(normalized);
+                setDescription(normalized.description || '');
+                setSelectedProjectId(normalized.project_id?.toString() || 'none');
+                setSelectedTaskId(normalized.task_id?.toString() || 'none');
             }
-        } catch (err) {
+        } catch (error) {
+            console.error('Failed to load current timer', error);
         }
-    };
+    }, []);
 
     const formatTime = (seconds: number): string => {
+        if (!Number.isFinite(seconds) || seconds <= 0) {
+            return '00:00:00';
+        }
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
@@ -103,16 +165,17 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         setError(null);
 
         try {
-            const response = await axios.post('/api/timer/start', {
+            const response = await axios.post<TimerStartResponse>('/api/timer/start', {
                 description,
                 project_id: selectedProjectId && selectedProjectId !== 'none' ? parseInt(selectedProjectId) : null,
                 task_id: selectedTaskId && selectedTaskId !== 'none' ? parseInt(selectedTaskId) : null,
             });
 
-            setTimer(response.data.timer);
-            notifyTimerStarted(response.data.timer);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to start timer');
+            const normalized = normalizeTimer(response.data.timer);
+            setTimer(normalized);
+            notifyTimerStarted(normalized);
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, 'Failed to start timer'));
         } finally {
             setLoading(false);
         }
@@ -125,10 +188,11 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         setError(null);
 
         try {
-            const response = await axios.post(`/api/timer/${timer.id}/pause`);
-            setTimer({ ...timer, ...response.data.timer });
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to pause timer');
+            const response = await axios.post<TimerStatusResponse>(`/api/timer/${timer.id}/pause`);
+            const normalized = normalizeTimer({ ...timer, ...response.data.timer });
+            setTimer(normalized);
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, 'Failed to pause timer'));
         } finally {
             setLoading(false);
         }
@@ -141,10 +205,11 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         setError(null);
 
         try {
-            const response = await axios.post(`/api/timer/${timer.id}/resume`);
-            setTimer({ ...timer, ...response.data.timer });
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to resume timer');
+            const response = await axios.post<TimerStatusResponse>(`/api/timer/${timer.id}/resume`);
+            const normalized = normalizeTimer({ ...timer, ...response.data.timer });
+            setTimer(normalized);
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, 'Failed to resume timer'));
         } finally {
             setLoading(false);
         }
@@ -157,7 +222,7 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
         setError(null);
 
         try {
-            const response = await axios.post(`/api/timer/${timer.id}/stop`);
+            const response = await axios.post<TimerStopResponse>(`/api/timer/${timer.id}/stop`);
             setTimer(null);
             setDescription('');
             setSelectedProjectId('none');
@@ -168,8 +233,8 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
             if (onTimerStop) {
                 onTimerStop(response.data.time_entry);
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to stop timer');
+        } catch (error: unknown) {
+            setError(getErrorMessage(error, 'Failed to stop timer'));
         } finally {
             setLoading(false);
         }
@@ -184,7 +249,8 @@ export default function TimerWidget({ projects, tasks, onTimerStop }: TimerWidge
                 project_id: selectedProjectId && selectedProjectId !== 'none' ? parseInt(selectedProjectId) : null,
                 task_id: selectedTaskId && selectedTaskId !== 'none' ? parseInt(selectedTaskId) : null,
             });
-        } catch (err) {
+        } catch (error) {
+            console.error('Failed to update timer', error);
         }
     };
 
